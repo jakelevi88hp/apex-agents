@@ -11,6 +11,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link href="/dashboard/agents" className="hover:text-purple-600">Agents</Link>
             <Link href="/dashboard/workflows" className="hover:text-purple-600">Workflows</Link>
             <Link href="/dashboard/knowledge" className="hover:text-purple-600">Knowledge</Link>
+            <Link href="/dashboard/analytics" className="hover:text-purple-600">Analytics</Link>
           </div>
         </div>
       </nav>
