@@ -609,7 +609,7 @@ For each step, determine which agent type is best suited.
             stepId: z.string(),
             agentType: z.enum(['research', 'analysis', 'writing', 'code', 'decision', 'communication', 'monitoring']),
             task: z.string(),
-            context: z.record(z.any()),
+            context: z.record(z.string(), z.any()),
           })
         ),
       })

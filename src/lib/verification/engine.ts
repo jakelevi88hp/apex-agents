@@ -80,7 +80,7 @@ export class VerificationEngine {
         })
       );
 
-      evidence.push(...extraction.evidence.map(e => ({
+      evidence.push(...extraction.evidence.map((e: any) => ({
         ...e,
         source: source.url,
       })));

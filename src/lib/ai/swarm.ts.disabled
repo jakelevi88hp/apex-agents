@@ -1,4 +1,6 @@
-import { Agent } from './agents';
+import { BaseAgent } from './agents';
+
+type Agent = BaseAgent;
 import { aiOrchestrator } from './orchestrator';
 import { z } from 'zod';
 

@@ -1,7 +1,7 @@
 import { ChatOpenAI } from '@langchain/openai';
 import { ChatAnthropic } from '@langchain/anthropic';
 import { HumanMessage, SystemMessage, AIMessage } from '@langchain/core/messages';
-import { StructuredOutputParser } from 'langchain/output_parsers';
+import { StructuredOutputParser } from '@langchain/core/output_parsers';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { z } from 'zod';
 
@@ -120,7 +120,7 @@ export class AIOrchestrator {
     prompt: string,
     schema: T,
     variables?: Record<string, any>
-  ): Promise<z.infer<T>> {
+  ): Promise<any> {
     const parser = StructuredOutputParser.fromZodSchema(schema);
     const formatInstructions = parser.getFormatInstructions();
 
@@ -176,7 +176,7 @@ export class TaskPlanner {
           description: z.string(),
           action: z.string(),
           tool: z.string(),
-          input: z.record(z.any()),
+          input: z.record(z.string(), z.any()),
           expectedOutput: z.string(),
           dependencies: z.array(z.string()),
         })

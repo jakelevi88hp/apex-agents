@@ -107,7 +107,7 @@ Provide specific, actionable optimization suggestions.
       'gpt-4-turbo',
       optimizationPrompt,
       z.object({
-        configChanges: z.record(z.any()),
+        configChanges: z.record(z.string(), z.any()),
         toolAdditions: z.array(z.string()),
         capabilityEnhancements: z.array(z.string()),
         reasoning: z.string(),

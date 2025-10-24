@@ -21,9 +21,9 @@ export const agentsRouter = router({
       name: z.string(),
       description: z.string().optional(),
       type: z.enum(['research', 'analysis', 'writing', 'code', 'decision', 'communication', 'monitoring', 'orchestrator']),
-      config: z.record(z.any()),
+      config: z.record(z.string(), z.any()),
       capabilities: z.array(z.string()),
-      constraints: z.record(z.any()).optional(),
+      constraints: z.record(z.string(), z.any()).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const [newAgent] = await ctx.db.insert(agents).values({
@@ -38,7 +38,7 @@ export const agentsRouter = router({
       id: z.string().uuid(),
       name: z.string().optional(),
       description: z.string().optional(),
-      config: z.record(z.any()).optional(),
+      config: z.record(z.string(), z.any()).optional(),
       status: z.enum(['active', 'inactive', 'archived']).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
@@ -61,7 +61,7 @@ export const agentsRouter = router({
     .input(z.object({
       agentId: z.string().uuid(),
       objective: z.string(),
-      context: z.record(z.any()).optional(),
+      context: z.record(z.string(), z.any()).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const [agent] = await ctx.db.select().from(agents).where(eq(agents.id, input.agentId));
@@ -78,6 +78,7 @@ export const agentsRouter = router({
       });
 
       const [execution] = await ctx.db.insert(executions).values({
+        workflowId: agent.id, // Using agent ID as workflow ID for direct agent execution
         agentId: agent.id,
         userId: ctx.userId!,
         status: 'running',

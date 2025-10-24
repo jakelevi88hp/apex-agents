@@ -12,8 +12,8 @@ export const workflowsRouter = router({
     .input(z.object({
       name: z.string(),
       description: z.string().optional(),
-      trigger: z.record(z.any()),
-      steps: z.array(z.record(z.any())),
+      trigger: z.record(z.string(), z.any()),
+      steps: z.array(z.record(z.string(), z.any())),
       agents: z.array(z.string()),
     }))
     .mutation(async ({ ctx, input }) => {
@@ -27,7 +27,7 @@ export const workflowsRouter = router({
   execute: protectedProcedure
     .input(z.object({
       workflowId: z.string().uuid(),
-      inputData: z.record(z.any()).optional(),
+      inputData: z.record(z.string(), z.any()).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const [workflow] = await ctx.db.select().from(workflows).where(eq(workflows.id, input.workflowId));
