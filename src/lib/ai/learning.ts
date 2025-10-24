@@ -1,0 +1,205 @@
+import { aiOrchestrator } from './orchestrator';
+import { z } from 'zod';
+
+export interface LearningEvent {
+  id: string;
+  agentId: string;
+  eventType: 'success' | 'failure' | 'feedback' | 'observation';
+  context: Record<string, any>;
+  outcome: any;
+  feedback?: string;
+  timestamp: Date;
+}
+
+export interface LearningInsight {
+  pattern: string;
+  confidence: number;
+  applicability: string[];
+  recommendation: string;
+}
+
+export class SelfLearningSystem {
+  private learningEvents: LearningEvent[] = [];
+  private insights: LearningInsight[] = [];
+
+  async recordEvent(event: Omit<LearningEvent, 'id' | 'timestamp'>): Promise<void> {
+    const learningEvent: LearningEvent = {
+      ...event,
+      id: crypto.randomUUID(),
+      timestamp: new Date(),
+    };
+
+    this.learningEvents.push(learningEvent);
+
+    // Trigger learning if we have enough events
+    if (this.learningEvents.length % 10 === 0) {
+      await this.analyzeAndLearn();
+    }
+  }
+
+  private async analyzeAndLearn(): Promise<void> {
+    // Analyze recent events to extract patterns
+    const recentEvents = this.learningEvents.slice(-50);
+    
+    const analysisPrompt = `
+Analyze these agent execution events and extract learning insights:
+
+Events:
+${recentEvents.map((e, i) => `
+${i + 1}. ${e.eventType} - Agent: ${e.agentId}
+Context: ${JSON.stringify(e.context)}
+Outcome: ${JSON.stringify(e.outcome)}
+${e.feedback ? `Feedback: ${e.feedback}` : ''}
+`).join('\n')}
+
+Identify:
+1. Patterns in successful executions
+2. Common failure modes
+3. Optimal strategies for different task types
+4. Recommendations for improving agent performance
+`;
+
+    const insights = await aiOrchestrator.generateStructuredOutput(
+      'gpt-4-turbo',
+      analysisPrompt,
+      z.object({
+        insights: z.array(z.object({
+          pattern: z.string(),
+          confidence: z.number(),
+          applicability: z.array(z.string()),
+          recommendation: z.string(),
+        })),
+      })
+    );
+
+    this.insights.push(...insights.insights);
+  }
+
+  async getRecommendations(agentId: string, taskType: string): Promise<string[]> {
+    const relevantInsights = this.insights.filter(insight =>
+      insight.applicability.includes(taskType) && insight.confidence > 0.7
+    );
+
+    return relevantInsights.map(i => i.recommendation);
+  }
+
+  async optimizeAgent(agentId: string): Promise<OptimizationSuggestions> {
+    const agentEvents = this.learningEvents.filter(e => e.agentId === agentId);
+    
+    const successRate = agentEvents.filter(e => e.eventType === 'success').length / agentEvents.length;
+    const avgExecutionTime = this.calculateAvgExecutionTime(agentEvents);
+    const commonFailures = this.identifyCommonFailures(agentEvents);
+
+    const optimizationPrompt = `
+Analyze this agent's performance and suggest optimizations:
+
+Agent ID: ${agentId}
+Success Rate: ${(successRate * 100).toFixed(1)}%
+Avg Execution Time: ${avgExecutionTime}ms
+Common Failures: ${commonFailures.join(', ')}
+
+Recent Events: ${JSON.stringify(agentEvents.slice(-10))}
+
+Provide specific, actionable optimization suggestions.
+`;
+
+    const suggestions = await aiOrchestrator.generateStructuredOutput(
+      'gpt-4-turbo',
+      optimizationPrompt,
+      z.object({
+        configChanges: z.record(z.any()),
+        toolAdditions: z.array(z.string()),
+        capabilityEnhancements: z.array(z.string()),
+        reasoning: z.string(),
+      })
+    );
+
+    return suggestions;
+  }
+
+  async predictPerformance(agentId: string, task: string): Promise<PerformancePrediction> {
+    const agentEvents = this.learningEvents.filter(e => e.agentId === agentId);
+    
+    const predictionPrompt = `
+Based on historical performance, predict how this agent will perform on this task:
+
+Agent History:
+${agentEvents.slice(-20).map(e => `${e.eventType}: ${JSON.stringify(e.context)}`).join('\n')}
+
+New Task: ${task}
+
+Predict:
+1. Likelihood of success (0-1)
+2. Estimated execution time
+3. Potential challenges
+4. Recommended preparations
+`;
+
+    const prediction = await aiOrchestrator.generateStructuredOutput(
+      'gpt-4-turbo',
+      predictionPrompt,
+      z.object({
+        successProbability: z.number(),
+        estimatedTime: z.number(),
+        challenges: z.array(z.string()),
+        preparations: z.array(z.string()),
+      })
+    );
+
+    return prediction;
+  }
+
+  private calculateAvgExecutionTime(events: LearningEvent[]): number {
+    const times = events
+      .map(e => (e.outcome as any)?.executionTime)
+      .filter(t => typeof t === 'number');
+    
+    return times.length > 0 
+      ? times.reduce((sum, t) => sum + t, 0) / times.length 
+      : 0;
+  }
+
+  private identifyCommonFailures(events: LearningEvent[]): string[] {
+    const failures = events.filter(e => e.eventType === 'failure');
+    const errorTypes = failures.map(f => (f.outcome as any)?.error || 'unknown');
+    
+    // Count occurrences
+    const counts: Record<string, number> = {};
+    errorTypes.forEach(error => {
+      counts[error] = (counts[error] || 0) + 1;
+    });
+
+    // Return top 3
+    return Object.entries(counts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 3)
+      .map(([error]) => error);
+  }
+
+  getInsights(): LearningInsight[] {
+    return this.insights;
+  }
+
+  getEventHistory(agentId?: string): LearningEvent[] {
+    return agentId 
+      ? this.learningEvents.filter(e => e.agentId === agentId)
+      : this.learningEvents;
+  }
+}
+
+interface OptimizationSuggestions {
+  configChanges: Record<string, any>;
+  toolAdditions: string[];
+  capabilityEnhancements: string[];
+  reasoning: string;
+}
+
+interface PerformancePrediction {
+  successProbability: number;
+  estimatedTime: number;
+  challenges: string[];
+  preparations: string[];
+}
+
+export const selfLearningSystem = new SelfLearningSystem();
+
