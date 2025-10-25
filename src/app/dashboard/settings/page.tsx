@@ -42,16 +42,16 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Settings</h1>
+      <h1 className="text-3xl font-bold text-white mb-8">Settings</h1>
 
       <div className="grid md:grid-cols-4 gap-6">
         {/* Sidebar */}
-        <div className="bg-white p-4 rounded-lg shadow h-fit">
+        <div className="bg-gray-800 p-4 rounded-lg shadow h-fit">
           <nav className="space-y-2">
             <button
               onClick={() => setActiveTab('general')}
               className={`w-full text-left px-4 py-2 rounded ${
-                activeTab === 'general' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'
+                activeTab === 'general' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-700'
               }`}
             >
               General
@@ -59,7 +59,7 @@ export default function SettingsPage() {
             <button
               onClick={() => setActiveTab('api')}
               className={`w-full text-left px-4 py-2 rounded ${
-                activeTab === 'api' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'
+                activeTab === 'api' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-700'
               }`}
             >
               API Keys
@@ -67,7 +67,7 @@ export default function SettingsPage() {
             <button
               onClick={() => setActiveTab('billing')}
               className={`w-full text-left px-4 py-2 rounded ${
-                activeTab === 'billing' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'
+                activeTab === 'billing' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-700'
               }`}
             >
               Billing
@@ -75,7 +75,7 @@ export default function SettingsPage() {
             <button
               onClick={() => setActiveTab('team')}
               className={`w-full text-left px-4 py-2 rounded ${
-                activeTab === 'team' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'
+                activeTab === 'team' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-700'
               }`}
             >
               Team
@@ -84,11 +84,11 @@ export default function SettingsPage() {
         </div>
 
         {/* Content */}
-        <div className="md:col-span-3 bg-white p-6 rounded-lg shadow">
+        <div className="md:col-span-3 bg-gray-800 p-6 rounded-lg shadow">
           {activeTab === 'general' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-bold mb-4">Organization Settings</h3>
+                <h3 className="text-lg font-bold text-white mb-4">Organization Settings</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Organization Name</label>
@@ -110,7 +110,7 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <h3 className="text-lg font-bold mb-4">Preferences</h3>
+                <h3 className="text-lg font-bold text-white mb-4">Preferences</h3>
                 <div className="space-y-3">
                   <label className="flex items-center gap-3">
                     <input type="checkbox" className="w-4 h-4" defaultChecked />
@@ -139,14 +139,14 @@ export default function SettingsPage() {
           {activeTab === 'api' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-bold mb-4">API Keys</h3>
-                <p className="text-gray-600 mb-4">Manage your API keys for external integrations</p>
+                <h3 className="text-lg font-bold text-white mb-4">API Keys</h3>
+                <p className="text-gray-300 mb-4">Manage your API keys for external integrations</p>
                 
                 <div className="space-y-4">
                   <div className="p-4 border rounded-lg">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <div className="font-semibold">Production Key</div>
+                        <div className="font-semibold text-white">Production Key</div>
                         <div className="text-sm text-gray-700 font-mono">sk_live_***************************</div>
                       </div>
                       <button 
@@ -162,7 +162,7 @@ export default function SettingsPage() {
                   <div className="p-4 border rounded-lg">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <div className="font-semibold">Development Key</div>
+                        <div className="font-semibold text-white">Development Key</div>
                         <div className="text-sm text-gray-700 font-mono">sk_test_***************************</div>
                       </div>
                       <button 
@@ -185,7 +185,7 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <h3 className="text-lg font-bold mb-4">AI Model Configuration</h3>
+                <h3 className="text-lg font-bold text-white mb-4">AI Model Configuration</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">OpenAI API Key</label>
@@ -212,21 +212,21 @@ export default function SettingsPage() {
           {activeTab === 'billing' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-bold mb-4">Current Plan</h3>
+                <h3 className="text-lg font-bold text-white mb-4">Current Plan</h3>
                 <div className="p-6 border-2 border-purple-600 rounded-lg">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <div className="text-2xl font-bold">Pro Plan</div>
-                      <div className="text-gray-600">Unlimited agents and executions</div>
+                      <div className="text-2xl font-bold text-white">Pro Plan</div>
+                      <div className="text-gray-300">Unlimited agents and executions</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-3xl font-bold">$97</div>
-                      <div className="text-gray-600">per month</div>
+                      <div className="text-3xl font-bold text-white">$97</div>
+                      <div className="text-gray-300">per month</div>
                     </div>
                   </div>
                   <button 
                     onClick={handleManageSubscription}
-                    className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+                    className="px-6 py-2 border rounded-lg hover:bg-gray-900"
                   >
                     Manage Subscription
                   </button>
@@ -234,34 +234,34 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <h3 className="text-lg font-bold mb-4">Usage This Month</h3>
+                <h3 className="text-lg font-bold text-white mb-4">Usage This Month</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between py-2 border-b">
                     <span>Agent Executions</span>
-                    <span className="font-semibold">12,847</span>
+                    <span className="font-semibold text-white">12,847</span>
                   </div>
                   <div className="flex justify-between py-2 border-b">
                     <span>API Calls</span>
-                    <span className="font-semibold">45,231</span>
+                    <span className="font-semibold text-white">45,231</span>
                   </div>
                   <div className="flex justify-between py-2 border-b">
                     <span>Storage Used</span>
-                    <span className="font-semibold">8.7 GB</span>
+                    <span className="font-semibold text-white">8.7 GB</span>
                   </div>
                   <div className="flex justify-between py-2 border-b">
                     <span>AI Model Costs</span>
-                    <span className="font-semibold">$247.32</span>
+                    <span className="font-semibold text-white">$247.32</span>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-bold mb-4">Payment Method</h3>
+                <h3 className="text-lg font-bold text-white mb-4">Payment Method</h3>
                 <div className="p-4 border rounded-lg flex justify-between items-center">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-8 bg-gray-200 rounded flex items-center justify-center text-xs">VISA</div>
+                    <div className="w-12 h-8 bg-gray-600 rounded flex items-center justify-center text-xs">VISA</div>
                     <div>
-                      <div className="font-semibold">•••• 4242</div>
+                      <div className="font-semibold text-white">•••• 4242</div>
                       <div className="text-sm text-gray-700">Expires 12/25</div>
                     </div>
                   </div>
@@ -279,7 +279,7 @@ export default function SettingsPage() {
           {activeTab === 'team' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-bold mb-4">Team Members</h3>
+                <h3 className="text-lg font-bold text-white mb-4">Team Members</h3>
                 <div className="space-y-3">
                   {[
                     { name: 'John Doe', email: 'john@acme.com', role: 'Owner' },
@@ -288,7 +288,7 @@ export default function SettingsPage() {
                   ].map((member, i) => (
                     <div key={i} className="flex justify-between items-center p-4 border rounded-lg">
                       <div>
-                        <div className="font-semibold">{member.name}</div>
+                        <div className="font-semibold text-white">{member.name}</div>
                         <div className="text-sm text-gray-700">{member.email}</div>
                       </div>
                       <div className="flex items-center gap-4">

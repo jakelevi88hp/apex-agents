@@ -3,36 +3,36 @@
 export default function AnalyticsPage() {
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Analytics & Monitoring</h1>
+      <h1 className="text-3xl font-bold text-white mb-8">Analytics & Monitoring</h1>
 
       {/* Key Metrics */}
       <div className="grid md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-gray-800 p-6 rounded-lg shadow">
           <div className="text-gray-700 text-sm font-medium mb-2">Total Executions</div>
-          <div className="text-3xl font-bold">12,847</div>
+          <div className="text-3xl font-bold text-white">12,847</div>
           <div className="text-green-600 text-sm mt-2">↑ 23% from last month</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-gray-800 p-6 rounded-lg shadow">
           <div className="text-gray-700 text-sm font-medium mb-2">Success Rate</div>
-          <div className="text-3xl font-bold">94.2%</div>
+          <div className="text-3xl font-bold text-white">94.2%</div>
           <div className="text-green-600 text-sm mt-2">↑ 2.1% improvement</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-gray-800 p-6 rounded-lg shadow">
           <div className="text-gray-700 text-sm font-medium mb-2">Avg Response Time</div>
-          <div className="text-3xl font-bold">1.8s</div>
+          <div className="text-3xl font-bold text-white">1.8s</div>
           <div className="text-green-600 text-sm mt-2">↓ 0.3s faster</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-gray-800 p-6 rounded-lg shadow">
           <div className="text-gray-700 text-sm font-medium mb-2">API Cost</div>
-          <div className="text-3xl font-bold">$247</div>
+          <div className="text-3xl font-bold text-white">$247</div>
           <div className="text-gray-700 text-sm mt-2">This month</div>
         </div>
       </div>
 
       {/* Charts */}
       <div className="grid md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-bold mb-4">Execution Trends</h3>
+        <div className="bg-gray-800 p-6 rounded-lg shadow">
+          <h3 className="text-lg font-bold text-white mb-4">Execution Trends</h3>
           <div className="h-64 flex items-end justify-around gap-2">
             {[65, 78, 82, 90, 75, 88, 95].map((height, i) => (
               <div key={i} className="flex-1 flex flex-col items-center">
@@ -48,8 +48,8 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-bold mb-4">Agent Performance</h3>
+        <div className="bg-gray-800 p-6 rounded-lg shadow">
+          <h3 className="text-lg font-bold text-white mb-4">Agent Performance</h3>
           <div className="space-y-3">
             {[
               { name: 'Research Agent', success: 96, executions: 3421 },
@@ -62,7 +62,7 @@ export default function AnalyticsPage() {
                   <span>{agent.name}</span>
                   <span className="text-gray-700">{agent.success}% • {agent.executions} runs</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-600 rounded-full h-2">
                   <div
                     className="bg-purple-600 h-2 rounded-full"
                     style={{ width: `${agent.success}%` }}
@@ -75,8 +75,8 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Real-time Activity */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-bold mb-4">Real-time Activity</h3>
+      <div className="bg-gray-800 p-6 rounded-lg shadow">
+        <h3 className="text-lg font-bold text-white mb-4">Real-time Activity</h3>
         <div className="space-y-3">
           {[
             { agent: 'Research Agent', task: 'Market analysis for Q1', status: 'running', time: '2s ago' },
@@ -97,7 +97,7 @@ export default function AnalyticsPage() {
               ></div>
               <div className="flex-1">
                 <div className="font-semibold text-sm">{activity.agent}</div>
-                <div className="text-sm text-gray-600">{activity.task}</div>
+                <div className="text-sm text-gray-300">{activity.task}</div>
               </div>
               <div className="text-xs text-gray-700">{activity.time}</div>
               <span

@@ -80,12 +80,12 @@ export default function AgentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900">
       <div className="max-w-7xl mx-auto p-6">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900">Agents</h1>
-            <p className="text-gray-600 mt-2">Create and manage your AI agents</p>
+            <h1 className="text-4xl font-bold text-white">Agents</h1>
+            <p className="text-gray-300 mt-2">Create and manage your AI agents</p>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
@@ -98,26 +98,26 @@ export default function AgentsPage() {
         {/* User's Created Agents Section */}
         {userAgents && userAgents.length > 0 && (
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Agents</h2>
+            <h2 className="text-2xl font-bold text-white text-white mb-4">Your Agents</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {userAgents.map((agent) => {
                 const agentType = agentTypes.find(t => t.id === agent.type);
                 return (
                   <div 
                     key={agent.id} 
-                    className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all border-2 border-purple-200"
+                    className="bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-xl transition-all border-2 border-purple-200"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="text-4xl">{agentType?.icon || '🤖'}</div>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         agent.status === 'active' ? 'bg-green-100 text-green-800' : 
-                        agent.status === 'inactive' ? 'bg-gray-100 text-gray-800' : 
+                        agent.status === 'inactive' ? 'bg-gray-700 text-gray-100' : 
                         'bg-red-100 text-red-800'
                       }`}>
                         {agent.status}
                       </span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{agent.name}</h3>
+                    <h3 className="text-xl font-bold text-white text-white mb-2">{agent.name}</h3>
                     <p className="text-sm text-gray-700 mb-2">{agentType?.name}</p>
                     {agent.description && (
                       <p className="text-gray-700 mb-4 text-sm">{agent.description}</p>
@@ -129,7 +129,7 @@ export default function AgentsPage() {
                         Execute
                       </button>
                       <button 
-                        className="px-4 py-2 border-2 border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-all"
+                        className="px-4 py-2 border-2 border-gray-600 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-900 transition-all"
                       >
                         Settings
                       </button>
@@ -143,16 +143,16 @@ export default function AgentsPage() {
 
         {/* Agent Templates Section */}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Agent Templates</h2>
-          <p className="text-gray-600 mb-6">Choose a template to create a new agent</p>
+          <h2 className="text-2xl font-bold text-white text-white mb-4">Agent Templates</h2>
+          <p className="text-gray-300 mb-6">Choose a template to create a new agent</p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {agentTypes.map((agent) => (
               <div 
                 key={agent.id} 
-                className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all border border-gray-200"
+                className="bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-xl transition-all border border-gray-700"
               >
                 <div className="text-5xl mb-4">{agent.icon}</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{agent.name}</h3>
+                <h3 className="text-xl font-bold text-white text-white mb-2">{agent.name}</h3>
                 <p className="text-gray-700 mb-6 min-h-[48px]">{agent.description}</p>
                 <button 
                   onClick={() => handleCreateAgent(agent.id)}
@@ -168,26 +168,26 @@ export default function AgentsPage() {
         {/* Create Agent Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Create New Agent</h2>
+            <div className="bg-gray-800 rounded-2xl p-8 max-w-2xl w-full shadow-2xl">
+              <h2 className="text-3xl font-bold text-white text-white mb-6">Create New Agent</h2>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Agent Name</label>
+                  <label className="block text-sm font-semibold text-white mb-2">Agent Name</label>
                   <input 
                     type="text" 
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-gray-900" 
+                    className="w-full px-4 py-3 border-2 border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none text-white" 
                     placeholder="My Research Agent" 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Agent Type</label>
+                  <label className="block text-sm font-semibold text-white mb-2">Agent Type</label>
                   <select 
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as keyof typeof defaultCapabilities })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-gray-900"
+                    className="w-full px-4 py-3 border-2 border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none text-white"
                   >
                     {agentTypes.map((type) => (
                       <option key={type.id} value={type.id}>{type.name}</option>
@@ -195,11 +195,11 @@ export default function AgentsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Description (Optional)</label>
+                  <label className="block text-sm font-semibold text-white mb-2">Description (Optional)</label>
                   <textarea 
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-gray-900" 
+                    className="w-full px-4 py-3 border-2 border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none text-white" 
                     rows={4} 
                     placeholder="Describe what this agent will do..." 
                   />
@@ -207,7 +207,7 @@ export default function AgentsPage() {
                 
                 {/* Show capabilities for selected type */}
                 <div className="bg-purple-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Included Capabilities:</h4>
+                  <h4 className="text-sm font-semibold text-white mb-2">Included Capabilities:</h4>
                   <div className="flex flex-wrap gap-2">
                     {defaultCapabilities[formData.type].map((cap) => (
                       <span key={cap} className="px-3 py-1 bg-purple-200 text-purple-800 text-xs font-semibold rounded-full">
@@ -219,7 +219,7 @@ export default function AgentsPage() {
 
                 {createAgentMutation.error && (
                   <div className="bg-red-50 border-2 border-red-200 text-red-800 px-4 py-3 rounded-lg">
-                    <p className="font-semibold">Error creating agent:</p>
+                    <p className="font-semibold text-white">Error creating agent:</p>
                     <p className="text-sm">{createAgentMutation.error.message}</p>
                   </div>
                 )}
@@ -229,7 +229,7 @@ export default function AgentsPage() {
                     type="button" 
                     onClick={() => setShowCreateModal(false)} 
                     disabled={createAgentMutation.isPending}
-                    className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50"
+                    className="flex-1 px-6 py-3 border-2 border-gray-600 text-gray-700 font-semibold rounded-lg hover:bg-gray-900 transition-all disabled:opacity-50"
                   >
                     Cancel
                   </button>

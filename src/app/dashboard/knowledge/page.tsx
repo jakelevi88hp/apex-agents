@@ -56,7 +56,7 @@ export default function KnowledgePage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">Knowledge Base</h1>
+      <h1 className="text-3xl font-bold text-white mb-8">Knowledge Base</h1>
 
       {/* Tabs */}
       <div className="flex gap-4 mb-6 border-b">
@@ -65,7 +65,7 @@ export default function KnowledgePage() {
           className={`px-4 py-2 font-semibold ${
             activeTab === 'sources'
               ? 'border-b-2 border-purple-600 text-purple-600'
-              : 'text-gray-600 hover:text-gray-800'
+              : 'text-gray-300 hover:text-gray-100'
           }`}
         >
           Data Sources
@@ -75,7 +75,7 @@ export default function KnowledgePage() {
           className={`px-4 py-2 font-semibold ${
             activeTab === 'documents'
               ? 'border-b-2 border-purple-600 text-purple-600'
-              : 'text-gray-600 hover:text-gray-800'
+              : 'text-gray-300 hover:text-gray-100'
           }`}
         >
           Documents
@@ -85,7 +85,7 @@ export default function KnowledgePage() {
           className={`px-4 py-2 font-semibold ${
             activeTab === 'embeddings'
               ? 'border-b-2 border-purple-600 text-purple-600'
-              : 'text-gray-600 hover:text-gray-800'
+              : 'text-gray-300 hover:text-gray-100'
           }`}
         >
           Embeddings
@@ -96,20 +96,20 @@ export default function KnowledgePage() {
       {activeTab === 'sources' && (
         <div className="grid md:grid-cols-3 gap-6">
           {dataSources.map((source) => (
-            <div key={source.name} className="bg-white p-6 rounded-lg shadow">
+            <div key={source.name} className="bg-gray-800 p-6 rounded-lg shadow">
               <div className="flex justify-between items-start mb-4">
                 <div className="text-4xl">{source.icon}</div>
                 <span
                   className={`px-2 py-1 rounded text-xs ${
                     source.status === 'connected'
                       ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
+                      : 'bg-gray-700 text-gray-100'
                   }`}
                 >
                   {source.status}
                 </span>
               </div>
-              <h3 className="text-lg font-bold mb-2">{source.name}</h3>
+              <h3 className="text-lg font-bold text-white mb-2">{source.name}</h3>
               <p className="text-sm text-gray-700 mb-4">
                 {source.docs > 0 ? `${source.docs.toLocaleString()} documents` : 'Not connected'}
               </p>
@@ -121,7 +121,7 @@ export default function KnowledgePage() {
                 }
                 className={`w-full px-4 py-2 rounded transition ${
                   source.status === 'connected'
-                    ? 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-100'
                     : 'bg-purple-600 text-white hover:bg-purple-700'
                 }`}
               >
@@ -134,7 +134,7 @@ export default function KnowledgePage() {
 
       {/* Documents Tab */}
       {activeTab === 'documents' && (
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-gray-800 rounded-lg shadow">
           <div className="p-6 border-b">
             <div className="flex gap-4">
               <input
@@ -153,10 +153,10 @@ export default function KnowledgePage() {
 
           <div className="divide-y">
             {documents.map((doc, i) => (
-              <div key={i} className="p-4 hover:bg-gray-50 transition">
+              <div key={i} className="p-4 hover:bg-gray-900 transition">
                 <div className="flex justify-between items-center">
                   <div className="flex-1">
-                    <div className="font-semibold">{doc.name}</div>
+                    <div className="font-semibold text-white">{doc.name}</div>
                     <div className="text-sm text-gray-700">
                       {doc.source} • {doc.size} • {doc.date}
                     </div>
@@ -177,38 +177,38 @@ export default function KnowledgePage() {
       {/* Embeddings Tab */}
       {activeTab === 'embeddings' && (
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-bold mb-4">Embedding Statistics</h3>
+          <div className="bg-gray-800 p-6 rounded-lg shadow">
+            <h3 className="text-lg font-bold text-white mb-4">Embedding Statistics</h3>
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between mb-1">
                   <span className="text-sm text-gray-700">Total Vectors</span>
-                  <span className="font-semibold">7,299</span>
+                  <span className="font-semibold text-white">7,299</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-600 rounded-full h-2">
                   <div className="bg-purple-600 h-2 rounded-full" style={{ width: '73%' }}></div>
                 </div>
               </div>
               <div>
                 <div className="flex justify-between mb-1">
                   <span className="text-sm text-gray-700">Storage Used</span>
-                  <span className="font-semibold">8.7 GB / 10 GB</span>
+                  <span className="font-semibold text-white">8.7 GB / 10 GB</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-600 rounded-full h-2">
                   <div className="bg-purple-600 h-2 rounded-full" style={{ width: '87%' }}></div>
                 </div>
               </div>
               <div>
                 <div className="flex justify-between mb-1">
                   <span className="text-sm text-gray-700">Avg. Query Time</span>
-                  <span className="font-semibold">42ms</span>
+                  <span className="font-semibold text-white">42ms</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-bold mb-4">Recent Queries</h3>
+          <div className="bg-gray-800 p-6 rounded-lg shadow">
+            <h3 className="text-lg font-bold text-white mb-4">Recent Queries</h3>
             <div className="space-y-3">
               {[
                 'Product pricing strategies',
@@ -216,7 +216,7 @@ export default function KnowledgePage() {
                 'Q4 revenue projections',
                 'Competitor analysis framework',
               ].map((query, i) => (
-                <div key={i} className="p-3 bg-gray-50 rounded">
+                <div key={i} className="p-3 bg-gray-900 rounded">
                   <div className="text-sm font-medium">{query}</div>
                   <div className="text-xs text-gray-700 mt-1">
                     {Math.floor(Math.random() * 20 + 10)} results • {Math.floor(Math.random() * 50 + 20)}ms
@@ -231,25 +231,25 @@ export default function KnowledgePage() {
       {/* Document View Modal */}
       {showDocumentModal && selectedDocument && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-2xl w-full mx-4">
+          <div className="bg-gray-800 rounded-lg p-8 max-w-2xl w-full mx-4">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h2 className="text-2xl font-bold mb-2">{selectedDocument.name}</h2>
+                <h2 className="text-2xl font-bold text-white mb-2">{selectedDocument.name}</h2>
                 <p className="text-gray-700">
                   {selectedDocument.source} • {selectedDocument.size} • {selectedDocument.date}
                 </p>
               </div>
               <button
                 onClick={() => setShowDocumentModal(false)}
-                className="text-gray-600 hover:text-gray-800 text-2xl"
+                className="text-gray-300 hover:text-gray-100 text-2xl"
               >
                 ×
               </button>
             </div>
 
             <div className="mb-6">
-              <div className="bg-gray-50 p-6 rounded-lg min-h-[300px] flex items-center justify-center">
-                <div className="text-center text-gray-600">
+              <div className="bg-gray-900 p-6 rounded-lg min-h-[300px] flex items-center justify-center">
+                <div className="text-center text-gray-300">
                   <div className="text-6xl mb-4">📄</div>
                   <p className="text-lg font-semibold mb-2">Document Preview</p>
                   <p className="text-sm">
@@ -268,13 +268,13 @@ export default function KnowledgePage() {
               </button>
               <button
                 onClick={() => alert(`Opening ${selectedDocument.name} in external viewer...`)}
-                className="flex-1 px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                className="flex-1 px-6 py-2 bg-gray-600 text-gray-100 rounded-lg hover:bg-gray-300"
               >
                 Open in Viewer
               </button>
               <button
                 onClick={() => setShowDocumentModal(false)}
-                className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="px-6 py-2 bg-gray-800 border border-gray-600 text-gray-700 rounded-lg hover:bg-gray-900"
               >
                 Close
               </button>

@@ -79,7 +79,7 @@ export default function WorkflowsPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Workflows</h1>
+        <h1 className="text-3xl font-bold text-white">Workflows</h1>
         <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
           Create Workflow
         </button>
@@ -87,8 +87,8 @@ export default function WorkflowsPage() {
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Workflow Builder */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">Workflow Builder</h2>
+        <div className="bg-gray-800 p-6 rounded-lg shadow">
+          <h2 className="text-xl font-bold text-white mb-4">Workflow Builder</h2>
           
           <div className="space-y-4">
             {steps.map((step, index) => (
@@ -116,7 +116,7 @@ export default function WorkflowsPage() {
 
           <button
             onClick={() => setShowAddStep(true)}
-            className="mt-4 w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition"
+            className="mt-4 w-full px-4 py-2 border-2 border-dashed border-gray-600 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition"
           >
             + Add Step
           </button>
@@ -125,39 +125,39 @@ export default function WorkflowsPage() {
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button
                 onClick={() => addStep('agent')}
-                className="p-4 border rounded-lg hover:bg-gray-50"
+                className="p-4 border rounded-lg hover:bg-gray-900"
               >
                 <div className="text-2xl mb-2">🤖</div>
-                <div className="font-semibold">Agent</div>
+                <div className="font-semibold text-white">Agent</div>
               </button>
               <button
                 onClick={() => addStep('condition')}
-                className="p-4 border rounded-lg hover:bg-gray-50"
+                className="p-4 border rounded-lg hover:bg-gray-900"
               >
                 <div className="text-2xl mb-2">🔀</div>
-                <div className="font-semibold">Condition</div>
+                <div className="font-semibold text-white">Condition</div>
               </button>
               <button
                 onClick={() => addStep('loop')}
-                className="p-4 border rounded-lg hover:bg-gray-50"
+                className="p-4 border rounded-lg hover:bg-gray-900"
               >
                 <div className="text-2xl mb-2">🔁</div>
-                <div className="font-semibold">Loop</div>
+                <div className="font-semibold text-white">Loop</div>
               </button>
               <button
                 onClick={() => addStep('parallel')}
-                className="p-4 border rounded-lg hover:bg-gray-50"
+                className="p-4 border rounded-lg hover:bg-gray-900"
               >
                 <div className="text-2xl mb-2">⚡</div>
-                <div className="font-semibold">Parallel</div>
+                <div className="font-semibold text-white">Parallel</div>
               </button>
             </div>
           )}
         </div>
 
         {/* Saved Workflows */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">Saved Workflows</h2>
+        <div className="bg-gray-800 p-6 rounded-lg shadow">
+          <h2 className="text-xl font-bold text-white mb-4">Saved Workflows</h2>
           
           <div className="space-y-4">
             {savedWorkflows.map((workflow) => (
@@ -167,12 +167,12 @@ export default function WorkflowsPage() {
                 className="p-4 border rounded-lg hover:shadow-md transition cursor-pointer hover:border-purple-300"
               >
                 <div className="flex justify-between items-start mb-2">
-                  <div className="font-semibold">{workflow.name}</div>
+                  <div className="font-semibold text-white">{workflow.name}</div>
                   <span
                     className={`px-2 py-1 rounded text-xs ${
                       workflow.status === 'active'
                         ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
+                        : 'bg-gray-700 text-gray-100'
                     }`}
                   >
                     {workflow.status === 'active' ? 'Active' : 'Draft'}
@@ -193,8 +193,8 @@ export default function WorkflowsPage() {
       </div>
 
       {/* Workflow Templates */}
-      <div className="mt-8 bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-bold mb-4">Workflow Templates</h2>
+      <div className="mt-8 bg-gray-800 p-6 rounded-lg shadow">
+        <h2 className="text-xl font-bold text-white mb-4">Workflow Templates</h2>
         
         <div className="grid md:grid-cols-3 gap-4">
           <div
@@ -227,15 +227,15 @@ export default function WorkflowsPage() {
       {/* Workflow Detail Modal */}
       {showWorkflowModal && selectedWorkflow && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-2xl w-full mx-4">
+          <div className="bg-gray-800 rounded-lg p-8 max-w-2xl w-full mx-4">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h2 className="text-2xl font-bold mb-2">{selectedWorkflow.name}</h2>
+                <h2 className="text-2xl font-bold text-white mb-2">{selectedWorkflow.name}</h2>
                 <p className="text-gray-700">{selectedWorkflow.description}</p>
               </div>
               <button
                 onClick={() => setShowWorkflowModal(false)}
-                className="text-gray-600 hover:text-gray-800 text-2xl"
+                className="text-gray-300 hover:text-gray-100 text-2xl"
               >
                 ×
               </button>
@@ -244,22 +244,22 @@ export default function WorkflowsPage() {
             <div className="mb-6">
               <div className="flex gap-4 text-sm text-gray-700 mb-4">
                 <span className="flex items-center gap-2">
-                  <span className="font-semibold">Status:</span>
+                  <span className="font-semibold text-white">Status:</span>
                   <span
                     className={`px-2 py-1 rounded text-xs ${
                       selectedWorkflow.status === 'active'
                         ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
+                        : 'bg-gray-700 text-gray-100'
                     }`}
                   >
                     {selectedWorkflow.status === 'active' ? 'Active' : 'Draft'}
                   </span>
                 </span>
-                <span><span className="font-semibold">Steps:</span> {selectedWorkflow.steps}</span>
-                <span><span className="font-semibold">Trigger:</span> {selectedWorkflow.trigger}</span>
+                <span><span className="font-semibold text-white">Steps:</span> {selectedWorkflow.steps}</span>
+                <span><span className="font-semibold text-white">Trigger:</span> {selectedWorkflow.trigger}</span>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-gray-900 p-4 rounded-lg">
                 <h3 className="font-semibold mb-3">Workflow Steps:</h3>
                 <div className="space-y-2">
                   {Array.from({ length: selectedWorkflow.steps }).map((_, i) => (
@@ -289,13 +289,13 @@ export default function WorkflowsPage() {
                   handleEditWorkflow(selectedWorkflow.id);
                   setShowWorkflowModal(false);
                 }}
-                className="flex-1 px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                className="flex-1 px-6 py-2 bg-gray-600 text-gray-100 rounded-lg hover:bg-gray-300"
               >
                 Edit Workflow
               </button>
               <button
                 onClick={() => setShowWorkflowModal(false)}
-                className="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="px-6 py-2 bg-gray-800 border border-gray-600 text-gray-700 rounded-lg hover:bg-gray-900"
               >
                 Close
               </button>
