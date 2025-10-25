@@ -108,7 +108,7 @@ export default function WorkflowsPage() {
             ))}
 
             {steps.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
+              <div className="text-center py-12 text-gray-700">
                 No steps added yet. Click "Add Step" to begin.
               </div>
             )}
@@ -235,7 +235,7 @@ export default function WorkflowsPage() {
               </div>
               <button
                 onClick={() => setShowWorkflowModal(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-gray-600 hover:text-gray-800 text-2xl"
               >
                 ×
               </button>

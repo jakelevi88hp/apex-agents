@@ -241,7 +241,7 @@ export default function KnowledgePage() {
               </div>
               <button
                 onClick={() => setShowDocumentModal(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-gray-600 hover:text-gray-800 text-2xl"
               >
                 ×
               </button>

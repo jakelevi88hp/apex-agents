@@ -1,47 +1,27 @@
-# Apex Agents Platform - Comprehensive Fixes TODO
+# Apex Agents Platform - Complete Fix TODO
 
-## Phase 1: UI/UX Text Transparency Issues
-- [x] Audit all pages for low contrast text
-- [x] Fix text transparency on dashboard
-- [x] Fix text transparency on agents page
-- [x] Fix text transparency on workflows page
-- [x] Fix text transparency on knowledge base page
-- [ ] Fix text transparency on analytics page
-- [ ] Ensure WCAG AA compliance (4.5:1 contrast ratio minimum)
+## CRITICAL: Remaining Text Contrast Issues
+- [x] Fix agents page: line 121 - text-gray-500
+- [x] Fix workflows page: line 111, 238 - text-gray-500
+- [x] Fix knowledge page: line 244 - text-gray-500
+- [x] Fix analytics page: lines 11, 16, 21, 26, 28, 43, 63, 102 - text-gray-500
+- [x] Fix settings page: lines 112, 116, 123, 127, 211, 233 - text-gray-500
 
-## Phase 2: Workflows Functionality
-- [x] Investigate why saved workflows don't respond to clicks
-- [x] Implement workflow detail view/modal
-- [x] Add workflow execution functionality
-- [x] Add workflow edit functionality
-- [ ] Add workflow delete functionality
-- [ ] Test workflow creation and execution flow
+## CRITICAL: Non-Functional Buttons/Features
+- [x] Settings page - Save Changes button (line 95-97) - no onClick
+- [x] Settings page - Revoke buttons (lines 114, 125) - no onClick
+- [x] Settings page - Create New Key button (line 131-133) - no onClick
+- [x] Settings page - Manage Subscription button (line 176-178) - no onClick
+- [x] Settings page - Update payment button (line 214) - no onClick
+- [x] Settings page - Invite Member button (line 249-251) - no onClick
+- [x] Settings page - Remove buttons (line 242) - no onClick
+- [x] Analytics page - all static, no interactivity (informational only)
+- [ ] Check all other pages for missing onClick handlers
 
-## Phase 3: Knowledge Base Functionality
-- [x] Fix Data Sources section - make it functional
-- [x] Fix Documents section - enable document upload/management
-- [x] Fix Embeddings section - implement vector embeddings
-- [ ] Add file upload functionality
-- [ ] Integrate with vector database (Pinecone/similar)
-- [ ] Test knowledge base ingestion pipeline
-
-## Phase 4: General Bug Fixes
-- [ ] Check all navigation links work correctly
-- [ ] Verify all buttons have proper click handlers
-- [ ] Test all forms submit correctly
-- [ ] Ensure loading states display properly
-- [ ] Add proper error messages for failures
-- [ ] Test responsive design on mobile/tablet
-
-## Phase 5: Database Integration
-- [ ] Verify workflows table has proper data
-- [ ] Verify knowledge base tables exist
-- [ ] Add seed data if tables are empty
-- [ ] Test CRUD operations for all entities
-
-## Phase 6: Final Testing & Deployment
-- [ ] Complete end-to-end testing of all features
-- [ ] Fix any remaining issues
-- [ ] Deploy to production
-- [ ] Verify production deployment
+## Testing Required
+- [ ] Test every single button on every page
+- [ ] Verify all text is readable (gray-700 minimum)
+- [ ] Check all modals open and close
+- [ ] Verify all forms submit correctly
+- [ ] Test navigation between all pages
 

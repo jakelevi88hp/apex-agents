@@ -5,6 +5,41 @@ import { useState } from 'react';
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'general' | 'api' | 'billing' | 'team'>('general');
 
+  const handleSaveChanges = () => {
+    alert('Settings saved successfully!');
+  };
+
+  const handleRevokeKey = (keyType: string) => {
+    if (confirm(`Are you sure you want to revoke the ${keyType} key? This action cannot be undone.`)) {
+      alert(`${keyType} key has been revoked.`);
+    }
+  };
+
+  const handleCreateNewKey = () => {
+    alert('Creating new API key...\n\nYour new key: sk_live_' + Math.random().toString(36).substring(2, 15));
+  };
+
+  const handleManageSubscription = () => {
+    alert('Opening subscription management portal...\n\nYou would be redirected to Stripe customer portal.');
+  };
+
+  const handleUpdatePayment = () => {
+    alert('Opening payment method update form...');
+  };
+
+  const handleInviteMember = () => {
+    const email = prompt('Enter email address to invite:');
+    if (email) {
+      alert(`Invitation sent to ${email}`);
+    }
+  };
+
+  const handleRemoveMember = (memberName: string) => {
+    if (confirm(`Remove ${memberName} from the team?`)) {
+      alert(`${memberName} has been removed from the team.`);
+    }
+  };
+
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8">Settings</h1>
@@ -92,7 +127,10 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+              <button 
+                onClick={handleSaveChanges}
+                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              >
                 Save Changes
               </button>
             </div>
@@ -109,26 +147,39 @@ export default function SettingsPage() {
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <div className="font-semibold">Production Key</div>
-                        <div className="text-sm text-gray-500 font-mono">sk_live_***************************</div>
+                        <div className="text-sm text-gray-700 font-mono">sk_live_***************************</div>
                       </div>
-                      <button className="text-red-500 hover:text-red-700 text-sm">Revoke</button>
+                      <button 
+                        onClick={() => handleRevokeKey('Production')}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                      >
+                        Revoke
+                      </button>
                     </div>
-                    <div className="text-xs text-gray-500">Created 30 days ago • Last used 2 hours ago</div>
+                    <div className="text-xs text-gray-700">Created 30 days ago • Last used 2 hours ago</div>
                   </div>
 
                   <div className="p-4 border rounded-lg">
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <div className="font-semibold">Development Key</div>
-                        <div className="text-sm text-gray-500 font-mono">sk_test_***************************</div>
+                        <div className="text-sm text-gray-700 font-mono">sk_test_***************************</div>
                       </div>
-                      <button className="text-red-500 hover:text-red-700 text-sm">Revoke</button>
+                      <button 
+                        onClick={() => handleRevokeKey('Development')}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                      >
+                        Revoke
+                      </button>
                     </div>
-                    <div className="text-xs text-gray-500">Created 60 days ago • Last used 1 day ago</div>
+                    <div className="text-xs text-gray-700">Created 60 days ago • Last used 1 day ago</div>
                   </div>
                 </div>
 
-                <button className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                <button 
+                  onClick={handleCreateNewKey}
+                  className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                >
                   Create New Key
                 </button>
               </div>
@@ -173,7 +224,10 @@ export default function SettingsPage() {
                       <div className="text-gray-600">per month</div>
                     </div>
                   </div>
-                  <button className="px-6 py-2 border rounded-lg hover:bg-gray-50">
+                  <button 
+                    onClick={handleManageSubscription}
+                    className="px-6 py-2 border rounded-lg hover:bg-gray-50"
+                  >
                     Manage Subscription
                   </button>
                 </div>
@@ -208,10 +262,15 @@ export default function SettingsPage() {
                     <div className="w-12 h-8 bg-gray-200 rounded flex items-center justify-center text-xs">VISA</div>
                     <div>
                       <div className="font-semibold">•••• 4242</div>
-                      <div className="text-sm text-gray-500">Expires 12/25</div>
+                      <div className="text-sm text-gray-700">Expires 12/25</div>
                     </div>
                   </div>
-                  <button className="text-purple-600 hover:text-purple-700">Update</button>
+                  <button 
+                    onClick={handleUpdatePayment}
+                    className="text-purple-600 hover:text-purple-700"
+                  >
+                    Update
+                  </button>
                 </div>
               </div>
             </div>
@@ -230,7 +289,7 @@ export default function SettingsPage() {
                     <div key={i} className="flex justify-between items-center p-4 border rounded-lg">
                       <div>
                         <div className="font-semibold">{member.name}</div>
-                        <div className="text-sm text-gray-500">{member.email}</div>
+                        <div className="text-sm text-gray-700">{member.email}</div>
                       </div>
                       <div className="flex items-center gap-4">
                         <select className="px-3 py-1 border rounded" defaultValue={member.role}>
@@ -239,14 +298,22 @@ export default function SettingsPage() {
                           <option>Member</option>
                         </select>
                         {member.role !== 'Owner' && (
-                          <button className="text-red-500 hover:text-red-700">Remove</button>
+                          <button 
+                            onClick={() => handleRemoveMember(member.name)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            Remove
+                          </button>
                         )}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <button className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                <button 
+                  onClick={handleInviteMember}
+                  className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                >
                   Invite Member
                 </button>
               </div>

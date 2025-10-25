@@ -8,24 +8,24 @@ export default function AnalyticsPage() {
       {/* Key Metrics */}
       <div className="grid md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-gray-500 text-sm mb-2">Total Executions</div>
+          <div className="text-gray-700 text-sm font-medium mb-2">Total Executions</div>
           <div className="text-3xl font-bold">12,847</div>
           <div className="text-green-600 text-sm mt-2">↑ 23% from last month</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-gray-500 text-sm mb-2">Success Rate</div>
+          <div className="text-gray-700 text-sm font-medium mb-2">Success Rate</div>
           <div className="text-3xl font-bold">94.2%</div>
           <div className="text-green-600 text-sm mt-2">↑ 2.1% improvement</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-gray-500 text-sm mb-2">Avg Response Time</div>
+          <div className="text-gray-700 text-sm font-medium mb-2">Avg Response Time</div>
           <div className="text-3xl font-bold">1.8s</div>
           <div className="text-green-600 text-sm mt-2">↓ 0.3s faster</div>
         </div>
         <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-gray-500 text-sm mb-2">API Cost</div>
+          <div className="text-gray-700 text-sm font-medium mb-2">API Cost</div>
           <div className="text-3xl font-bold">$247</div>
-          <div className="text-gray-500 text-sm mt-2">This month</div>
+          <div className="text-gray-700 text-sm mt-2">This month</div>
         </div>
       </div>
 
@@ -40,7 +40,7 @@ export default function AnalyticsPage() {
                   className="w-full bg-purple-600 rounded-t"
                   style={{ height: `${height}%` }}
                 ></div>
-                <div className="text-xs text-gray-500 mt-2">
+                <div className="text-xs text-gray-700 mt-2">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]}
                 </div>
               </div>
@@ -60,7 +60,7 @@ export default function AnalyticsPage() {
               <div key={agent.name}>
                 <div className="flex justify-between text-sm mb-1">
                   <span>{agent.name}</span>
-                  <span className="text-gray-500">{agent.success}% • {agent.executions} runs</span>
+                  <span className="text-gray-700">{agent.success}% • {agent.executions} runs</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
@@ -99,7 +99,7 @@ export default function AnalyticsPage() {
                 <div className="font-semibold text-sm">{activity.agent}</div>
                 <div className="text-sm text-gray-600">{activity.task}</div>
               </div>
-              <div className="text-xs text-gray-500">{activity.time}</div>
+              <div className="text-xs text-gray-700">{activity.time}</div>
               <span
                 className={`px-2 py-1 rounded text-xs ${
                   activity.status === 'running'

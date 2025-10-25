@@ -118,7 +118,7 @@ export default function AgentsPage() {
                       </span>
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">{agent.name}</h3>
-                    <p className="text-sm text-gray-500 mb-2">{agentType?.name}</p>
+                    <p className="text-sm text-gray-700 mb-2">{agentType?.name}</p>
                     {agent.description && (
                       <p className="text-gray-700 mb-4 text-sm">{agent.description}</p>
                     )}
