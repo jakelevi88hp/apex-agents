@@ -30,9 +30,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      // TODO: Implement actual signup logic with tRPC
-      console.log('Signup:', formData);
-      // For now, redirect to dashboard
+      // Redirect to dashboard for now (auth integration coming)
       window.location.href = '/dashboard';
     } catch (err) {
       setError('Failed to create account. Please try again.');

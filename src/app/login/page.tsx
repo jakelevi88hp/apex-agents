@@ -17,9 +17,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // TODO: Implement actual login logic with tRPC
-      console.log('Login:', formData);
-      // For now, redirect to dashboard
+      // Redirect to dashboard for now (auth integration coming)
       window.location.href = '/dashboard';
     } catch (err) {
       setError('Invalid email or password');
