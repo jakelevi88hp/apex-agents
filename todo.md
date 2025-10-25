@@ -39,3 +39,12 @@
 - [x] Update login/signup pages to dark theme (already dark)
 - [ ] Test dark theme across all pages
 
+
+
+## Knowledge Base Functionality Fixes
+- [x] Replace Manage button alerts with proper in-app modals
+- [x] Replace View document alerts with proper in-app document viewer
+- [x] Add data source configuration modal
+- [x] Add document preview/viewer modal
+- [ ] Test all knowledge base interactions
+
