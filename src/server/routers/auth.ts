@@ -1,9 +1,10 @@
 import { z } from 'zod';
-import { router, publicProcedure } from '../trpc';
+import { router, publicProcedure, protectedProcedure } from '../trpc';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
+import { signToken } from '@/lib/auth/jwt';
 
 export const authRouter = router({
   signup: publicProcedure
@@ -37,10 +38,19 @@ export const authRouter = router({
         trialEndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
       }).returning();
 
+      // Generate JWT token
+      const token = signToken({
+        userId: newUser.id,
+        email: newUser.email,
+        role: newUser.role,
+      });
+
       return {
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
+        role: newUser.role,
+        token,
       };
     }),
 
@@ -69,6 +79,33 @@ export const authRouter = router({
         .set({ lastLogin: new Date() })
         .where(eq(users.id, user.id));
 
+      // Generate JWT token
+      const token = signToken({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+      });
+
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        subscriptionTier: user.subscriptionTier,
+        token,
+      };
+    }),
+
+  me: protectedProcedure
+    .query(async ({ ctx }) => {
+      const user = await db.query.users.findFirst({
+        where: eq(users.id, ctx.userId!),
+      });
+
+      if (!user) {
+        return null;
+      }
+
       return {
         id: user.id,
         name: user.name,
@@ -76,13 +113,6 @@ export const authRouter = router({
         role: user.role,
         subscriptionTier: user.subscriptionTier,
       };
-    }),
-
-  me: publicProcedure
-    .query(async () => {
-      // TODO: Implement session management
-      // For now, return null
-      return null;
     }),
 });
 

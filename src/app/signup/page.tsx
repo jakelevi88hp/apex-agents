@@ -2,8 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { trpc } from '@/lib/trpc/client';
 
 export default function SignupPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -11,7 +14,18 @@ export default function SignupPage() {
     confirmPassword: '',
   });
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  const signupMutation = trpc.auth.signup.useMutation({
+    onSuccess: (data) => {
+      // Store JWT token in localStorage
+      localStorage.setItem('auth_token', data.token);
+      // Redirect to dashboard
+      router.push('/dashboard');
+    },
+    onError: (error) => {
+      setError(error.message || 'Failed to create account. Please try again.');
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,16 +41,11 @@ export default function SignupPage() {
       return;
     }
 
-    setLoading(true);
-
-    try {
-      // Redirect to dashboard for now (auth integration coming)
-      window.location.href = '/dashboard';
-    } catch (err) {
-      setError('Failed to create account. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    signupMutation.mutate({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+    });
   };
 
   return (
@@ -116,12 +125,18 @@ export default function SignupPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={signupMutation.isPending}
             className="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {signupMutation.isPending ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-gray-300 text-sm">
+            By signing up, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </div>
 
         <div className="mt-6 text-center">
           <p className="text-gray-300">
@@ -130,10 +145,6 @@ export default function SignupPage() {
               Sign In
             </Link>
           </p>
-        </div>
-
-        <div className="mt-8 text-center text-sm text-gray-400">
-          By signing up, you agree to our Terms of Service and Privacy Policy
         </div>
       </div>
     </div>

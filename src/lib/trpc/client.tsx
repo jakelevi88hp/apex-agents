@@ -22,6 +22,10 @@ export function TRPCProvider(props: { children: React.ReactNode }) {
         httpBatchLink({
           url: `${getBaseUrl()}/api/trpc`,
           transformer: superjson,
+          headers: () => {
+            const token = localStorage.getItem('auth_token');
+            return token ? { authorization: `Bearer ${token}` } : {};
+          },
         }),
       ],
     })

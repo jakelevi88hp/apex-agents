@@ -2,28 +2,33 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { trpc } from '@/lib/trpc/client';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  const loginMutation = trpc.auth.login.useMutation({
+    onSuccess: (data) => {
+      // Store JWT token in localStorage
+      localStorage.setItem('auth_token', data.token);
+      // Redirect to dashboard
+      router.push('/dashboard');
+    },
+    onError: (error) => {
+      setError(error.message || 'Invalid email or password');
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
-
-    try {
-      // Redirect to dashboard for now (auth integration coming)
-      window.location.href = '/dashboard';
-    } catch (err) {
-      setError('Invalid email or password');
-    } finally {
-      setLoading(false);
-    }
+    loginMutation.mutate(formData);
   };
 
   return (
@@ -86,10 +91,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loginMutation.isPending}
             className="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing In...' : 'Sign In'}
+            {loginMutation.isPending ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
