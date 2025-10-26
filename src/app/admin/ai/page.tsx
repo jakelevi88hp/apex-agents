@@ -68,14 +68,15 @@ export default function AIAdminPage() {
     },
   });
 
-  // tRPC queries with error handling
-  const { data: patchHistory } = trpc.aiAdmin.getPatchHistory.useQuery(undefined, {
-    onError: (error: any) => {
-      if (error.data?.code === 'FORBIDDEN') {
-        setAuthError(error.message);
-      }
-    },
-  });
+  // tRPC queries
+  const { data: patchHistory, error: patchHistoryError } = trpc.aiAdmin.getPatchHistory.useQuery();
+  
+  // Check for auth error in query
+  useEffect(() => {
+    if (patchHistoryError && (patchHistoryError as any).data?.code === 'FORBIDDEN') {
+      setAuthError(patchHistoryError.message);
+    }
+  }, [patchHistoryError]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
