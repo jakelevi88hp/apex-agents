@@ -1,119 +1,191 @@
 'use client';
 
+import { useState } from 'react';
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { TrendingUp, Activity, DollarSign, Clock, CheckCircle } from 'lucide-react';
+import { trpc } from '@/lib/trpc/client';
+
 export default function AnalyticsPage() {
+  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
+  
+  // Fetch real analytics data
+  const { data: stats } = trpc.analytics.getExecutionStats.useQuery({ days: parseInt(timeRange) });
+  const { data: agentPerf } = trpc.analytics.getAgentPerformance.useQuery();
+  const { data: workflowPerf } = trpc.analytics.getWorkflowPerformance.useQuery();
+
+  // Execution trend data
+  const executionTrend = stats?.dailyExecutions || [];
+
+  // Agent performance data
+  const agentData = agentPerf || [];
+
+  // Workflow performance data
+  const workflowData = workflowPerf || [];
+
+  // Status distribution
+  const statusData = [
+    { name: 'Completed', value: stats?.completedCount || 0, color: '#10b981' },
+    { name: 'Failed', value: stats?.failedCount || 0, color: '#ef4444' },
+    { name: 'Running', value: stats?.runningCount || 0, color: '#3b82f6' },
+  ];
+
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-white mb-8">Analytics & Monitoring</h1>
-
-      {/* Key Metrics */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gray-800 p-6 rounded-lg shadow">
-          <div className="text-gray-700 text-sm font-medium mb-2">Total Executions</div>
-          <div className="text-3xl font-bold text-white">12,847</div>
-          <div className="text-green-600 text-sm mt-2">↑ 23% from last month</div>
+    <div className="p-8">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Analytics</h1>
+          <p className="text-gray-400 mt-2">Performance metrics and insights</p>
         </div>
-        <div className="bg-gray-800 p-6 rounded-lg shadow">
-          <div className="text-gray-700 text-sm font-medium mb-2">Success Rate</div>
-          <div className="text-3xl font-bold text-white">94.2%</div>
-          <div className="text-green-600 text-sm mt-2">↑ 2.1% improvement</div>
-        </div>
-        <div className="bg-gray-800 p-6 rounded-lg shadow">
-          <div className="text-gray-700 text-sm font-medium mb-2">Avg Response Time</div>
-          <div className="text-3xl font-bold text-white">1.8s</div>
-          <div className="text-green-600 text-sm mt-2">↓ 0.3s faster</div>
-        </div>
-        <div className="bg-gray-800 p-6 rounded-lg shadow">
-          <div className="text-gray-700 text-sm font-medium mb-2">API Cost</div>
-          <div className="text-3xl font-bold text-white">$247</div>
-          <div className="text-gray-700 text-sm mt-2">This month</div>
-        </div>
-      </div>
-
-      {/* Charts */}
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-bold text-white mb-4">Execution Trends</h3>
-          <div className="h-64 flex items-end justify-around gap-2">
-            {[65, 78, 82, 90, 75, 88, 95].map((height, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center">
-                <div
-                  className="w-full bg-purple-600 rounded-t"
-                  style={{ height: `${height}%` }}
-                ></div>
-                <div className="text-xs text-gray-700 mt-2">
-                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-bold text-white mb-4">Agent Performance</h3>
-          <div className="space-y-3">
-            {[
-              { name: 'Research Agent', success: 96, executions: 3421 },
-              { name: 'Analysis Agent', success: 94, executions: 2847 },
-              { name: 'Writing Agent', success: 92, executions: 2156 },
-              { name: 'Code Agent', success: 88, executions: 1892 },
-            ].map((agent) => (
-              <div key={agent.name}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>{agent.name}</span>
-                  <span className="text-gray-700">{agent.success}% • {agent.executions} runs</span>
-                </div>
-                <div className="w-full bg-gray-600 rounded-full h-2">
-                  <div
-                    className="bg-purple-600 h-2 rounded-full"
-                    style={{ width: `${agent.success}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Real-time Activity */}
-      <div className="bg-gray-800 p-6 rounded-lg shadow">
-        <h3 className="text-lg font-bold text-white mb-4">Real-time Activity</h3>
-        <div className="space-y-3">
-          {[
-            { agent: 'Research Agent', task: 'Market analysis for Q1', status: 'running', time: '2s ago' },
-            { agent: 'Writing Agent', task: 'Blog post generation', status: 'completed', time: '1m ago' },
-            { agent: 'Analysis Agent', task: 'Customer sentiment analysis', status: 'running', time: '3m ago' },
-            { agent: 'Code Agent', task: 'API endpoint generation', status: 'completed', time: '5m ago' },
-            { agent: 'Decision Agent', task: 'Budget allocation optimization', status: 'failed', time: '8m ago' },
-          ].map((activity, i) => (
-            <div key={i} className="flex items-center gap-4 p-3 border rounded-lg">
-              <div
-                className={`w-2 h-2 rounded-full ${
-                  activity.status === 'running'
-                    ? 'bg-blue-500 animate-pulse'
-                    : activity.status === 'completed'
-                    ? 'bg-green-500'
-                    : 'bg-red-500'
-                }`}
-              ></div>
-              <div className="flex-1">
-                <div className="font-semibold text-sm">{activity.agent}</div>
-                <div className="text-sm text-gray-300">{activity.task}</div>
-              </div>
-              <div className="text-xs text-gray-700">{activity.time}</div>
-              <span
-                className={`px-2 py-1 rounded text-xs ${
-                  activity.status === 'running'
-                    ? 'bg-blue-100 text-blue-800'
-                    : activity.status === 'completed'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}
-              >
-                {activity.status}
-              </span>
-            </div>
+        
+        <div className="flex gap-2">
+          {(['7d', '30d', '90d'] as const).map((range) => (
+            <button
+              key={range}
+              onClick={() => setTimeRange(range)}
+              className={`px-4 py-2 rounded-lg transition ${
+                timeRange === range
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+              }`}
+            >
+              {range === '7d' ? 'Last 7 days' : range === '30d' ? 'Last 30 days' : 'Last 90 days'}
+            </button>
           ))}
         </div>
+      </div>
+
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-lg border border-gray-700">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-gray-400 text-sm font-medium">Total Executions</div>
+            <Activity className="w-5 h-5 text-purple-500" />
+          </div>
+          <div className="text-3xl font-bold text-white">{stats?.totalExecutions || 0}</div>
+          <div className="flex items-center gap-1 mt-2 text-sm">
+            <TrendingUp className="w-4 h-4 text-green-500" />
+            <span className="text-green-500">+{stats?.percentageChange || 0}%</span>
+            <span className="text-gray-500">vs last period</span>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-lg border border-gray-700">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-gray-400 text-sm font-medium">Success Rate</div>
+            <CheckCircle className="w-5 h-5 text-green-500" />
+          </div>
+          <div className="text-3xl font-bold text-white">{stats?.successRate || 0}%</div>
+          <div className="flex items-center gap-1 mt-2 text-sm">
+            <span className="text-gray-500">{stats?.completedCount || 0} completed</span>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-lg border border-gray-700">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-gray-400 text-sm font-medium">Avg Duration</div>
+            <Clock className="w-5 h-5 text-blue-500" />
+          </div>
+          <div className="text-3xl font-bold text-white">{stats?.avgDuration || 0}s</div>
+          <div className="flex items-center gap-1 mt-2 text-sm">
+            <span className="text-gray-500">Per execution</span>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-lg border border-gray-700">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-gray-400 text-sm font-medium">Total Cost</div>
+            <DollarSign className="w-5 h-5 text-cyan-500" />
+          </div>
+          <div className="text-3xl font-bold text-white">${stats?.totalCost || 0}</div>
+          <div className="flex items-center gap-1 mt-2 text-sm">
+            <span className="text-gray-500">{stats?.totalTokens || 0} tokens</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Execution Trend */}
+        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+          <h2 className="text-xl font-bold text-white mb-4">Execution Trend</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={executionTrend}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="date" stroke="#9ca3af" />
+              <YAxis stroke="#9ca3af" />
+              <Tooltip
+                contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+                labelStyle={{ color: '#fff' }}
+              />
+              <Legend />
+              <Line type="monotone" dataKey="executions" stroke="#8b5cf6" strokeWidth={2} dot={{ fill: '#8b5cf6' }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Status Distribution */}
+        <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+          <h2 className="text-xl font-bold text-white mb-4">Status Distribution</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={statusData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {statusData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Agent Performance */}
+      <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 mb-8">
+        <h2 className="text-xl font-bold text-white mb-4">Agent Performance</h2>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={agentData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis dataKey="agentName" stroke="#9ca3af" />
+            <YAxis stroke="#9ca3af" />
+            <Tooltip
+              contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+              labelStyle={{ color: '#fff' }}
+            />
+            <Legend />
+            <Bar dataKey="executions" fill="#8b5cf6" />
+            <Bar dataKey="successRate" fill="#10b981" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Workflow Performance */}
+      <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+        <h2 className="text-xl font-bold text-white mb-4">Workflow Performance</h2>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={workflowData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis dataKey="workflowName" stroke="#9ca3af" />
+            <YAxis stroke="#9ca3af" />
+            <Tooltip
+              contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+              labelStyle={{ color: '#fff' }}
+            />
+            <Legend />
+            <Bar dataKey="executions" fill="#3b82f6" />
+            <Bar dataKey="avgDuration" fill="#06b6d4" />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

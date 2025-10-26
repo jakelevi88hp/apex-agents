@@ -164,24 +164,27 @@ export default function WorkflowsPage() {
               <div
                 key={workflow.id}
                 onClick={() => handleWorkflowClick(workflow)}
-                className="p-4 border rounded-lg hover:shadow-md transition cursor-pointer hover:border-purple-300"
+                className="p-4 border rounded-lg hover:shadow-lg transition cursor-pointer hover:border-purple-500 hover:shadow-purple-500/20 hover:-translate-y-1 bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700"
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="font-semibold text-white">{workflow.name}</div>
                   <span
-                    className={`px-2 py-1 rounded text-xs ${
+                    className={`px-2 py-1 rounded-full text-xs flex items-center gap-1 ${
                       workflow.status === 'active'
-                        ? 'bg-green-100 text-green-800'
+                        ? 'bg-green-500/20 text-green-400'
                         : 'bg-gray-700 text-gray-100'
                     }`}
                   >
+                    {workflow.status === 'active' && (
+                      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    )}
                     {workflow.status === 'active' ? 'Active' : 'Draft'}
                   </span>
                 </div>
-                <div className="text-sm text-gray-700 mb-2">
+                <div className="text-sm text-gray-400 mb-2">
                   {workflow.description}
                 </div>
-                <div className="flex gap-2 text-xs text-gray-700">
+                <div className="flex gap-2 text-xs text-gray-500">
                   <span>{workflow.steps} steps</span>
                   <span>•</span>
                   <span>{workflow.trigger}</span>
