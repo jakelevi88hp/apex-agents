@@ -11,14 +11,23 @@ import { TRPCError } from '@trpc/server';
 
 // Admin authentication middleware
 const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  // Check if user is admin
-  // For now, we'll check if user ID matches the owner
-  const isAdmin = ctx.userId === process.env.OWNER_OPEN_ID;
+  // Check if user is admin by querying the database
+  const { db } = await import('@/lib/db');
+  const { users } = await import('@/lib/db/schema');
+  const { eq } = await import('drizzle-orm');
+  
+  const user = await db
+    .select({ role: users.role })
+    .from(users)
+    .where(eq(users.id, ctx.userId))
+    .limit(1);
+
+  const isAdmin = user[0]?.role === 'admin' || user[0]?.role === 'owner';
 
   if (!isAdmin) {
     throw new TRPCError({
       code: 'FORBIDDEN',
-      message: 'Admin access required',
+      message: 'Admin access required. Please contact your administrator.',
     });
   }
 
