@@ -45,7 +45,7 @@ export default function AIAdminPage() {
 
   // tRPC mutations with error handling
   const executeCommand = trpc.aiAdmin.executeCommand.useMutation({
-    onError: (error) => {
+    onError: (error: any) => {
       if (error.data?.code === 'FORBIDDEN') {
         setAuthError(error.message);
       }
@@ -53,7 +53,7 @@ export default function AIAdminPage() {
   });
   
   const applyPatch = trpc.aiAdmin.applyPatch.useMutation({
-    onError: (error) => {
+    onError: (error: any) => {
       if (error.data?.code === 'FORBIDDEN') {
         setAuthError(error.message);
       }
@@ -61,7 +61,7 @@ export default function AIAdminPage() {
   });
   
   const rollbackPatch = trpc.aiAdmin.rollbackPatch.useMutation({
-    onError: (error) => {
+    onError: (error: any) => {
       if (error.data?.code === 'FORBIDDEN') {
         setAuthError(error.message);
       }
@@ -70,7 +70,7 @@ export default function AIAdminPage() {
 
   // tRPC queries with error handling
   const { data: patchHistory } = trpc.aiAdmin.getPatchHistory.useQuery(undefined, {
-    onError: (error) => {
+    onError: (error: any) => {
       if (error.data?.code === 'FORBIDDEN') {
         setAuthError(error.message);
       }
