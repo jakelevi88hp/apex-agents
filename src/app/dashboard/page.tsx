@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Bot, Workflow, Zap, TrendingUp, CheckCircle, Clock } from 'lucide-react';
+import { Bot, Workflow, Zap, TrendingUp, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
+import { trpc } from '@/lib/trpc/client';
 
 // Animated counter component
 function AnimatedCounter({ value, duration = 1000 }: { value: number; duration?: number }) {
@@ -30,26 +31,6 @@ function AnimatedCounter({ value, duration = 1000 }: { value: number; duration?:
   return <span>{count}</span>;
 }
 
-// Generate sample data for sparklines
-const generateSparklineData = (trend: 'up' | 'down' | 'stable') => {
-  const baseValue = 50;
-  const data = [];
-  
-  for (let i = 0; i < 7; i++) {
-    let value;
-    if (trend === 'up') {
-      value = baseValue + i * 5 + Math.random() * 10;
-    } else if (trend === 'down') {
-      value = baseValue - i * 3 + Math.random() * 10;
-    } else {
-      value = baseValue + Math.random() * 10 - 5;
-    }
-    data.push({ value });
-  }
-  
-  return data;
-};
-
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
 
@@ -57,9 +38,30 @@ export default function DashboardPage() {
     setMounted(true);
   }, []);
 
-  const agentsData = generateSparklineData('up');
-  const workflowsData = generateSparklineData('up');
-  const executionsData = generateSparklineData('up');
+  // Fetch real metrics from database
+  const { data: metrics, isLoading: metricsLoading } = trpc.analytics.getDashboardMetrics.useQuery();
+  const { data: agentsSparkline } = trpc.analytics.getSparklineData.useQuery({ metric: 'agents' });
+  const { data: workflowsSparkline } = trpc.analytics.getSparklineData.useQuery({ metric: 'workflows' });
+  const { data: executionsSparkline } = trpc.analytics.getSparklineData.useQuery({ metric: 'executions' });
+  const { data: recentActivity } = trpc.analytics.getRecentActivity.useQuery({ limit: 5 });
+
+  // Transform sparkline data for charts
+  const agentsData = agentsSparkline?.map(value => ({ value })) || [];
+  const workflowsData = workflowsSparkline?.map(value => ({ value })) || [];
+  const executionsData = executionsSparkline?.map(value => ({ value })) || [];
+
+  // Calculate progress percentages
+  const agentsProgress = metrics ? Math.min((metrics.activeAgents / 15) * 100, 100) : 0;
+  const workflowsProgress = metrics ? Math.min((metrics.workflows / 12) * 100, 100) : 0;
+  const executionsProgress = metrics ? Math.min((metrics.executionsToday / 300) * 100, 100) : 0;
+
+  if (metricsLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -89,7 +91,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="text-4xl font-bold text-white mb-2">
-              {mounted ? <AnimatedCounter value={12} /> : '12'}
+              {mounted && metrics ? <AnimatedCounter value={metrics.activeAgents} /> : metrics?.activeAgents || 0}
             </div>
             
             {/* Sparkline Chart */}
@@ -99,26 +101,25 @@ export default function DashboardPage() {
                   <Line 
                     type="monotone" 
                     dataKey="value" 
-                    stroke="#a855f7" 
+                    stroke="#A855F7" 
                     strokeWidth={2}
                     dot={false}
-                    animationDuration={1500}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
             
-            <div className="flex items-center text-sm text-green-400">
-              <TrendingUp className="w-4 h-4 mr-1" />
-              <span>+2 this week</span>
+            {/* Progress Bar */}
+            <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-purple-600 to-purple-400 rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${agentsProgress}%` }}
+              ></div>
             </div>
             
-            {/* Progress bar */}
-            <div className="mt-3 h-1 bg-gray-700 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: mounted ? '80%' : '0%' }}
-              ></div>
+            <div className="flex items-center gap-2 mt-2 text-sm text-gray-400">
+              <TrendingUp className="w-4 h-4 text-green-400" />
+              <span>7-day trend</span>
             </div>
           </div>
         </div>
@@ -137,7 +138,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="text-4xl font-bold text-white mb-2">
-              {mounted ? <AnimatedCounter value={8} /> : '8'}
+              {mounted && metrics ? <AnimatedCounter value={metrics.workflows} /> : metrics?.workflows || 0}
             </div>
             
             {/* Sparkline Chart */}
@@ -147,31 +148,30 @@ export default function DashboardPage() {
                   <Line 
                     type="monotone" 
                     dataKey="value" 
-                    stroke="#3b82f6" 
+                    stroke="#3B82F6" 
                     strokeWidth={2}
                     dot={false}
-                    animationDuration={1500}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
             
-            <div className="flex items-center text-sm text-green-400">
-              <TrendingUp className="w-4 h-4 mr-1" />
-              <span>+1 this week</span>
+            {/* Progress Bar */}
+            <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${workflowsProgress}%` }}
+              ></div>
             </div>
             
-            {/* Progress bar */}
-            <div className="mt-3 h-1 bg-gray-700 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: mounted ? '65%' : '0%' }}
-              ></div>
+            <div className="flex items-center gap-2 mt-2 text-sm text-gray-400">
+              <TrendingUp className="w-4 h-4 text-green-400" />
+              <span>7-day trend</span>
             </div>
           </div>
         </div>
 
-        {/* Executions Card */}
+        {/* Executions Today Card */}
         <div className="group bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 hover:border-cyan-500/50 hover:shadow-cyan-500/20 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden">
           {/* Gradient glow effect */}
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-cyan-500/0 group-hover:from-cyan-500/10 group-hover:to-transparent transition-all duration-300"></div>
@@ -185,7 +185,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="text-4xl font-bold text-white mb-2">
-              {mounted ? <AnimatedCounter value={247} duration={1500} /> : '247'}
+              {mounted && metrics ? <AnimatedCounter value={metrics.executionsToday} /> : metrics?.executionsToday || 0}
             </div>
             
             {/* Sparkline Chart */}
@@ -195,92 +195,79 @@ export default function DashboardPage() {
                   <Line 
                     type="monotone" 
                     dataKey="value" 
-                    stroke="#06b6d4" 
+                    stroke="#06B6D4" 
                     strokeWidth={2}
                     dot={false}
-                    animationDuration={1500}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
             
-            <div className="flex items-center text-sm text-green-400">
-              <TrendingUp className="w-4 h-4 mr-1" />
-              <span>+18% vs yesterday</span>
+            {/* Progress Bar */}
+            <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400 rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${executionsProgress}%` }}
+              ></div>
             </div>
             
-            {/* Progress bar */}
-            <div className="mt-3 h-1 bg-gray-700 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: mounted ? '92%' : '0%' }}
-              ></div>
+            <div className="flex items-center gap-2 mt-2 text-sm text-gray-400">
+              <TrendingUp className="w-4 h-4 text-green-400" />
+              <span>
+                {metrics?.executionsTrend.direction === 'up' ? '+' : ''}
+                {metrics?.executionsTrend.change.toFixed(1)}% vs yesterday
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Recent Activity with Icons */}
-      <div className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
-        <h2 className="text-2xl font-bold mb-6 text-white">Recent Activity</h2>
-        <div className="space-y-4">
-          <div className="flex justify-between items-center py-3 border-b border-gray-700 hover:bg-gray-700/50 px-4 rounded transition-colors group">
-            <div className="flex items-center gap-4">
-              <div className="p-2 bg-green-500/20 rounded-lg group-hover:scale-110 transition-transform">
-                <CheckCircle className="w-5 h-5 text-green-400" />
-              </div>
-              <div>
-                <div className="font-semibold text-white">Research Agent completed task</div>
-                <div className="text-sm text-gray-400 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  2 minutes ago
+      {/* Recent Activity */}
+      <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 p-6">
+        <h2 className="text-xl font-bold text-white mb-4">Recent Activity</h2>
+        <div className="space-y-3">
+          {recentActivity && recentActivity.length > 0 ? (
+            recentActivity.map((activity) => (
+              <div
+                key={activity.id}
+                className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg border border-gray-600 hover:border-purple-500/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${
+                    activity.status === 'completed' 
+                      ? 'bg-green-500/20' 
+                      : activity.status === 'running'
+                      ? 'bg-blue-500/20'
+                      : 'bg-red-500/20'
+                  }`}>
+                    {activity.status === 'completed' ? (
+                      <CheckCircle className="w-5 h-5 text-green-400" />
+                    ) : activity.status === 'running' ? (
+                      <Clock className="w-5 h-5 text-blue-400 animate-pulse" />
+                    ) : (
+                      <Clock className="w-5 h-5 text-red-400" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">{activity.name}</div>
+                    <div className="text-sm text-gray-400">
+                      {activity.type} • {activity.status}
+                      {activity.durationMs && ` • ${(activity.durationMs / 1000).toFixed(1)}s`}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-400">
+                  {new Date(activity.startedAt).toLocaleTimeString()}
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
+              <p>No recent activity</p>
+              <p className="text-sm mt-1">Execute workflows or agents to see activity here</p>
             </div>
-            <span className="px-3 py-1 bg-green-900 text-green-300 rounded-full text-sm font-medium">
-              Completed
-            </span>
-          </div>
-          
-          <div className="flex justify-between items-center py-3 border-b border-gray-700 hover:bg-gray-700/50 px-4 rounded transition-colors group">
-            <div className="flex items-center gap-4">
-              <div className="p-2 bg-blue-500/20 rounded-lg group-hover:scale-110 transition-transform">
-                <div className="relative">
-                  <Workflow className="w-5 h-5 text-blue-400" />
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                </div>
-              </div>
-              <div>
-                <div className="font-semibold text-white">Workflow "Data Analysis" started</div>
-                <div className="text-sm text-gray-400 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  15 minutes ago
-                </div>
-              </div>
-            </div>
-            <span className="px-3 py-1 bg-blue-900 text-blue-300 rounded-full text-sm font-medium flex items-center gap-1">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-              Running
-            </span>
-          </div>
-
-          <div className="flex justify-between items-center py-3 hover:bg-gray-700/50 px-4 rounded transition-colors group">
-            <div className="flex items-center gap-4">
-              <div className="p-2 bg-purple-500/20 rounded-lg group-hover:scale-110 transition-transform">
-                <Bot className="w-5 h-5 text-purple-400" />
-              </div>
-              <div>
-                <div className="font-semibold text-white">New agent "Market Analyzer" created</div>
-                <div className="text-sm text-gray-400 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  1 hour ago
-                </div>
-              </div>
-            </div>
-            <span className="px-3 py-1 bg-purple-900 text-purple-300 rounded-full text-sm font-medium">
-              Created
-            </span>
-          </div>
+          )}
         </div>
       </div>
     </div>
