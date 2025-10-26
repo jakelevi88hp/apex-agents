@@ -2,16 +2,68 @@
 
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc/client';
+import { 
+  Search, BarChart3, PenTool, Code2, Target, Mail, 
+  TrendingUp, Network, Plus, X, Loader2, Play, Settings 
+} from 'lucide-react';
 
 const agentTypes = [
-  { id: 'research', name: 'Research Agent', icon: '🔍', description: 'Gather and analyze information from multiple sources' },
-  { id: 'analysis', name: 'Analysis Agent', icon: '📊', description: 'Analyze data and identify patterns and insights' },
-  { id: 'writing', name: 'Writing Agent', icon: '✍️', description: 'Generate high-quality content and documentation' },
-  { id: 'code', name: 'Code Agent', icon: '💻', description: 'Write, debug, and refactor code' },
-  { id: 'decision', name: 'Decision Agent', icon: '🎯', description: 'Make strategic decisions based on criteria' },
-  { id: 'communication', name: 'Communication Agent', icon: '📧', description: 'Handle external communications' },
-  { id: 'monitoring', name: 'Monitoring Agent', icon: '📈', description: 'Monitor systems and alert on anomalies' },
-  { id: 'orchestrator', name: 'Orchestrator Agent', icon: '🎭', description: 'Coordinate multiple agents for complex tasks' },
+  { 
+    id: 'research', 
+    name: 'Research Agent', 
+    icon: Search, 
+    description: 'Gather and analyze information from multiple sources',
+    gradient: 'from-blue-500 to-cyan-500'
+  },
+  { 
+    id: 'analysis', 
+    name: 'Analysis Agent', 
+    icon: BarChart3, 
+    description: 'Analyze data and identify patterns and insights',
+    gradient: 'from-purple-500 to-pink-500'
+  },
+  { 
+    id: 'writing', 
+    name: 'Writing Agent', 
+    icon: PenTool, 
+    description: 'Generate high-quality content and documentation',
+    gradient: 'from-green-500 to-emerald-500'
+  },
+  { 
+    id: 'code', 
+    name: 'Code Agent', 
+    icon: Code2, 
+    description: 'Write, debug, and refactor code',
+    gradient: 'from-orange-500 to-red-500'
+  },
+  { 
+    id: 'decision', 
+    name: 'Decision Agent', 
+    icon: Target, 
+    description: 'Make strategic decisions based on criteria',
+    gradient: 'from-yellow-500 to-orange-500'
+  },
+  { 
+    id: 'communication', 
+    name: 'Communication Agent', 
+    icon: Mail, 
+    description: 'Handle external communications',
+    gradient: 'from-indigo-500 to-purple-500'
+  },
+  { 
+    id: 'monitoring', 
+    name: 'Monitoring Agent', 
+    icon: TrendingUp, 
+    description: 'Monitor systems and alert on anomalies',
+    gradient: 'from-teal-500 to-cyan-500'
+  },
+  { 
+    id: 'orchestrator', 
+    name: 'Orchestrator Agent', 
+    icon: Network, 
+    description: 'Coordinate multiple agents for complex tasks',
+    gradient: 'from-pink-500 to-rose-500'
+  },
 ];
 
 const defaultCapabilities = {
@@ -79,173 +131,217 @@ export default function AgentsPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-900">
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-white">Agents</h1>
-            <p className="text-gray-300 mt-2">Create and manage your AI agents</p>
-          </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
-          >
-            + Create Agent
-          </button>
-        </div>
+  const selectedAgentType = agentTypes.find(t => t.id === formData.type);
 
-        {/* User's Created Agents Section */}
-        {userAgents && userAgents.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-white text-white mb-4">Your Agents</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {userAgents.map((agent) => {
-                const agentType = agentTypes.find(t => t.id === agent.type);
-                return (
-                  <div 
-                    key={agent.id} 
-                    className="bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-xl transition-all border-2 border-purple-200"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="text-4xl">{agentType?.icon || '🤖'}</div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        agent.status === 'active' ? 'bg-green-100 text-green-800' : 
-                        agent.status === 'inactive' ? 'bg-gray-700 text-gray-100' : 
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {agent.status}
-                      </span>
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-white">Agents</h1>
+      </div>
+
+      {/* User's Created Agents */}
+      {userAgents && userAgents.length > 0 && (
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-white mb-6">Your Agents</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {userAgents.map((agent: any) => {
+              const agentType = agentTypes.find(t => t.id === agent.type);
+              const IconComponent = agentType?.icon || Search;
+              
+              return (
+                <div
+                  key={agent.id}
+                  className="group bg-gray-800 p-6 rounded-lg shadow-lg border-2 border-purple-500/30 hover:border-purple-500 hover:shadow-purple-500/30 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`p-3 rounded-lg bg-gradient-to-br ${agentType?.gradient || 'from-purple-500 to-blue-500'} group-hover:scale-110 transition-transform duration-300`}>
+                      <IconComponent className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="text-xl font-bold text-white text-white mb-2">{agent.name}</h3>
-                    <p className="text-sm text-gray-700 mb-2">{agentType?.name}</p>
-                    {agent.description && (
-                      <p className="text-gray-700 mb-4 text-sm">{agent.description}</p>
-                    )}
-                    <div className="flex gap-2">
-                      <button 
-                        className="flex-1 px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 transition-all"
-                      >
-                        Execute
-                      </button>
-                      <button 
-                        className="px-4 py-2 border-2 border-gray-600 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-900 transition-all"
-                      >
-                        Settings
-                      </button>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span className="px-2 py-1 bg-green-900 text-green-300 rounded text-xs font-medium">
+                          {agent.status}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                  
+                  <h3 className="text-lg font-bold text-white mb-2">{agent.name}</h3>
+                  <p className="text-gray-300 text-sm mb-4 line-clamp-2">{agent.description}</p>
+                  
+                  <div className="flex gap-2">
+                    <button className="flex-1 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2">
+                      <Play className="w-4 h-4" />
+                      Execute
+                    </button>
+                    <button className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 hover:scale-105 transition-all duration-200">
+                      <Settings className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Agent Templates Section */}
-        <div>
-          <h2 className="text-2xl font-bold text-white text-white mb-4">Agent Templates</h2>
-          <p className="text-gray-300 mb-6">Choose a template to create a new agent</p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {agentTypes.map((agent) => (
-              <div 
-                key={agent.id} 
-                className="bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-xl transition-all border border-gray-700"
+      {/* Agent Templates */}
+      <div>
+        <h2 className="text-2xl font-bold text-white mb-6">Agent Templates</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {agentTypes.map((agent) => {
+            const IconComponent = agent.icon;
+            
+            return (
+              <div
+                key={agent.id}
+                className="group bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 hover:border-transparent hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer relative overflow-hidden"
+                onClick={() => handleCreateAgent(agent.id)}
               >
-                <div className="text-5xl mb-4">{agent.icon}</div>
-                <h3 className="text-xl font-bold text-white text-white mb-2">{agent.name}</h3>
-                <p className="text-gray-700 mb-6 min-h-[48px]">{agent.description}</p>
-                <button 
-                  onClick={() => handleCreateAgent(agent.id)}
-                  className="w-full px-4 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-all"
+                {/* Gradient border effect */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${agent.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}></div>
+                
+                <div className="relative z-10">
+                  <div className={`inline-flex p-4 rounded-lg bg-gradient-to-br ${agent.gradient} mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
+                    <IconComponent className="w-8 h-8 text-white" />
+                  </div>
+                  
+                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-blue-400 transition-all duration-300">
+                    {agent.name}
+                  </h3>
+                  <p className="text-gray-300 text-sm mb-4">{agent.description}</p>
+                  
+                  <button className="w-full px-4 py-2 bg-gray-700 text-white rounded hover:bg-gradient-to-r hover:from-purple-600 hover:to-blue-600 transition-all duration-300 flex items-center justify-center gap-2 group-hover:scale-105">
+                    <Plus className="w-4 h-4" />
+                    Create Agent
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Create Agent Modal */}
+      {showCreateModal && selectedAgentType && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-gray-800 rounded-lg max-w-2xl w-full p-6 border border-gray-700 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex items-center gap-4">
+                <div className={`p-3 rounded-lg bg-gradient-to-br ${selectedAgentType.gradient}`}>
+                  <selectedAgentType.icon className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Create {selectedAgentType.name}</h2>
+                  <p className="text-gray-400 mt-1">{selectedAgentType.description}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-400 hover:text-gray-200 hover:rotate-90 transition-all duration-200"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Agent Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                  placeholder="e.g., Market Research Assistant"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Agent Type
+                </label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as keyof typeof defaultCapabilities })}
+                  className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
                 >
-                  Create {agent.name}
+                  {agentTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                  rows={3}
+                  placeholder="Describe what this agent will do..."
+                  required
+                />
+              </div>
+
+              <div className="bg-gray-700/50 p-4 rounded-lg">
+                <h4 className="font-semibold text-white mb-2">Included Capabilities:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {defaultCapabilities[formData.type].map((cap) => (
+                    <span
+                      key={cap}
+                      className="px-3 py-1 bg-purple-900/50 text-purple-300 rounded-full text-sm border border-purple-500/30"
+                    >
+                      {cap.replace(/_/g, ' ')}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {createAgentMutation.error && (
+                <div className="p-3 bg-red-900/50 border border-red-500/50 rounded text-red-300 text-sm">
+                  Error creating agent: {createAgentMutation.error.message}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 px-6 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 hover:scale-105 transition-all duration-200"
+                  disabled={createAgentMutation.isPending}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createAgentMutation.isPending}
+                  className="flex-1 px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded hover:from-purple-700 hover:to-blue-700 hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {createAgentMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      Create Agent
+                    </>
+                  )}
                 </button>
               </div>
-            ))}
+            </form>
           </div>
         </div>
-
-        {/* Create Agent Modal */}
-        {showCreateModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 rounded-2xl p-8 max-w-2xl w-full shadow-2xl">
-              <h2 className="text-3xl font-bold text-white text-white mb-6">Create New Agent</h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">Agent Name</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none text-white" 
-                    placeholder="My Research Agent" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">Agent Type</label>
-                  <select 
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value as keyof typeof defaultCapabilities })}
-                    className="w-full px-4 py-3 border-2 border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none text-white"
-                  >
-                    {agentTypes.map((type) => (
-                      <option key={type.id} value={type.id}>{type.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-white mb-2">Description (Optional)</label>
-                  <textarea 
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-600 rounded-lg focus:border-purple-500 focus:outline-none text-white" 
-                    rows={4} 
-                    placeholder="Describe what this agent will do..." 
-                  />
-                </div>
-                
-                {/* Show capabilities for selected type */}
-                <div className="bg-purple-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-semibold text-white mb-2">Included Capabilities:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {defaultCapabilities[formData.type].map((cap) => (
-                      <span key={cap} className="px-3 py-1 bg-purple-200 text-purple-800 text-xs font-semibold rounded-full">
-                        {cap.replace(/_/g, ' ')}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {createAgentMutation.error && (
-                  <div className="bg-red-50 border-2 border-red-200 text-red-800 px-4 py-3 rounded-lg">
-                    <p className="font-semibold text-white">Error creating agent:</p>
-                    <p className="text-sm">{createAgentMutation.error.message}</p>
-                  </div>
-                )}
-
-                <div className="flex gap-4 pt-4">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowCreateModal(false)} 
-                    disabled={createAgentMutation.isPending}
-                    className="flex-1 px-6 py-3 border-2 border-gray-600 text-gray-700 font-semibold rounded-lg hover:bg-gray-900 transition-all disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    disabled={createAgentMutation.isPending}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg disabled:opacity-50"
-                  >
-                    {createAgentMutation.isPending ? 'Creating...' : 'Create Agent'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
