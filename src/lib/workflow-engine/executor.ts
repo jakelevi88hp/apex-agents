@@ -235,6 +235,7 @@ export class WorkflowExecutor {
 
     // Record execution in database
     await db.insert(executions).values({
+      workflowId: context.workflowId,
       agentId: step.agentId,
       userId: context.userId,
       status: 'completed',
