@@ -184,3 +184,9 @@
 - [x] Update admin authentication to work with current user system
 - [x] Make first user automatically admin
 
+
+
+- [x] Add authentication check to AI Admin page
+- [x] Redirect to login if not authenticated
+- [x] Show proper error page if authenticated but not admin
+
