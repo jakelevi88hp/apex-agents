@@ -13,6 +13,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { createGitHubIntegration, GitHubIntegration } from './github';
 
 const execAsync = promisify(exec);
 
@@ -38,12 +39,21 @@ export class AIAdminAgent {
   private logPath: string;
   private patchHistory: PatchRecord[] = [];
   private projectRoot: string;
+  private github: GitHubIntegration | null = null;
 
   constructor(apiKey: string, projectRoot: string = process.cwd()) {
     this.openai = new OpenAI({ apiKey });
     this.projectRoot = projectRoot;
     this.logPath = path.join(projectRoot, 'logs', 'ai_admin.log');
     this.ensureLogDirectory();
+    
+    // Initialize GitHub integration if token is available
+    try {
+      this.github = createGitHubIntegration();
+      this.log('GitHub integration initialized');
+    } catch (error) {
+      this.log('GitHub integration not available - changes will be local only', 'warning');
+    }
   }
 
   private async ensureLogDirectory() {
@@ -313,6 +323,19 @@ Respond with a JSON object containing:
 
       patchRecord.status = 'applied';
       await this.log(`Patch applied successfully: ${patchRecord.id}`);
+
+      // Commit and push to GitHub if integration is available
+      if (this.github) {
+        try {
+          await this.log('Committing changes to GitHub...');
+          const commitMessage = `AI Admin: ${patchRecord.request}\n\nPatch ID: ${patchRecord.id}\nFiles modified: ${patchRecord.files.length}`;
+          await this.github.commitAndPush(patchRecord.files, commitMessage);
+          await this.log('Changes pushed to GitHub successfully');
+        } catch (error) {
+          await this.log(`Failed to push to GitHub: ${error}`, 'warning');
+          // Don't fail the patch application if GitHub push fails
+        }
+      }
 
       return true;
     } catch (error) {

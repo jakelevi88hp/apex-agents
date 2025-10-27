@@ -219,3 +219,10 @@
 - [x] User icon and notification center not showing in navigation
 - [x] Add visible logout link to navigation
 
+## AI Admin Agent GitHub Integration
+- [ ] Configure AI Admin Agent to use GitHub API for code changes
+- [ ] Add GitHub Personal Access Token to environment variables
+- [ ] Update agent.ts to commit and push changes to GitHub
+- [ ] Set up automatic Vercel deployment from GitHub pushes
+- [ ] Test end-to-end: command → patch → commit → deploy
+
