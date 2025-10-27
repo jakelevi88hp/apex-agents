@@ -27,16 +27,18 @@ export const authRouter = router({
       const passwordHash = await bcrypt.hash(input.password, 10);
 
       // Check if this is the first user (make them admin)
-      const { sql } = await import('drizzle-orm');
-      const userCount = await db.select({ count: sql<number>`count(*)` }).from(users);
+        // Owner email or first user becomes admin
+      const ownerEmail = 'jakelevi88hp@gmail.com';
+      const userCount = await db.select({ count: sql`count(*)` }).from(users);
       const isFirstUser = Number(userCount[0]?.count || 0) === 0;
+      const isOwner = input.email.toLowerCase() === ownerEmail.toLowerCase();
 
-      // Create user
-      const [newUser] = await db.insert(users).values({
-        name: input.name,
+      const newUser = await db.insert(users).values({
+        id: `user-${Date.now()}`,
         email: input.email,
-        passwordHash,
-        role: isFirstUser ? 'admin' : 'user',
+        password: hashedPassword,
+        name: input.name,
+        role: (isOwner || isFirstUser) ? 'admin' : 'user',
         subscriptionTier: 'trial',
         subscriptionStatus: 'trial',
         trialStartDate: new Date(),
