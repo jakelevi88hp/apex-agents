@@ -208,3 +208,8 @@
 - [x] Verify database role assignment
 - [x] Add automatic upgrade to admin on login for owner email
 
+
+
+## Missing Features
+- [x] Add logout button to dashboard navigation
+
