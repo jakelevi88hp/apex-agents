@@ -213,3 +213,9 @@
 ## Missing Features
 - [x] Add logout button to dashboard navigation
 
+
+
+## Bugs
+- [x] User icon and notification center not showing in navigation
+- [x] Add visible logout link to navigation
+

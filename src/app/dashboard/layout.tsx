@@ -28,6 +28,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link href="/dashboard/workflows" className="text-gray-300 hover:text-purple-400 transition-colors">Workflows</Link>
             <Link href="/dashboard/knowledge" className="text-gray-300 hover:text-purple-400 transition-colors">Knowledge</Link>
             <Link href="/dashboard/analytics" className="text-gray-300 hover:text-purple-400 transition-colors">Analytics</Link>
+            <Link href="/dashboard/settings" className="text-gray-300 hover:text-purple-400 transition-colors">Settings</Link>
+            <button
+              onClick={handleLogout}
+              className="text-gray-300 hover:text-red-400 transition-colors font-medium"
+            >
+              Logout
+            </button>
             <NotificationCenter />
             
             {/* User Menu */}
