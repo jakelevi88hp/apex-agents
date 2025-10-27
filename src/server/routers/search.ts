@@ -62,6 +62,17 @@ export const searchRouter = router({
           },
           fallback: true,
         };
+      } catch (error: any) {
+        console.error('Search error:', error);
+        return {
+          success: false,
+          error: error.message,
+          data: {
+            query: input.query,
+            results: [],
+            count: 0,
+          },
+        };
       }
     }),
 
