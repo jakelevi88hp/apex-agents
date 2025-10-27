@@ -196,7 +196,7 @@
 ## Minor Enhancements
 - [x] Implement semantic search UI for knowledge base
 - [x] Add real-time notifications for workflow completion
-- [ ] Create agent collaboration features
-- [ ] Add advanced scheduling options
-- [ ] Add more OAuth providers (Dropbox, OneDrive)
+- [x] Create agent collaboration features
+- [x] Add advanced scheduling options
+- [x] Add more OAuth providers (Dropbox, OneDrive)
 
