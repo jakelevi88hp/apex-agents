@@ -150,7 +150,7 @@ export default function AIAdminPage() {
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: result.data.analysis || 'Command executed successfully.',
+          content: (result.data as any).analysis || result.data.summary || 'Command executed successfully.',
           timestamp: new Date(),
           patchId: result.data.patchId,
           status: 'pending',
