@@ -20,7 +20,7 @@ async function createAdminUser() {
       await db.update(users)
         .set({
           role: 'admin',
-          password: hashedPassword,
+          passwordHash: hashedPassword,
           name: name,
           updatedAt: new Date(),
         })
@@ -32,7 +32,7 @@ async function createAdminUser() {
       await db.insert(users).values({
         id: 'admin-jakelevi88hp',
         email,
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         name,
         role: 'admin',
         createdAt: new Date(),
