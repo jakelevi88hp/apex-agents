@@ -22,7 +22,6 @@ async function createAdminUser() {
           role: 'admin',
           passwordHash: hashedPassword,
           name: name,
-          updatedAt: new Date(),
         })
         .where(eq(users.email, email));
       
@@ -36,7 +35,6 @@ async function createAdminUser() {
         name,
         role: 'admin',
         createdAt: new Date(),
-        updatedAt: new Date(),
       });
       
       console.log('✅ Created new admin user:', email);
