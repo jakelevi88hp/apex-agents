@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import SemanticSearchTab from '@/components/SemanticSearchTab';
 
 interface DataSource {
   name: string;
@@ -17,7 +18,7 @@ interface Document {
 }
 
 export default function KnowledgePage() {
-  const [activeTab, setActiveTab] = useState<'sources' | 'documents' | 'embeddings'>('sources');
+  const [activeTab, setActiveTab] = useState<'sources' | 'documents' | 'embeddings' | 'search'>('sources');
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [selectedSource, setSelectedSource] = useState<DataSource | null>(null);
@@ -94,6 +95,16 @@ export default function KnowledgePage() {
           }`}
         >
           Embeddings
+        </button>
+        <button
+          onClick={() => setActiveTab('search')}
+          className={`px-4 py-2 font-semibold ${
+            activeTab === 'search'
+              ? 'border-b-2 border-purple-600 text-purple-400'
+              : 'text-gray-300 hover:text-gray-100'
+          }`}
+        >
+          Semantic Search
         </button>
       </div>
 
@@ -185,6 +196,11 @@ export default function KnowledgePage() {
             </table>
           </div>
         </div>
+      )}
+
+      {/* Semantic Search Tab */}
+      {activeTab === 'search' && (
+        <SemanticSearchTab />
       )}
 
       {/* Embeddings Tab */}

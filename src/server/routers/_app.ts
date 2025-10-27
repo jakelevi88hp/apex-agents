@@ -4,6 +4,7 @@ import { workflowsRouter } from './workflows';
 import { authRouter } from './auth';
 import { aiAdminRouter } from './ai-admin';
 import { analyticsRouter } from './analytics';
+import { searchRouter } from './search';
 
 export const appRouter = router({
   auth: authRouter,
@@ -11,6 +12,7 @@ export const appRouter = router({
   workflows: workflowsRouter,
   aiAdmin: aiAdminRouter,
   analytics: analyticsRouter,
+  search: searchRouter,
 });
 
 export type AppRouter = typeof appRouter;
