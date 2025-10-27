@@ -200,3 +200,10 @@
 - [x] Add advanced scheduling options
 - [x] Add more OAuth providers (Dropbox, OneDrive)
 
+
+
+## Admin Access Issue
+- [ ] Debug why owner email is not getting admin role
+- [ ] Check if user is logged in with correct account
+- [ ] Verify database role assignment
+
