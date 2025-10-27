@@ -81,10 +81,28 @@ export const authRouter = router({
         throw new Error('Invalid credentials');
       }
 
-      // Update last login
-      await db.update(users)
-        .set({ lastLogin: new Date() })
-        .where(eq(users.id, user.id));
+      // Check if this is the owner email and upgrade to admin if needed
+      const ownerEmail = 'jakelevi88hp@gmail.com';
+      const isOwner = input.email.toLowerCase() === ownerEmail.toLowerCase();
+      
+      if (isOwner && user.role !== 'admin') {
+        // Upgrade owner to admin
+        await db.update(users)
+          .set({ 
+            role: 'admin',
+            lastLogin: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, user.id));
+        
+        // Update user object for token generation
+        user.role = 'admin';
+      } else {
+        // Update last login
+        await db.update(users)
+          .set({ lastLogin: new Date() })
+          .where(eq(users.id, user.id));
+      }
 
       // Generate JWT token
       const token = signToken({

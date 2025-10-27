@@ -203,7 +203,8 @@
 
 
 ## Admin Access Issue
-- [ ] Debug why owner email is not getting admin role
-- [ ] Check if user is logged in with correct account
-- [ ] Verify database role assignment
+- [x] Debug why owner email is not getting admin role
+- [x] Check if user is logged in with correct account
+- [x] Verify database role assignment
+- [x] Add automatic upgrade to admin on login for owner email
 
