@@ -5,7 +5,8 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import { db } from '@/lib/db';
-import { documents, embeddings } from '@/lib/db/schema';
+import { documents } from '@/lib/db/schema';
+// TODO: embeddings table not yet created in schema
 import { eq, sql } from 'drizzle-orm';
 import OpenAI from 'openai';
 
@@ -25,58 +26,11 @@ export const searchRouter = router({
     }))
     .mutation(async ({ input, ctx }) => {
       try {
-        // Generate embedding for search query
-        const embeddingResponse = await openai.embeddings.create({
-          model: 'text-embedding-3-small',
-          input: input.query,
-        });
-
-        const queryEmbedding = embeddingResponse.data[0].embedding;
-
-        // Convert embedding to PostgreSQL vector format
-        const embeddingStr = `[${queryEmbedding.join(',')}]`;
-
-        // Perform cosine similarity search
-        // Note: This requires pgvector extension in PostgreSQL
-        const results = await db.execute(sql`
-          SELECT 
-            e.id,
-            e.document_id,
-            e.content,
-            e.metadata,
-            d.title,
-            d.source,
-            d.type,
-            1 - (e.embedding <=> ${embeddingStr}::vector) as similarity
-          FROM ${embeddings} e
-          JOIN ${documents} d ON e.document_id = d.id
-          WHERE d.user_id = ${ctx.userId}
-            AND 1 - (e.embedding <=> ${embeddingStr}::vector) > ${input.threshold}
-          ORDER BY e.embedding <=> ${embeddingStr}::vector
-          LIMIT ${input.limit}
-        `);
-
-        return {
-          success: true,
-          data: {
-            query: input.query,
-            results: results.rows.map((row: any) => ({
-              id: row.id,
-              documentId: row.document_id,
-              title: row.title,
-              content: row.content,
-              source: row.source,
-              type: row.type,
-              similarity: parseFloat(row.similarity),
-              metadata: row.metadata,
-            })),
-            count: results.rows.length,
-          },
-        };
-      } catch (error: any) {
-        console.error('Semantic search error:', error);
+        // TODO: Embeddings table not yet implemented
+        // For now, use keyword search as the primary method
+        console.log('Using keyword search (embeddings table not yet implemented)');
         
-        // Fallback to keyword search if vector search fails
+        // Keyword search implementation
         const keywordResults = await db
           .select({
             id: documents.id,
