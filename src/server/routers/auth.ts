@@ -36,7 +36,7 @@ export const authRouter = router({
       const newUser = await db.insert(users).values({
         id: `user-${Date.now()}`,
         email: input.email,
-        password: hashedPassword,
+        passwordHash: passwordHash,
         name: input.name,
         role: (isOwner || isFirstUser) ? 'admin' : 'user',
         subscriptionTier: 'trial',

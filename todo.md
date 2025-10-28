@@ -229,6 +229,9 @@
 
 
 ## Critical Bugs to Fix
-- [ ] Fix "sql is not defined" error in signup (missing import in auth.ts)
-- [ ] Add navigation link to AI Admin page in dashboard
+- [x] Fix "sql is not defined" error in signup (missing import in auth.ts)
+- [x] Add navigation link to AI Admin page in dashboard
+
+
+- [ ] Fix "hashedPassword is not defined" error in signup (variable name mismatch)
 
