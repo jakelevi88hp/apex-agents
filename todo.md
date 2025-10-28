@@ -306,3 +306,56 @@
 - [ ] Deploy to staging and verify
 - [x] Document staging deployment process
 
+
+
+
+## Production Readiness - Next Steps
+
+### Priority 1: Activate Observability Stack
+- [ ] Create Sentry account and generate auth token
+- [ ] Create Checkly account and generate API key
+- [ ] Create Grafana Cloud account and generate API key
+- [ ] Create UptimeRobot account and generate API key
+- [ ] Set up Slack webhook for alerts
+- [ ] Add all API keys to GitHub Secrets
+- [ ] Deploy Terraform infrastructure
+- [ ] Verify Sentry is receiving errors
+- [ ] Verify Checkly synthetic tests are running
+- [ ] Verify Grafana dashboards are populated
+- [ ] Verify UptimeRobot monitors are active
+- [ ] Test alert notifications in Slack
+
+### Priority 2: Configure Staging Environment Variables
+- [ ] Add DATABASE_URL to Vercel Preview environment
+- [ ] Add NODE_ENV=staging to Vercel Preview environment
+- [ ] Add NEXT_PUBLIC_ENV=staging to Vercel Preview environment
+- [ ] Redeploy staging branch to apply changes
+- [ ] Verify staging uses staging database
+- [ ] Test database isolation between staging and production
+
+### Priority 3: Implement Automated E2E Testing
+- [ ] Install Playwright
+- [ ] Configure Playwright for Next.js
+- [ ] Create test for homepage load
+- [ ] Create test for user signup flow
+- [ ] Create test for user login flow
+- [ ] Create test for dashboard access
+- [ ] Create test for agent creation
+- [ ] Create test for workflow creation
+- [ ] Add GitHub Actions workflow for E2E tests
+- [ ] Configure tests to run on staging deployments
+- [ ] Add test results reporting
+- [ ] Block production merges if tests fail
+
+### Priority 4: Create Database Seed Script
+- [ ] Create seed script file (scripts/seed.ts)
+- [ ] Add sample user accounts (admin, regular user)
+- [ ] Add sample agents (various types)
+- [ ] Add sample workflows
+- [ ] Add sample knowledge base documents
+- [ ] Add sample execution history
+- [ ] Add edge cases and stress test data
+- [ ] Create npm script to run seeding
+- [ ] Add documentation for seeding process
+- [ ] Test seed script on staging database
+
