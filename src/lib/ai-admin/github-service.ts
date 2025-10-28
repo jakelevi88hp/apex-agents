@@ -1,3 +1,5 @@
+'use server';
+
 /**
  * GitHub Service for AI Admin
  * 

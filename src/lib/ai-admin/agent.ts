@@ -1,3 +1,5 @@
+'use server';
+
 /**
  * AI Admin Agent - Self-Upgrading System
  * 
