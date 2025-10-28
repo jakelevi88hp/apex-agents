@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  turbopack: {}, // Silence Turbopack warning when using webpack config
   webpack: (config, { isServer }) => {
     if (!isServer) {
       // Exclude Node.js-specific packages from client bundle
