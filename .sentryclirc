@@ -1,0 +1,8 @@
+[auth]
+token=
+
+[defaults]
+url=https://sentry.io/
+org=
+project=apex-agents-production
+

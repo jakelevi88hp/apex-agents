@@ -1,0 +1,48 @@
+name: terraform-apply
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - "terraform/**"
+      - "dashboards/**"
+
+jobs:
+  tf-apply:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      TF_VAR_sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      TF_VAR_sentry_org_slug: ${{ secrets.SENTRY_ORG_SLUG }}
+      TF_VAR_sentry_team_slug: ${{ secrets.SENTRY_TEAM_SLUG }}
+      TF_VAR_checkly_api_key: ${{ secrets.CHECKLY_API_KEY }}
+      TF_VAR_checkly_account_id: ${{ secrets.CHECKLY_ACCOUNT_ID }}
+      TF_VAR_grafana_url: ${{ secrets.GRAFANA_URL }}
+      TF_VAR_grafana_auth: ${{ secrets.GRAFANA_AUTH }}
+      TF_VAR_uptimerobot_api_key: ${{ secrets.UPTIMEROBOT_API_KEY }}
+      TF_VAR_slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+      TF_VAR_site_base_url: ${{ secrets.SITE_BASE_URL }}
+      TF_VAR_api_auth_token: ${{ secrets.API_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.6
+
+      - name: Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Plan
+        id: plan
+        working-directory: terraform
+        run: terraform plan -var-file=env/production.tfvars
+
+      - name: Apply
+        if: github.ref == 'refs/heads/main'
+        working-directory: terraform
+        run: terraform apply -auto-approve -var-file=env/production.tfvars
+

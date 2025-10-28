@@ -280,3 +280,18 @@
 - [x] Use console.log only for production logging
 - [ ] Test patch application after fix to verify GitHub API works
 
+
+
+
+## Observability Stack Integration
+- [x] Set up Terraform infrastructure for observability
+- [x] Integrate Sentry for error tracking and performance monitoring
+- [x] Configure Checkly for synthetic monitoring (browser tests)
+- [x] Set up Grafana Cloud dashboards and alerting
+- [x] Configure UptimeRobot for uptime monitoring
+- [x] Wire all alerts to Slack webhook
+- [x] Add Sentry SDK to Next.js application
+- [x] Create GitHub Actions workflow for Terraform deployment
+- [ ] Test all monitoring integrations (requires service account setup)
+- [x] Document observability setup and usage
+

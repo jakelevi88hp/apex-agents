@@ -1,0 +1,41 @@
+{
+  "title": "Apex Agents — API Health",
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "API latency p95",
+      "targets": [
+        { "refId": "A", "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{service=\"apex-agents\"}[5m])) by (le))" }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Error rate",
+      "targets": [
+        { "refId": "A", "expr": "sum(rate(http_server_requests_seconds_count{service=\"apex-agents\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{service=\"apex-agents\"}[5m]))" }
+      ],
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "DB query duration p95",
+      "targets": [
+        { "refId": "A", "expr": "histogram_quantile(0.95, sum(rate(db_query_duration_seconds_bucket{db=\"neon\",service=\"apex-agents\"}[5m])) by (le))" }
+      ],
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 }
+    },
+    {
+      "type": "stat",
+      "title": "Availability last 24h",
+      "targets": [
+        { "refId": "A", "expr": "avg_over_time(uptime_check_success{service=\"apex-agents\"}[24h]) * 100" }
+      ],
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 }
+    }
+  ],
+  "schemaVersion": 37,
+  "version": 1
+}
+
