@@ -423,3 +423,18 @@
 - [ ] Implement token usage tracking
 - [ ] Create execution playground/testing interface
 - [ ] Add support for multiple LLM providers (Claude, Gemini)
+
+## Remaining Core Features - Final Push
+- [ ] Complete workflow builder node components (AgentNode, TriggerNode, ConditionNode)
+- [ ] Build NodeSidebar for dragging nodes onto canvas
+- [ ] Create WorkflowToolbar with save/test/deploy actions
+- [ ] Implement workflow execution engine
+- [ ] Add workflow testing interface
+- [ ] Create knowledge base file upload with S3
+- [ ] Integrate Pinecone for vector embeddings
+- [ ] Build semantic search functionality
+- [ ] Create knowledge base management UI
+- [ ] Enhance AI Admin with patch review UI
+- [ ] Add patch testing interface
+- [ ] Implement patch rollback functionality
+- [ ] Create patch approval workflow
