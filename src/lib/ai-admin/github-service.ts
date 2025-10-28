@@ -1,4 +1,4 @@
-'use server';
+import 'server-only';
 
 /**
  * GitHub Service for AI Admin

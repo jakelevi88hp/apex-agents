@@ -1,4 +1,4 @@
-'use server';
+import 'server-only';
 
 /**
  * AI Admin Agent - Self-Upgrading System
