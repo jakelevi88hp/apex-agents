@@ -16,7 +16,7 @@ export default function LoginPage() {
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: (data) => {
       // Store JWT token in localStorage
-      localStorage.setItem('token', data.token);
+      localStorage.setItem('auth_token', data.token);
       // Redirect to dashboard
       router.push('/dashboard');
     },

@@ -35,7 +35,7 @@ export default function AIAdminPage() {
 
   // Check authentication
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('auth_token');
     if (!token) {
       // Not logged in - redirect to login
       router.push('/login?redirect=/admin/ai');
