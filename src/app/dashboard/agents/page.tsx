@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import { 
   Search, BarChart3, PenTool, Code2, Target, Mail, 
-  TrendingUp, Network, Plus, X, Loader2, Play, Settings 
+  TrendingUp, Network, Plus, X, Loader2, Play, Settings, Send 
 } from 'lucide-react';
 
 const agentTypes = [
@@ -90,12 +90,19 @@ const defaultConfig = {
 
 export default function AgentsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showExecuteModal, setShowExecuteModal] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<any>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     type: 'research' as keyof typeof defaultCapabilities,
     description: '',
   });
+  const [executeData, setExecuteData] = useState({
+    objective: '',
+    context: {},
+  });
+  const [executionResult, setExecutionResult] = useState<any>(null);
 
   // Fetch user's created agents
   const { data: userAgents, isLoading: agentsLoading, refetch } = trpc.agents.list.useQuery();
@@ -109,10 +116,24 @@ export default function AgentsPage() {
     },
   });
 
+  // Execute agent mutation
+  const executeAgentMutation = trpc.agents.execute.useMutation({
+    onSuccess: (data) => {
+      setExecutionResult(data);
+    },
+  });
+
   const handleCreateAgent = (typeId: string) => {
     setSelectedType(typeId);
     setFormData({ ...formData, type: typeId as keyof typeof defaultCapabilities });
     setShowCreateModal(true);
+  };
+
+  const handleExecuteAgent = (agent: any) => {
+    setSelectedAgent(agent);
+    setExecuteData({ objective: '', context: {} });
+    setExecutionResult(null);
+    setShowExecuteModal(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -128,6 +149,20 @@ export default function AgentsPage() {
       });
     } catch (error) {
       console.error('Failed to create agent:', error);
+    }
+  };
+
+  const handleExecuteSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      await executeAgentMutation.mutateAsync({
+        agentId: selectedAgent.id,
+        objective: executeData.objective,
+        context: executeData.context,
+      });
+    } catch (error) {
+      console.error('Failed to execute agent:', error);
     }
   };
 
@@ -171,7 +206,10 @@ export default function AgentsPage() {
                   <p className="text-gray-300 text-sm mb-4 line-clamp-2">{agent.description}</p>
                   
                   <div className="flex gap-2">
-                    <button className="flex-1 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2">
+                    <button 
+                      onClick={() => handleExecuteAgent(agent)}
+                      className="flex-1 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
+                    >
                       <Play className="w-4 h-4" />
                       Execute
                     </button>
@@ -334,6 +372,90 @@ export default function AgentsPage() {
                     <>
                       <Plus className="w-4 h-4" />
                       Create Agent
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Execute Agent Modal */}
+      {showExecuteModal && selectedAgent && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-gray-800 rounded-lg max-w-2xl w-full p-6 border border-gray-700 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex items-center gap-4">
+                <div className={`p-3 rounded-lg bg-gradient-to-br ${agentTypes.find(t => t.id === selectedAgent.type)?.gradient || 'from-purple-500 to-blue-500'}`}>
+                  <Play className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Execute {selectedAgent.name}</h2>
+                  <p className="text-gray-400 mt-1">{selectedAgent.description}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowExecuteModal(false)}
+                className="text-gray-400 hover:text-gray-200 hover:rotate-90 transition-all duration-200"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleExecuteSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Objective / Command
+                </label>
+                <textarea
+                  value={executeData.objective}
+                  onChange={(e) => setExecuteData({ ...executeData, objective: e.target.value })}
+                  className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                  rows={4}
+                  placeholder="What do you want this agent to do? e.g., Research the latest AI trends in 2024..."
+                  required
+                />
+              </div>
+
+              {executeAgentMutation.error && (
+                <div className="p-3 bg-red-900/50 border border-red-500/50 rounded text-red-300 text-sm">
+                  Error executing agent: {executeAgentMutation.error.message}
+                </div>
+              )}
+
+              {executionResult && (
+                <div className="p-4 bg-green-900/20 border border-green-500/50 rounded">
+                  <h4 className="font-semibold text-green-300 mb-2">Execution Result:</h4>
+                  <pre className="text-gray-300 text-sm whitespace-pre-wrap overflow-auto max-h-64">
+                    {JSON.stringify(executionResult, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowExecuteModal(false)}
+                  className="flex-1 px-6 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 hover:scale-105 transition-all duration-200"
+                  disabled={executeAgentMutation.isPending}
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  disabled={executeAgentMutation.isPending}
+                  className="flex-1 px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded hover:from-purple-700 hover:to-blue-700 hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {executeAgentMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Executing...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Execute
                     </>
                   )}
                 </button>
