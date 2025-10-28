@@ -316,21 +316,28 @@ Respond with a JSON object containing:
    */
   async applyPatch(patchRecord: PatchRecord): Promise<boolean> {
     await this.log(`Applying patch: ${patchRecord.id}`);
+    await this.log(`Environment: ${this.isProduction ? 'production' : 'development'}`);
+    await this.log(`GitHub Service available: ${!!this.githubService}`);
 
     try {
       const patchData = JSON.parse(patchRecord.patch);
+      await this.log(`Patch data parsed successfully`);
+      await this.log(`Files to modify: ${JSON.stringify(patchData.files?.map((f: any) => f.path) || [])}`);
 
       // In production, use GitHub API to create PR
       if (this.isProduction && this.githubService) {
+        await this.log('Using GitHub API for patch application');
         return await this.applyPatchViaGitHub(patchRecord, patchData);
       }
 
       // In development, apply directly to filesystem
+      await this.log('Using local filesystem for patch application');
       return await this.applyPatchLocally(patchRecord, patchData);
     } catch (error) {
       patchRecord.status = 'failed';
       patchRecord.error = String(error);
-      await this.log(`Patch application failed: ${error}`, 'error');
+      await this.log(`Patch application failed with error: ${error}`, 'error');
+      await this.log(`Error stack: ${(error as Error).stack}`, 'error');
       return false;
     }
   }
@@ -340,17 +347,22 @@ Respond with a JSON object containing:
    */
   private async applyPatchViaGitHub(patchRecord: PatchRecord, patchData: any): Promise<boolean> {
     if (!this.githubService) {
+      await this.log('GitHub Service not initialized!', 'error');
       throw new Error('GitHub Service not initialized');
     }
 
     await this.log('Applying patch via GitHub API...');
+    await this.log(`Patch data: ${JSON.stringify({ summary: patchData.summary, filesCount: patchData.files?.length })}`);
 
     try {
       // Create a unique branch name
       const branchName = `ai-admin/${patchRecord.id}`;
+      await this.log(`Branch name: ${branchName}`);
 
       // Check if branch already exists
+      await this.log('Checking if branch exists...');
       const branchExists = await this.githubService.branchExists(branchName);
+      await this.log(`Branch exists: ${branchExists}`);
       if (branchExists) {
         await this.githubService.deleteBranch(branchName);
         await this.log(`Deleted existing branch: ${branchName}`);
@@ -391,6 +403,8 @@ Respond with a JSON object containing:
       return true;
     } catch (error) {
       await this.log(`Failed to apply patch via GitHub: ${error}`, 'error');
+      await this.log(`Error details: ${JSON.stringify(error)}`, 'error');
+      await this.log(`Error stack: ${(error as Error).stack}`, 'error');
       throw error;
     }
   }

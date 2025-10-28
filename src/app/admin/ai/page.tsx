@@ -247,6 +247,17 @@ export default function AIAdminPage() {
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, successMessage]);
+      } else {
+        // Handle failure when success is false
+        console.error('[handleApplyPatch] Patch application failed:', result);
+        const errorContent = result.data?.error || result.data?.message || 'Unknown error occurred';
+        const errorMessage: Message = {
+          id: Date.now().toString(),
+          role: 'system',
+          content: `❌ Failed to apply patch: ${errorContent}\n\nPlease check the Vercel logs for more details.`,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
       }
     } catch (error: any) {
       console.error('[handleApplyPatch] Error:', error);
