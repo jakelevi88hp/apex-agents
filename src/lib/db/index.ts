@@ -1,25 +1,37 @@
 import 'server-only';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
+import { neon } from '@neondatabase/serverless';
 import * as schema from './schema';
-import ws from 'ws';
 
-// Configure Neon for WebSocket support
-neonConfig.webSocketConstructor = ws;
+// Lazy database connection - only initialize when actually used
+let _db: ReturnType<typeof drizzle> | null = null;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is not set');
+function initDb() {
+  if (_db) return _db;
+  
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is not set');
+  }
+
+  // Create HTTP client (no WebSocket dependency!)
+  const sql = neon(process.env.DATABASE_URL);
+
+  // Create Drizzle instance with schema
+  _db = drizzle(sql, { schema });
+  return _db;
 }
 
-// Create connection pool
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-
-// Create Drizzle instance with schema
-export const db = drizzle(pool, { schema });
+// Export lazy-initialized database instance
+export const db = new Proxy({} as ReturnType<typeof drizzle>, {
+  get(target, prop) {
+    const instance = initDb();
+    return (instance as any)[prop];
+  }
+});
 
 // Helper function to get database instance
 export async function getDb() {
-  return db;
+  return initDb();
 }
 
 // Export all schema

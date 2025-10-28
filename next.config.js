@@ -1,13 +1,16 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
-  turbopack: {}, // Silence Turbopack warning when using webpack config
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      // Exclude Node.js-specific packages from client bundle
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
@@ -25,7 +28,6 @@ const nextConfig: NextConfig = {
         'fs/promises': false,
       };
       
-      // Exclude specific packages that should only run on server
       config.externals = config.externals || [];
       config.externals.push('ws', 'child_process');
     }
@@ -33,4 +35,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

@@ -1,3 +1,5 @@
+import 'server-only';
+
 /**
  * GitHub Integration for AI Admin Agent
  * 
