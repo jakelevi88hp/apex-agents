@@ -78,7 +78,6 @@ export const agentsRouter = router({
       });
 
       const [execution] = await ctx.db.insert(executions).values({
-        workflowId: agent.id, // Using agent ID as workflow ID for direct agent execution
         agentId: agent.id,
         userId: ctx.userId!,
         status: 'running',

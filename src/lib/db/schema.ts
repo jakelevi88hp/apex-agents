@@ -102,7 +102,7 @@ export const workflows = pgTable('workflows', {
 
 export const executions = pgTable('executions', {
   id: uuid('id').primaryKey().defaultRandom(),
-  workflowId: uuid('workflow_id').references(() => workflows.id, { onDelete: 'cascade' }).notNull(),
+  workflowId: uuid('workflow_id').references(() => workflows.id, { onDelete: 'cascade' }),
   agentId: uuid('agent_id').references(() => agents.id),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   status: varchar('status', { length: 20 }).notNull(), // running, completed, failed, cancelled
