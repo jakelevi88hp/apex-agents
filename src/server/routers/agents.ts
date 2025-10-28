@@ -20,10 +20,11 @@ export const agentsRouter = router({
     .input(z.object({
       name: z.string(),
       description: z.string().optional(),
-      type: z.enum(['research', 'analysis', 'writing', 'code', 'decision', 'communication', 'monitoring', 'orchestrator']),
+      type: z.enum(['research', 'analysis', 'writing', 'code', 'decision', 'communication', 'monitoring', 'orchestrator', 'custom']),
       config: z.record(z.string(), z.any()),
-      capabilities: z.array(z.string()),
+      capabilities: z.record(z.string(), z.boolean()).or(z.array(z.string())),
       constraints: z.record(z.string(), z.any()).optional(),
+      promptTemplate: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const [newAgent] = await ctx.db.insert(agents).values({

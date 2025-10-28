@@ -359,3 +359,55 @@
 - [ ] Add documentation for seeding process
 - [ ] Test seed script on staging database
 
+
+## Core Features Implementation - Option 2
+
+### Agent Creation & Management
+- [x] Build agent creation wizard UI
+- [x] Implement agent template selection
+- [x] Add agent configuration form (model, temperature, tools, capabilities)
+- [x] Create agent preview/test functionality
+- [ ] Implement agent edit/update functionality
+- [ ] Add agent deletion with confirmation
+- [ ] Create agent duplication feature
+- [ ] Build agent execution interface
+- [ ] Add agent performance metrics display
+- [ ] Implement agent versioning system
+
+### Workflow Builder
+- [ ] Design visual workflow editor UI
+- [ ] Implement drag-and-drop step builder
+- [ ] Add workflow step configuration modals
+- [ ] Create agent selection for each step
+- [ ] Implement workflow trigger configuration (manual, schedule, webhook, event)
+- [ ] Add workflow condition builder
+- [ ] Implement error handling configuration
+- [ ] Create workflow testing/dry-run functionality
+- [ ] Build workflow execution monitoring
+- [ ] Add workflow execution history view
+- [ ] Implement workflow analytics dashboard
+
+### Knowledge Base Integration
+- [ ] Build file upload system (drag-and-drop)
+- [ ] Implement file processing (PDF, DOCX, TXT, MD)
+- [ ] Add vector embedding generation (Pinecone integration)
+- [ ] Create knowledge base search functionality
+- [ ] Implement source management UI
+- [ ] Add knowledge base tagging system
+- [ ] Create knowledge base filtering and sorting
+- [ ] Build knowledge base preview/view
+- [ ] Implement knowledge base edit/update
+- [ ] Add knowledge base deletion
+- [ ] Create knowledge base analytics
+
+### AI Admin Enhancements
+- [ ] Implement self-upgrading agent core logic
+- [ ] Build patch history UI with details
+- [ ] Add code review system for patches
+- [ ] Create automated testing for patches
+- [ ] Implement rollback functionality
+- [ ] Add patch approval workflow
+- [ ] Create AI Admin dashboard
+- [ ] Implement AI Admin analytics
+- [ ] Add AI Admin configuration UI
+- [ ] Create AI Admin logs viewer

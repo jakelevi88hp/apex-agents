@@ -6,6 +6,7 @@ import {
   Search, BarChart3, PenTool, Code2, Target, Mail, 
   TrendingUp, Network, Plus, X, Loader2, Play, Settings, Send 
 } from 'lucide-react';
+import AgentWizard from '@/components/agent-wizard/AgentWizard';
 
 const agentTypes = [
   { 
@@ -90,6 +91,7 @@ const defaultConfig = {
 
 export default function AgentsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const [showExecuteModal, setShowExecuteModal] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<any>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
@@ -172,6 +174,13 @@ export default function AgentsPage() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-white">Agents</h1>
+        <button
+          onClick={() => setShowWizard(true)}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white rounded-lg font-medium transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-105"
+        >
+          <Plus className="w-5 h-5" />
+          New Agent
+        </button>
       </div>
 
       {/* User's Created Agents */}
@@ -463,6 +472,33 @@ export default function AgentsPage() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Agent Wizard */}
+      {showWizard && (
+        <AgentWizard
+          onClose={() => setShowWizard(false)}
+          onComplete={async (agentData) => {
+            try {
+              await createAgentMutation.mutateAsync({
+                name: agentData.name,
+                type: agentData.type,
+                description: agentData.description,
+                config: {
+                  model: agentData.model,
+                  temperature: agentData.temperature,
+                  maxTokens: agentData.maxTokens,
+                  tools: agentData.tools,
+                },
+                capabilities: agentData.capabilities,
+                promptTemplate: agentData.promptTemplate,
+              });
+              setShowWizard(false);
+            } catch (error) {
+              console.error('Failed to create agent:', error);
+            }
+          }}
+        />
       )}
     </div>
   );
