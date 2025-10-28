@@ -217,8 +217,11 @@ export default function AIAdminPage() {
   };
 
   const handleApplyPatch = async (patchId: string) => {
+    console.log('[handleApplyPatch] Starting patch application for:', patchId);
     try {
+      console.log('[handleApplyPatch] Calling applyPatch mutation...');
       const result = await applyPatch.mutateAsync({ patchId });
+      console.log('[handleApplyPatch] Result:', result);
       
       if (result.success) {
         setMessages((prev) =>
@@ -236,6 +239,7 @@ export default function AIAdminPage() {
         setMessages((prev) => [...prev, successMessage]);
       }
     } catch (error: any) {
+      console.error('[handleApplyPatch] Error:', error);
       const errorMessage: Message = {
         id: Date.now().toString(),
         role: 'system',
