@@ -31,6 +31,8 @@ export default function AIAdminPage() {
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [selectedPatchId, setSelectedPatchId] = useState<string | null>(null);
+  const [showPatchDetails, setShowPatchDetails] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Check authentication
@@ -144,15 +146,53 @@ export default function AIAdminPage() {
     setIsProcessing(true);
 
     try {
-      const result = await executeCommand.mutateAsync({ command: input });
+      const result = await executeCommand.mutateAsync({ 
+        command: input,
+        autoApply: false  // Keep false for manual approval
+      });
 
       if (result.success && result.data) {
+        // Parse the patch to show details
+        let patchData: any = {};
+        try {
+          patchData = JSON.parse(result.data.patch || '{}');
+        } catch (e) {
+          console.error('Failed to parse patch:', e);
+        }
+        
+        // Build detailed message content
+        let messageContent = '**Patch Generated Successfully**\n\n';
+        
+        if (patchData.summary) {
+          messageContent += `${patchData.summary}\n\n`;
+        }
+        
+        if (result.data.files && result.data.files.length > 0) {
+          messageContent += '**Files to be modified:**\n';
+          messageContent += result.data.files.map((f: string) => `• ${f}`).join('\n');
+          messageContent += '\n\n';
+        }
+        
+        if (patchData.testingSteps && patchData.testingSteps.length > 0) {
+          messageContent += '**Testing Steps:**\n';
+          messageContent += patchData.testingSteps.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n');
+          messageContent += '\n\n';
+        }
+        
+        if (patchData.risks && patchData.risks.length > 0) {
+          messageContent += '**⚠️ Potential Risks:**\n';
+          messageContent += patchData.risks.map((r: string) => `• ${r}`).join('\n');
+          messageContent += '\n\n';
+        }
+        
+        messageContent += 'Click "Apply Patch" to implement these changes or "View Details" to see the full code diff.';
+        
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: (result.data as any).analysis || result.data.summary || 'Command executed successfully.',
+          content: messageContent,
           timestamp: new Date(),
-          patchId: result.data.patchId,
+          patchId: result.data.id,
           status: 'pending',
         };
         setMessages((prev) => [...prev, assistantMessage]);
@@ -169,6 +209,11 @@ export default function AIAdminPage() {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleViewDetails = (patchId: string) => {
+    setSelectedPatchId(patchId);
+    setShowPatchDetails(true);
   };
 
   const handleApplyPatch = async (patchId: string) => {
@@ -286,9 +331,10 @@ export default function AIAdminPage() {
                       Apply Patch
                     </button>
                     <button
-                      onClick={() => {}}
-                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition"
+                      onClick={() => handleViewDetails(message.patchId!)}
+                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition flex items-center gap-2"
                     >
+                      <FileText className="w-4 h-4" />
                       View Details
                     </button>
                   </div>
@@ -409,6 +455,164 @@ export default function AIAdminPage() {
           )}
         </div>
       </div>
+
+      {/* Patch Details Modal */}
+      {showPatchDetails && selectedPatchId && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 border border-gray-700 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 border-b border-gray-700 p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-gradient-to-br from-purple-600 to-blue-600 p-2 rounded-lg">
+                    <Code className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-xl font-bold text-white">Patch Details</h2>
+                </div>
+                <button
+                  onClick={() => setShowPatchDetails(false)}
+                  className="text-gray-400 hover:text-white transition"
+                >
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <PatchDetailsContent patchId={selectedPatchId} />
+            </div>
+
+            {/* Modal Footer */}
+            <div className="border-t border-gray-700 p-6 bg-gray-900">
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowPatchDetails(false)}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    handleApplyPatch(selectedPatchId);
+                    setShowPatchDetails(false);
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-lg text-white transition flex items-center gap-2"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  Apply Patch
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Patch Details Component
+function PatchDetailsContent({ patchId }: { patchId: string }) {
+  const { data: patchData, isLoading } = trpc.aiAdmin.getPatch.useQuery({ patchId });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!patchData || !patchData.success) {
+    return (
+      <div className="text-center py-12 text-gray-400">
+        <AlertTriangle className="w-12 h-12 mx-auto mb-3" />
+        <p>Failed to load patch details</p>
+      </div>
+    );
+  }
+
+  const patch = patchData.data;
+  let parsedPatch: any = {};
+  
+  try {
+    parsedPatch = JSON.parse(patch.patch || '{}');
+  } catch (e) {
+    console.error('Failed to parse patch:', e);
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Summary */}
+      {parsedPatch.summary && (
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-2">Summary</h3>
+          <p className="text-gray-300">{parsedPatch.summary}</p>
+        </div>
+      )}
+
+      {/* Files */}
+      {parsedPatch.files && parsedPatch.files.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-3">Files to be Modified</h3>
+          <div className="space-y-3">
+            {parsedPatch.files.map((file: any, index: number) => (
+              <div key={index} className="bg-gray-900 border border-gray-700 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="w-4 h-4 text-purple-400" />
+                  <span className="font-mono text-sm text-white">{file.path}</span>
+                  <span className="px-2 py-1 bg-blue-600/20 text-blue-400 text-xs rounded">
+                    {file.action}
+                  </span>
+                </div>
+                {file.explanation && (
+                  <p className="text-sm text-gray-400 mt-2">{file.explanation}</p>
+                )}
+                {file.content && (
+                  <details className="mt-3">
+                    <summary className="text-sm text-purple-400 cursor-pointer hover:text-purple-300">
+                      View Code
+                    </summary>
+                    <pre className="mt-2 p-3 bg-black/50 rounded text-xs text-gray-300 overflow-x-auto">
+                      <code>{file.content}</code>
+                    </pre>
+                  </details>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Testing Steps */}
+      {parsedPatch.testingSteps && parsedPatch.testingSteps.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-3">Testing Steps</h3>
+          <ol className="list-decimal list-inside space-y-2 text-gray-300">
+            {parsedPatch.testingSteps.map((step: string, index: number) => (
+              <li key={index}>{step}</li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {/* Risks */}
+      {parsedPatch.risks && parsedPatch.risks.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-yellow-400" />
+            Potential Risks
+          </h3>
+          <ul className="space-y-2">
+            {parsedPatch.risks.map((risk: string, index: number) => (
+              <li key={index} className="flex items-start gap-2 text-gray-300">
+                <span className="text-yellow-400 mt-1">•</span>
+                <span>{risk}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
