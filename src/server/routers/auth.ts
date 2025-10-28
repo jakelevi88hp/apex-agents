@@ -33,8 +33,7 @@ export const authRouter = router({
       const isFirstUser = Number(userCount[0]?.count || 0) === 0;
       const isOwner = input.email.toLowerCase() === ownerEmail.toLowerCase();
 
-      const newUser = await db.insert(users).values({
-        id: `user-${Date.now()}`,
+      const [newUser] = await db.insert(users).values({
         email: input.email,
         passwordHash: passwordHash,
         name: input.name,
