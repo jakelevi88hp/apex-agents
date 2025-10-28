@@ -226,3 +226,9 @@
 - [ ] Set up automatic Vercel deployment from GitHub pushes
 - [ ] Test end-to-end: command → patch → commit → deploy
 
+
+
+## Critical Bugs to Fix
+- [ ] Fix "sql is not defined" error in signup (missing import in auth.ts)
+- [ ] Add navigation link to AI Admin page in dashboard
+

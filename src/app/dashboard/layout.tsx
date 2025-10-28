@@ -3,12 +3,26 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import NotificationCenter from '@/components/NotificationCenter';
-import { LogOut, Settings, User } from 'lucide-react';
-import { useState } from 'react';
+import { LogOut, Settings, User, Bot } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check if user is admin
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setIsAdmin(payload.role === 'admin' || payload.role === 'owner');
+      } catch (e) {
+        setIsAdmin(false);
+      }
+    }
+  }, []);
 
   const handleLogout = () => {
     // Clear token from localStorage
@@ -29,6 +43,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link href="/dashboard/knowledge" className="text-gray-300 hover:text-purple-400 transition-colors">Knowledge</Link>
             <Link href="/dashboard/analytics" className="text-gray-300 hover:text-purple-400 transition-colors">Analytics</Link>
             <Link href="/dashboard/settings" className="text-gray-300 hover:text-purple-400 transition-colors">Settings</Link>
+            {isAdmin && (
+              <Link href="/admin/ai" className="text-gray-300 hover:text-purple-400 transition-colors flex items-center gap-2">
+                <Bot className="w-4 h-4" />
+                AI Admin
+              </Link>
+            )}
             <button
               onClick={handleLogout}
               className="text-gray-300 hover:text-red-400 transition-colors font-medium"
