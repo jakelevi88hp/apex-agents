@@ -233,5 +233,19 @@
 - [x] Add navigation link to AI Admin page in dashboard
 
 
-- [ ] Fix "hashedPassword is not defined" error in signup (variable name mismatch)
+- [x] Fix "hashedPassword is not defined" error in signup (variable name mismatch)
+
+
+- [x] Run database migration to add missing columns to users table in production
+
+
+
+## AI Admin Patch Application Enhancement
+- [x] Show generated patch details in UI before applying
+- [x] Add "Apply Patch" button functionality to actually modify files
+- [x] Display list of files that will be changed
+- [x] Add confirmation dialog before applying patches (View Details modal)
+- [x] Show success/error messages after patch application
+- [x] Update patch history panel to show applied patches
+- [x] Add option to enable/disable auto-apply for patches (default: false for safety)
 
