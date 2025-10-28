@@ -230,10 +230,20 @@ export default function AIAdminPage() {
           )
         );
         
+        // Check if PR was created (production mode)
+        const prUrl = (result.data as any)?.prUrl;
+        let successContent = '✅ Patch applied successfully!';
+        
+        if (prUrl) {
+          successContent += `\n\n🔗 **Pull Request Created:** [View PR](${prUrl})\n\nThe changes have been committed to a new branch and a pull request has been created. Once the PR is merged, Vercel will automatically deploy the changes.`;
+        } else {
+          successContent += ' Changes have been implemented locally.';
+        }
+        
         const successMessage: Message = {
           id: Date.now().toString(),
           role: 'system',
-          content: '✅ Patch applied successfully! Changes have been implemented.',
+          content: successContent,
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, successMessage]);

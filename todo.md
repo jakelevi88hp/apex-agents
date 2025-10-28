@@ -249,3 +249,26 @@
 - [x] Update patch history panel to show applied patches
 - [x] Add option to enable/disable auto-apply for patches (default: false for safety)
 
+
+
+## AI Admin Bug Fixes
+- [ ] Fix Apply Patch button not triggering backend mutation
+- [ ] Ensure patches are saved to database/patch history
+- [ ] Verify patch ID is correctly passed to applyPatch mutation
+- [ ] Test complete flow: generate → view details → apply → verify
+
+
+
+## AI Admin GitHub API Integration (Production Support)
+- [x] Install and configure Octokit (GitHub API client)
+- [ ] Add GitHub token to environment variables (needs Vercel config)
+- [x] Create GitHubService class for API operations
+- [x] Implement createBranch method
+- [x] Implement commitFiles method (via GitHub API)
+- [x] Implement createPullRequest method
+- [x] Update applyPatch to use GitHub API instead of fs.writeFile
+- [x] Add environment detection (development vs production)
+- [x] Update UI to show PR link after patch application
+- [ ] Add auto-merge option for admin users (future enhancement)
+- [ ] Test complete flow in production (after env vars configured)
+

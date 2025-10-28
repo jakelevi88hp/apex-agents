@@ -14,6 +14,7 @@ import path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { createGitHubIntegration, GitHubIntegration } from './github';
+import { GitHubService, CommitFileChange } from './github-service';
 
 const execAsync = promisify(exec);
 
@@ -40,11 +41,14 @@ export class AIAdminAgent {
   private patchHistory: PatchRecord[] = [];
   private projectRoot: string;
   private github: GitHubIntegration | null = null;
+  private githubService: GitHubService | null = null;
+  private isProduction: boolean;
 
   constructor(apiKey: string, projectRoot: string = process.cwd()) {
     this.openai = new OpenAI({ apiKey });
     this.projectRoot = projectRoot;
     this.logPath = path.join(projectRoot, 'logs', 'ai_admin.log');
+    this.isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
     this.ensureLogDirectory();
     
     // Initialize GitHub integration if token is available
@@ -53,6 +57,17 @@ export class AIAdminAgent {
       this.log('GitHub integration initialized');
     } catch (error) {
       this.log('GitHub integration not available - changes will be local only', 'warning');
+    }
+
+    // Initialize GitHub Service for production patch application
+    if (this.isProduction && process.env.GITHUB_TOKEN) {
+      this.githubService = new GitHubService({
+        token: process.env.GITHUB_TOKEN,
+        owner: process.env.GITHUB_OWNER || 'jakelevi88hp',
+        repo: process.env.GITHUB_REPO || 'apex-agents',
+        defaultBranch: 'main',
+      });
+      this.log('GitHub Service initialized for production patch application');
     }
   }
 
@@ -290,6 +305,90 @@ Respond with a JSON object containing:
     await this.log(`Applying patch: ${patchRecord.id}`);
 
     try {
+      const patchData = JSON.parse(patchRecord.patch);
+
+      // In production, use GitHub API to create PR
+      if (this.isProduction && this.githubService) {
+        return await this.applyPatchViaGitHub(patchRecord, patchData);
+      }
+
+      // In development, apply directly to filesystem
+      return await this.applyPatchLocally(patchRecord, patchData);
+    } catch (error) {
+      patchRecord.status = 'failed';
+      patchRecord.error = String(error);
+      await this.log(`Patch application failed: ${error}`, 'error');
+      return false;
+    }
+  }
+
+  /**
+   * Apply patch via GitHub API (for production)
+   */
+  private async applyPatchViaGitHub(patchRecord: PatchRecord, patchData: any): Promise<boolean> {
+    if (!this.githubService) {
+      throw new Error('GitHub Service not initialized');
+    }
+
+    await this.log('Applying patch via GitHub API...');
+
+    try {
+      // Create a unique branch name
+      const branchName = `ai-admin/${patchRecord.id}`;
+
+      // Check if branch already exists
+      const branchExists = await this.githubService.branchExists(branchName);
+      if (branchExists) {
+        await this.githubService.deleteBranch(branchName);
+        await this.log(`Deleted existing branch: ${branchName}`);
+      }
+
+      // Create new branch
+      await this.githubService.createBranch(branchName);
+      await this.log(`Created branch: ${branchName}`);
+
+      // Prepare file changes
+      const fileChanges: CommitFileChange[] = patchData.files.map((file: any) => ({
+        path: file.path,
+        content: file.content || '',
+        action: file.action,
+      }));
+
+      // Commit files to the branch
+      const commitMessage = `AI Admin: ${patchRecord.request}\n\nPatch ID: ${patchRecord.id}\nFiles modified: ${patchRecord.files.length}`;
+      const commitSha = await this.githubService.commitFiles(branchName, fileChanges, commitMessage);
+      await this.log(`Committed changes: ${commitSha}`);
+
+      // Create pull request
+      const prBody = `## AI Admin Patch Application\n\n**Request:** ${patchRecord.request}\n\n**Patch ID:** ${patchRecord.id}\n\n**Files Modified:**\n${patchRecord.files.map(f => `- ${f}`).join('\n')}\n\n**Summary:**\n${patchData.summary}\n\n**Testing Steps:**\n${patchData.testingSteps?.map((step: string, i: number) => `${i + 1}. ${step}`).join('\n') || 'No testing steps provided'}\n\n**Potential Risks:**\n${patchData.risks?.map((risk: string) => `- ${risk}`).join('\n') || 'No risks identified'}`;
+      
+      const pr = await this.githubService.createPullRequest(
+        branchName,
+        `AI Admin: ${patchRecord.request}`,
+        prBody
+      );
+
+      await this.log(`Pull request created: ${pr.url}`);
+
+      // Store PR info in patch record
+      patchRecord.status = 'applied';
+      (patchRecord as any).prUrl = pr.url;
+      (patchRecord as any).prNumber = pr.number;
+
+      return true;
+    } catch (error) {
+      await this.log(`Failed to apply patch via GitHub: ${error}`, 'error');
+      throw error;
+    }
+  }
+
+  /**
+   * Apply patch locally (for development)
+   */
+  private async applyPatchLocally(patchRecord: PatchRecord, patchData: any): Promise<boolean> {
+    await this.log('Applying patch locally...');
+
+    try {
       // Validate first
       const isValid = await this.validatePatch(patchRecord);
       if (!isValid) {
@@ -297,8 +396,6 @@ Respond with a JSON object containing:
         patchRecord.error = 'Validation failed';
         return false;
       }
-
-      const patchData = JSON.parse(patchRecord.patch);
 
       // Create backup before applying
       await this.createBackup(patchRecord.files);
@@ -339,14 +436,10 @@ Respond with a JSON object containing:
 
       return true;
     } catch (error) {
-      patchRecord.status = 'failed';
-      patchRecord.error = String(error);
-      await this.log(`Patch application failed: ${error}`, 'error');
-
+      await this.log(`Local patch application failed: ${error}`, 'error');
       // Attempt rollback
       await this.rollbackPatch(patchRecord.id);
-
-      return false;
+      throw error;
     }
   }
 
