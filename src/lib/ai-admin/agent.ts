@@ -37,7 +37,6 @@ interface CodebaseAnalysis {
 
 export class AIAdminAgent {
   private openai: OpenAI;
-  private logPath: string;
   private patchHistory: PatchRecord[] = [];
   private projectRoot: string;
   private github: GitHubIntegration | null = null;
@@ -48,11 +47,6 @@ export class AIAdminAgent {
     this.openai = new OpenAI({ apiKey });
     this.projectRoot = projectRoot;
     this.isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
-    // Use /tmp for logs in production (Vercel serverless), otherwise use project logs directory
-    this.logPath = this.isProduction 
-      ? path.join('/tmp', 'ai_admin.log')
-      : path.join(projectRoot, 'logs', 'ai_admin.log');
-    this.ensureLogDirectory();
     
     // Initialize GitHub integration if token is available
     try {
@@ -74,35 +68,13 @@ export class AIAdminAgent {
     }
   }
 
-  private async ensureLogDirectory() {
-    // Skip directory creation in production - /tmp already exists
-    if (this.isProduction) {
-      return;
-    }
-    
-    const logDir = path.dirname(this.logPath);
-    try {
-      await fs.mkdir(logDir, { recursive: true });
-    } catch (error) {
-      console.error('Failed to create log directory:', error);
-    }
-  }
-
   private async log(message: string, level: 'info' | 'warning' | 'error' = 'info') {
     const timestamp = new Date().toISOString();
-    const logEntry = `[${timestamp}] [${level.toUpperCase()}] ${message}\n`;
+    const logMessage = `[AI Admin] [${timestamp}] [${level.toUpperCase()}] ${message}`;
     
-    // Always log to console
-    console.log(logEntry.trim());
-    
-    // Only write to file in development or if /tmp is available
-    if (!this.isProduction) {
-      try {
-        await fs.appendFile(this.logPath, logEntry);
-      } catch (error) {
-        // Silently fail in production - console.log is sufficient
-      }
-    }
+    // Only use console.log - no file operations
+    // This prevents ENOENT errors in Vercel's read-only filesystem
+    console.log(logMessage);
   }
 
   /**
