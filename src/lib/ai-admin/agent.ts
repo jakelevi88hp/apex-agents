@@ -298,6 +298,13 @@ Respond with a JSON object containing:
 
       const patchData = JSON.parse(response.choices[0].message.content || '{}');
 
+      // Validate patch before creating record
+      const validationErrors = await this.validatePatchData(patchData, requestText);
+      if (validationErrors.length > 0) {
+        await this.log(`Patch validation failed: ${validationErrors.join(', ')}`, 'error');
+        throw new Error(`Patch validation failed:\n${validationErrors.join('\n')}`);
+      }
+
       const patchRecord: PatchRecord = {
         id: `patch_${Date.now()}`,
         timestamp: new Date(),
@@ -308,13 +315,90 @@ Respond with a JSON object containing:
       };
 
       this.patchHistory.push(patchRecord);
-      await this.log(`Patch generated: ${patchRecord.id} affecting ${patchRecord.files.length} files`);
+      await this.log(`Patch generated and validated: ${patchRecord.id} affecting ${patchRecord.files.length} files`);
 
       return patchRecord;
     } catch (error) {
       await this.log(`Patch generation failed: ${error}`, 'error');
       throw error;
     }
+  }
+
+  /**
+   * Validate patch data for common issues before creating patch record
+   */
+  private async validatePatchData(patchData: any, requestText: string): Promise<string[]> {
+    const errors: string[] = [];
+
+    if (!patchData.files || !Array.isArray(patchData.files)) {
+      errors.push('Patch data must contain a files array');
+      return errors;
+    }
+
+    // Define known existing pages to prevent duplicates
+    const existingPages: Record<string, string> = {
+      'admin': 'src/app/admin/ai/page.tsx',
+      'ai admin': 'src/app/admin/ai/page.tsx',
+      'ai-admin': 'src/app/admin/ai/page.tsx',
+      'dashboard': 'src/app/dashboard/page.tsx',
+      'agi': 'src/app/dashboard/agi/page.tsx',
+      'login': 'src/app/login/page.tsx',
+      'signup': 'src/app/signup/page.tsx',
+    };
+
+    for (const file of patchData.files) {
+      // Check for Pages Router paths (should never be used)
+      if (file.path.includes('src/pages/') || file.path.startsWith('pages/')) {
+        errors.push(`Invalid path (Pages Router): ${file.path}. Use App Router paths (src/app/*) instead.`);
+      }
+
+      // Check for wrong imports in file content
+      if (file.content && file.content.includes("from 'next/router'")) {
+        errors.push(`Invalid import in ${file.path}: Use 'next/navigation' instead of 'next/router' for App Router.`);
+      }
+
+      // Check for duplicate pages
+      if (file.action === 'create' && file.path.endsWith('/page.tsx')) {
+        const pagePath = file.path.toLowerCase();
+        
+        // Check if creating a duplicate of an existing page
+        for (const [keyword, existingPath] of Object.entries(existingPages)) {
+          if (requestText.toLowerCase().includes(keyword) && 
+              file.path !== existingPath && 
+              pagePath.includes(keyword.replace(' ', '-'))) {
+            errors.push(
+              `Duplicate page detected: Trying to create ${file.path} but ${existingPath} already exists. ` +
+              `Use action: "modify" on ${existingPath} instead.`
+            );
+          }
+        }
+
+        // Check for similar paths that might be duplicates
+        if (pagePath.includes('ai-admin') && existingPages['ai admin']) {
+          errors.push(
+            `Duplicate page detected: ${file.path} conflicts with existing ${existingPages['ai admin']}. ` +
+            `Modify the existing file instead.`
+          );
+        }
+      }
+
+      // Check for singular vs plural context folder
+      if (file.path.includes('/context/') && !file.path.includes('/contexts/')) {
+        errors.push(`Invalid path: ${file.path}. Use 'src/contexts/' (plural) not 'src/context/' (singular).`);
+      }
+
+      // Validate file actions
+      if (!['create', 'modify', 'delete'].includes(file.action)) {
+        errors.push(`Invalid action "${file.action}" for file ${file.path}. Must be create, modify, or delete.`);
+      }
+
+      // Ensure content exists for create/modify actions
+      if ((file.action === 'create' || file.action === 'modify') && !file.content) {
+        errors.push(`Missing content for ${file.action} action on ${file.path}`);
+      }
+    }
+
+    return errors;
   }
 
   /**
