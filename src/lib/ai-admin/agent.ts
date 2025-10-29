@@ -398,6 +398,10 @@ export class AIAdminAgent {
 
   /**
    * Apply a validated patch to the codebase
+   * 
+   * Note: This method now always uses local filesystem and commits directly to main branch.
+   * Previously, it would create separate branches and PRs in production, but this caused
+   * GitHub API issues and orphaned branches. Direct commits are simpler and more reliable.
    */
   async applyPatch(patchRecord: PatchRecord): Promise<boolean> {
     await this.log(`Applying patch: ${patchRecord.id}`);
@@ -409,14 +413,9 @@ export class AIAdminAgent {
       await this.log(`Patch data parsed successfully`);
       await this.log(`Files to modify: ${JSON.stringify(patchData.files?.map((f: any) => f.path) || [])}`);
 
-      // In production, use GitHub API to create PR
-      if (this.isProduction && this.githubService) {
-        await this.log('Using GitHub API for patch application');
-        return await this.applyPatchViaGitHub(patchRecord, patchData);
-      }
-
-      // In development, apply directly to filesystem
-      await this.log('Using local filesystem for patch application');
+      // Always use local filesystem and direct commits to main branch
+      // This avoids creating separate branches and PR complications
+      await this.log('Using local filesystem for patch application (direct commit to main)');
       return await this.applyPatchLocally(patchRecord, patchData);
     } catch (error) {
       patchRecord.status = 'failed';
