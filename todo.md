@@ -53,11 +53,18 @@
 
 
 ## Navigation Issues
-- [ ] Add AGI link to dashboard navigation header
-- [ ] Ensure AI Admin link is visible for all users (or fix admin role detection)
+- [x] Add AGI link to dashboard navigation header
+- [x] Ensure AI Admin link is visible for all users (or fix admin role detection)
 
 
 
 ## AGI Interface Improvements
-- [ ] Add "Clear Chat" or "New Chat" button to AGI interface
+- [x] Add "Clear Chat" or "New Chat" button to AGI interface
+
+
+
+## AI Admin Backend Fixes
+- [ ] Fix "fs is not defined" error in AI Admin agent
+- [ ] Ensure all file system operations happen server-side only
+- [ ] Test AI Admin command execution end-to-end
 
