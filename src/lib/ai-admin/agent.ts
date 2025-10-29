@@ -17,6 +17,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { createGitHubIntegration, GitHubIntegration } from './github';
 import { GitHubService, CommitFileChange } from './github-service';
+import { getSystemPrompt } from './system-prompt';
 
 const execAsync = promisify(exec);
 
@@ -231,57 +232,8 @@ export class AIAdminAgent {
         }
       }
 
-      // Generate patch using LLM
-      const systemPrompt = `You are an expert software engineer working on a ${analysis.frameworks.join(', ')} project.
-The codebase follows these patterns: ${analysis.patterns.join(', ')}.
-
-IMPORTANT PROJECT STRUCTURE:
-- This is a Next.js 14+ App Router project (NOT Pages Router)
-- Pages are in: src/app/*/page.tsx (NOT pages/* or components/*)
-- Layouts are in: src/app/*/layout.tsx
-- Root layout: src/app/layout.tsx (NOT src/pages/_app.tsx - that's Pages Router!)
-- Dashboard layout: src/app/dashboard/layout.tsx
-- Components are in: src/components/*
-- Contexts are in: src/contexts/* (plural, .tsx extension)
-- Server code is in: src/server/*
-- All paths must be relative to the project root
-
-CRITICAL - DO NOT USE PAGES ROUTER PATHS:
-❌ NEVER use: src/pages/_app.tsx, src/pages/_document.tsx, pages/*
-✅ ALWAYS use: src/app/layout.tsx for root layout
-❌ NEVER use: src/context/* (singular)
-✅ ALWAYS use: src/contexts/* (plural) for React contexts
-
-EXISTING FILES IN THIS PROJECT:
-- AI Admin page: src/app/admin/ai/page.tsx (MODIFY this, don't create new)
-- Dashboard layout: src/app/dashboard/layout.tsx
-- AGI page: src/app/dashboard/agi/page.tsx
-- Login page: src/app/login/page.tsx
-- Signup page: src/app/signup/page.tsx
-
-FILE MODIFICATION RULES:
-1. ALWAYS check if a file already exists before deciding to create vs modify
-2. If the request mentions "AI Admin" or "admin page", MODIFY src/app/admin/ai/page.tsx
-3. If the request mentions "dashboard header" or "navigation", MODIFY src/app/dashboard/layout.tsx
-4. ONLY create new files if the feature doesn't exist yet
-5. When modifying existing files, preserve all existing functionality
-6. NEVER create duplicate pages at different paths (e.g., don't create src/app/ai-admin when src/app/admin/ai exists)
-
-Your task is to generate precise code changes based on user requests.
-Respond with a JSON object containing:
-{
-  "files": [
-    {
-      "path": "relative/path/to/file.ts",
-      "action": "create" | "modify" | "delete",
-      "content": "full file content" (for create/modify),
-      "explanation": "what this change does"
-    }
-  ],
-  "summary": "brief description of all changes",
-  "testingSteps": ["step 1", "step 2"],
-  "risks": ["potential risk 1", "potential risk 2"]
-}`;
+      // Generate patch using LLM with comprehensive knowledge base
+      const systemPrompt = getSystemPrompt(analysis);
 
       const response = await this.openai.chat.completions.create({
         model: 'gpt-4-turbo-preview',
