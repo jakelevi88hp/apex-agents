@@ -301,14 +301,23 @@ export default function AIAdminPage() {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 border-b border-gray-700 p-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-purple-600 to-blue-600 p-3 rounded-lg">
-              <Terminal className="w-6 h-6 text-white" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-gradient-to-br from-purple-600 to-blue-600 p-3 rounded-lg">
+                <Terminal className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">AI Admin Agent</h1>
+                <p className="text-gray-400 text-sm">Self-upgrading system powered by GPT-4</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">AI Admin Agent</h1>
-              <p className="text-gray-400 text-sm">Self-upgrading system powered by GPT-4</p>
-            </div>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg text-white font-medium transition-colors flex items-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Back to Dashboard
+            </button>
           </div>
         </div>
 
