@@ -119,9 +119,18 @@
 
 
 ## AI Admin Automated Testing
-- [ ] Add patch validation before applying changes
-- [ ] Implement duplicate page detection
-- [ ] Add file path validation (App Router vs Pages Router)
-- [ ] Create test suite for AI Admin patch generation
-- [ ] Add pre-commit hooks to validate patches
+- [x] Add patch validation before applying changes
+- [x] Implement duplicate page detection
+- [x] Add file path validation (App Router vs Pages Router)
+- [x] Add import validation (next/navigation vs next/router)
+- [x] Add context folder naming validation (contexts/ vs context/)
+- [ ] Create test suite for AI Admin patch generation (future enhancement)
+- [ ] Add pre-commit hooks to validate patches (future enhancement)
+
+
+
+## Playwright E2E Testing
+- [ ] Add test for 'Back to Dashboard' button on AI Admin page
+- [ ] Add authentication helper for Playwright tests
+- [ ] Create test suite for critical user flows
 
