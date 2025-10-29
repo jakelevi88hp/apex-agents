@@ -4,9 +4,15 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { FileText, Download, Eye, Trash2, Search, Loader2 } from 'lucide-react';
 import DocumentUpload from '@/components/DocumentUpload';
-import PDFViewer from '@/components/PDFViewer';
+
+// Lazy load PDFViewer to avoid server-side rendering issues
+const PDFViewer = dynamic(() => import('@/components/PDFViewer'), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-purple-500" /></div>,
+});
 
 interface Document {
   id: string;
