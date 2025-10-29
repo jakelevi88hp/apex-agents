@@ -106,6 +106,17 @@
 
 
 ## Login API Issues
-- [ ] Fix login API returning HTML instead of JSON
-- [ ] Debug authentication endpoint error
+- [x] Fix login API returning HTML instead of JSON (token key mismatch)
+- [x] Standardize localStorage token key to 'token' across all files
+
+
+
+## Import Errors
+- [ ] Fix next/router import in /src/app/ai-admin/page.tsx (should use next/navigation)
+
+
+
+## Build Failures
+- [ ] Fix build error from AI Admin patch (Back to Dashboard button)
+- [ ] Investigate npm run build failure
 
