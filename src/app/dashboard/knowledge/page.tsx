@@ -1,8 +1,5 @@
 'use client';
 
-// Prevent static generation - this page uses browser APIs
-export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { FileText, Download, Eye, Trash2, Search, Loader2 } from 'lucide-react';
