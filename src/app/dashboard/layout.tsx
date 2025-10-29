@@ -17,8 +17,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        setIsAdmin(payload.role === 'admin' || payload.role === 'owner');
+        console.log('JWT Payload:', payload);
+        console.log('User role:', payload.role);
+        const adminStatus = payload.role === 'admin' || payload.role === 'owner';
+        console.log('Is admin:', adminStatus);
+        setIsAdmin(adminStatus);
       } catch (e) {
+        console.error('Error parsing JWT:', e);
         setIsAdmin(false);
       }
     }
