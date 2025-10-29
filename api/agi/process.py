@@ -1,5 +1,32 @@
 from http.server import BaseHTTPRequestHandler
 import json
+import sys
+import os
+
+# Add the AGI modules to Python path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../src/lib'))
+
+try:
+    from agi.core import AGICore
+    AGI_AVAILABLE = True
+except Exception as e:
+    print(f"Warning: Could not import AGI modules: {e}")
+    AGI_AVAILABLE = False
+
+# Global AGI instance (initialized once per serverless function)
+_agi_instance = None
+
+def get_agi():
+    """Get or create the global AGI instance."""
+    global _agi_instance
+    if _agi_instance is None and AGI_AVAILABLE:
+        try:
+            _agi_instance = AGICore()
+            # Note: Async initialization would require event loop setup
+            # For now, we'll use synchronous processing
+        except Exception as e:
+            print(f"Error initializing AGI: {e}")
+    return _agi_instance
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -18,16 +45,20 @@ class handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": "Input is required"}).encode())
                 return
             
-            # Simple AGI response (full system integration can be added later)
-            result = {
-                "thoughts": [
-                    "I feel neutral about this",
-                    "This is an interesting topic",
-                    "I am processing your request"
-                ],
-                "emotional_state": "neutral",
-                "response": f"I received your message: {user_input}"
-            }
+            # Process through AGI system if available
+            if AGI_AVAILABLE:
+                try:
+                    agi = get_agi()
+                    if agi:
+                        # Synchronous processing (simplified version)
+                        result = self._process_with_agi(agi, user_input)
+                    else:
+                        result = self._fallback_response(user_input)
+                except Exception as e:
+                    print(f"AGI processing error: {e}")
+                    result = self._fallback_response(user_input)
+            else:
+                result = self._fallback_response(user_input)
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -39,7 +70,99 @@ class handler(BaseHTTPRequestHandler):
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps({"error": str(e)}).encode())
+            error_msg = str(e)
+            print(f"Error in AGI process handler: {error_msg}")
+            self.wfile.write(json.dumps({"error": error_msg}).encode())
+    
+    def _process_with_agi(self, agi, user_input: str) -> dict:
+        """Process input through full AGI system."""
+        try:
+            # Perception: Understand the input
+            perceived = agi.perception.process(user_input, "text")
+            
+            # Reasoning: Analyze the input
+            reasoning_result = agi.reasoning.reason(perceived)
+            
+            # Emotion: Determine emotional response
+            emotional_state = agi.emotion.process_input(user_input)
+            
+            # Consciousness: Generate self-aware thoughts
+            thoughts = agi.consciousness.generate_thoughts(user_input, emotional_state)
+            
+            # Creativity: Generate creative response if needed
+            creative_ideas = []
+            if "creative" in user_input.lower() or "idea" in user_input.lower():
+                creative_ideas = agi.creativity.generate_ideas(user_input)
+            
+            # Memory: Store the interaction
+            agi.memory.store_episodic_memory(
+                event_type="conversation",
+                content=user_input,
+                context={
+                    "emotional_state": emotional_state,
+                    "reasoning": reasoning_result
+                }
+            )
+            
+            # Generate response
+            response_text = self._generate_response(
+                user_input, 
+                reasoning_result, 
+                emotional_state,
+                thoughts,
+                creative_ideas
+            )
+            
+            return {
+                "thoughts": thoughts[:3] if thoughts else ["Processing your request"],
+                "emotional_state": emotional_state.get("primary_emotion", "neutral"),
+                "response": response_text,
+                "reasoning": reasoning_result.get("conclusion", ""),
+                "creativity": creative_ideas[:2] if creative_ideas else []
+            }
+            
+        except Exception as e:
+            print(f"Error in AGI processing: {e}")
+            return self._fallback_response(user_input)
+    
+    def _generate_response(self, user_input, reasoning, emotion, thoughts, creative_ideas):
+        """Generate a coherent response from AGI components."""
+        response_parts = []
+        
+        # Add emotional context
+        emotion_text = emotion.get("primary_emotion", "neutral")
+        if emotion_text != "neutral":
+            response_parts.append(f"I'm feeling {emotion_text} about this.")
+        
+        # Add reasoning conclusion
+        if reasoning and "conclusion" in reasoning:
+            response_parts.append(reasoning["conclusion"])
+        
+        # Add creative ideas if any
+        if creative_ideas:
+            response_parts.append("Here are some creative perspectives:")
+            for idea in creative_ideas[:2]:
+                if isinstance(idea, dict) and "description" in idea:
+                    response_parts.append(f"- {idea['description']}")
+        
+        # Default acknowledgment
+        if not response_parts:
+            response_parts.append(f"I've processed your message: {user_input}")
+            response_parts.append("I'm continuously learning and improving my responses.")
+        
+        return " ".join(response_parts)
+    
+    def _fallback_response(self, user_input: str) -> dict:
+        """Fallback response when AGI is not available."""
+        return {
+            "thoughts": [
+                "I feel neutral about this",
+                "This is an interesting topic",
+                "I am processing your request"
+            ],
+            "emotional_state": "neutral",
+            "response": f"I received your message: {user_input}. (Using simplified processing mode)"
+        }
     
     def do_OPTIONS(self):
         self.send_response(200)
