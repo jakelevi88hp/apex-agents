@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Brain, Send, Loader2 } from "lucide-react";
+import { Brain, Send, Loader2, Trash2 } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -137,15 +137,26 @@ export default function AGIPage() {
                 Advanced General Intelligence with consciousness, creativity, and emotional understanding
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-3 h-3 rounded-full ${
-                  agiStatus.available ? "bg-green-500 animate-pulse" : "bg-red-500"
-                }`}
-              />
-              <span className="text-sm text-gray-400">
-                {agiStatus.available ? "AGI Online" : "AGI Offline"}
-              </span>
+            <div className="flex items-center gap-4">
+              {messages.length > 0 && (
+                <button
+                  onClick={() => setMessages([])}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg transition-all border border-gray-700 hover:border-red-500"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="text-sm font-medium">Clear Chat</span>
+                </button>
+              )}
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-3 h-3 rounded-full ${
+                    agiStatus.available ? "bg-green-500 animate-pulse" : "bg-red-500"
+                  }`}
+                />
+                <span className="text-sm text-gray-400">
+                  {agiStatus.available ? "AGI Online" : "AGI Offline"}
+                </span>
+              </div>
             </div>
           </div>
         </div>

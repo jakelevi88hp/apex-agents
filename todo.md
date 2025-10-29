@@ -56,3 +56,8 @@
 - [ ] Add AGI link to dashboard navigation header
 - [ ] Ensure AI Admin link is visible for all users (or fix admin role detection)
 
+
+
+## AGI Interface Improvements
+- [ ] Add "Clear Chat" or "New Chat" button to AGI interface
+
