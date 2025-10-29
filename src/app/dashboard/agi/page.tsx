@@ -97,7 +97,22 @@ export default function AGIPage() {
     }
 
     if (result.thoughts && Array.isArray(result.thoughts)) {
-      return `My thoughts on this are:\n${result.thoughts.map((t: string) => `- ${t}`).join("\n")}\n\nI am experiencing ${result.emotional_state || "neutral"} about this.`;
+      const thoughtsText = result.thoughts.map((t: any) => `- ${t.content || t}`).join("\n");
+      const emotionalState = result.emotionalState || result.emotional_state || "neutral";
+      
+      let response = `My thoughts on this are:\n${thoughtsText}\n\nI am experiencing ${emotionalState} about this.`;
+      
+      // Add creativity if present
+      if (result.creativity && Array.isArray(result.creativity) && result.creativity.length > 0) {
+        response += `\n\nCreative ideas:\n${result.creativity.map((c: any) => `- ${c.description || c}`).join("\n")}`;
+      }
+      
+      // Add reasoning conclusion if present
+      if (result.reasoning && result.reasoning.conclusion) {
+        response += `\n\nReasoning: ${result.reasoning.conclusion}`;
+      }
+      
+      return response;
     }
 
     return JSON.stringify(result, null, 2);
