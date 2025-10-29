@@ -129,7 +129,15 @@ class handler(BaseHTTPRequestHandler):
             
         except Exception as e:
             print(f"Error in AGI processing: {e}")
-            return self._fallback_response(user_input)
+            import traceback
+            traceback.print_exc()
+            # Return error details in response for debugging
+            return {
+                "thoughts": ["Error occurred during processing"],
+                "emotional_state": "neutral",
+                "response": f"AGI processing error: {str(e)}. Using fallback mode.",
+                "error_details": traceback.format_exc()
+            }
     
     def _generate_response(self, user_input, reasoning, emotion, thoughts, creative_ideas):
         """Generate a coherent response from AGI components."""
