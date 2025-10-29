@@ -4,13 +4,19 @@ import sys
 import os
 
 # Add the AGI modules to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../src/lib'))
+# Vercel runs from project root, so we need to add src/lib to path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+src_lib_path = os.path.join(project_root, 'src', 'lib')
+sys.path.insert(0, src_lib_path)
 
 try:
     from agi.core import AGICore
     AGI_AVAILABLE = True
+    print(f"✓ AGI modules loaded successfully from {src_lib_path}")
 except Exception as e:
-    print(f"Warning: Could not import AGI modules: {e}")
+    print(f"✗ Warning: Could not import AGI modules: {e}")
+    import traceback
+    traceback.print_exc()
     AGI_AVAILABLE = False
 
 # Global AGI instance (initialized once per serverless function)

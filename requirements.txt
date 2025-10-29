@@ -1,0 +1,6 @@
+# Python dependencies for Vercel serverless functions
+# These will be automatically installed when deploying Python API routes
+
+# No external dependencies needed for the AGI system
+# All modules are self-contained Python code
+
