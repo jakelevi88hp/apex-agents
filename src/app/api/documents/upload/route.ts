@@ -6,7 +6,7 @@ import { db } from '@/server/db';
 import { documents } from '@/server/db/schema/documents';
 import { DocumentProcessor } from '@/lib/document-processor';
 import { PineconeService } from '@/lib/pinecone-service';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/auth/jwt';
 import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
 
 const UPLOAD_DIR = join(process.cwd(), 'uploads');

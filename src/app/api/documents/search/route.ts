@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PineconeService } from '@/lib/pinecone-service';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/auth/jwt';
 
 export async function POST(request: NextRequest) {
   try {

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/server/db';
 import { documents } from '@/server/db/schema/documents';
 import { eq, and, isNull, desc } from 'drizzle-orm';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/auth/jwt';
 
 // Mark this route as dynamic
 export const dynamic = 'force-dynamic';

@@ -4,7 +4,7 @@ import { join } from 'path';
 import { db } from '@/server/db';
 import { documents } from '@/server/db/schema/documents';
 import { eq, and } from 'drizzle-orm';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/auth/jwt';
 
 const UPLOAD_DIR = join(process.cwd(), 'uploads');
 
