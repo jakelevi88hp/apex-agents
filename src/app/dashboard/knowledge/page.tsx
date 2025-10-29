@@ -1,54 +1,75 @@
 'use client';
 
-import { useState } from 'react';
-import SemanticSearchTab from '@/components/SemanticSearchTab';
-
-interface DataSource {
-  name: string;
-  icon: string;
-  status: 'connected' | 'disconnected';
-  docs: number;
-}
+import { useState, useEffect } from 'react';
+import { FileText, Download, Eye, Trash2, Search, Loader2 } from 'lucide-react';
+import DocumentUpload from '@/components/DocumentUpload';
+import PDFViewer from '@/components/PDFViewer';
 
 interface Document {
+  id: string;
   name: string;
+  mimeType: string;
+  size: number;
   source: string;
-  size: string;
-  date: string;
+  status: string;
+  summary?: string;
+  tags?: string[];
+  folder?: string;
+  metadata?: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface SearchResult {
+  documentId: string;
+  documentName: string;
+  source: string;
+  maxScore: number;
+  chunks: Array<{
+    text: string;
+    score: number;
+    chunkIndex: number;
+  }>;
 }
 
 export default function KnowledgePage() {
-  const [activeTab, setActiveTab] = useState<'sources' | 'documents' | 'embeddings' | 'search'>('sources');
+  const [activeTab, setActiveTab] = useState<'documents' | 'upload' | 'search'>('documents');
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
-  const [selectedSource, setSelectedSource] = useState<DataSource | null>(null);
-  const [showManageModal, setShowManageModal] = useState(false);
-  const [showConnectModal, setShowConnectModal] = useState(false);
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
 
-  const dataSources: DataSource[] = [
-    { name: 'Google Drive', icon: '📁', status: 'connected', docs: 1247 },
-    { name: 'Notion', icon: '📝', status: 'connected', docs: 342 },
-    { name: 'GitHub', icon: '💻', status: 'connected', docs: 89 },
-    { name: 'Salesforce', icon: '☁️', status: 'disconnected', docs: 0 },
-    { name: 'Slack', icon: '💬', status: 'connected', docs: 5621 },
-    { name: 'Confluence', icon: '📚', status: 'disconnected', docs: 0 },
-  ];
+  // Load documents on mount
+  useEffect(() => {
+    loadDocuments();
+  }, []);
 
-  const documents: Document[] = [
-    { name: 'Q4 Financial Report.pdf', source: 'Google Drive', size: '2.4 MB', date: '2 hours ago' },
-    { name: 'Product Roadmap 2025', source: 'Notion', size: '156 KB', date: '1 day ago' },
-    { name: 'Customer Feedback Analysis', source: 'Salesforce', size: '892 KB', date: '3 days ago' },
-    { name: 'Engineering Documentation', source: 'GitHub', size: '5.1 MB', date: '1 week ago' },
-  ];
+  const loadDocuments = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/documents', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
 
-  const handleManageSource = (source: DataSource) => {
-    setSelectedSource(source);
-    setShowManageModal(true);
-  };
+      if (!response.ok) {
+        throw new Error('Failed to load documents');
+      }
 
-  const handleConnectSource = (source: DataSource) => {
-    setSelectedSource(source);
-    setShowConnectModal(true);
+      const data = await response.json();
+      setDocuments(data.documents || []);
+    } catch (error) {
+      console.error('Error loading documents:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleViewDocument = (doc: Document) => {
@@ -56,8 +77,98 @@ export default function KnowledgePage() {
     setShowDocumentModal(true);
   };
 
-  const handleUploadDocument = () => {
-    alert('Opening file upload dialog...\n\nSupported formats:\n- PDF, DOCX, TXT\n- MD, CSV, JSON\n- Max size: 50 MB');
+  const handleDownload = async (doc: Document) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/documents/${doc.id}/download`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.name;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Failed to download document');
+    }
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    try {
+      setSearching(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/documents/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          query: searchQuery,
+          topK: 10,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Search failed');
+      }
+
+      const data = await response.json();
+      setSearchResults(data.results || []);
+    } catch (error) {
+      console.error('Search error:', error);
+      alert('Search failed');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+  };
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+
+    if (hours < 1) return 'Just now';
+    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
+  };
+
+  const getStatusBadge = (status: string) => {
+    const colors = {
+      completed: 'bg-green-900 text-green-300',
+      processing: 'bg-yellow-900 text-yellow-300',
+      pending: 'bg-gray-700 text-gray-300',
+      failed: 'bg-red-900 text-red-300',
+    };
+
+    return (
+      <span className={`px-2 py-1 rounded text-xs ${colors[status as keyof typeof colors] || colors.pending}`}>
+        {status}
+      </span>
+    );
   };
 
   return (
@@ -67,16 +178,6 @@ export default function KnowledgePage() {
       {/* Tabs */}
       <div className="flex gap-4 mb-6 border-b border-gray-700">
         <button
-          onClick={() => setActiveTab('sources')}
-          className={`px-4 py-2 font-semibold ${
-            activeTab === 'sources'
-              ? 'border-b-2 border-purple-600 text-purple-400'
-              : 'text-gray-300 hover:text-gray-100'
-          }`}
-        >
-          Data Sources
-        </button>
-        <button
           onClick={() => setActiveTab('documents')}
           className={`px-4 py-2 font-semibold ${
             activeTab === 'documents'
@@ -84,17 +185,17 @@ export default function KnowledgePage() {
               : 'text-gray-300 hover:text-gray-100'
           }`}
         >
-          Documents
+          Documents ({documents.length})
         </button>
         <button
-          onClick={() => setActiveTab('embeddings')}
+          onClick={() => setActiveTab('upload')}
           className={`px-4 py-2 font-semibold ${
-            activeTab === 'embeddings'
+            activeTab === 'upload'
               ? 'border-b-2 border-purple-600 text-purple-400'
               : 'text-gray-300 hover:text-gray-100'
           }`}
         >
-          Embeddings
+          Upload
         </button>
         <button
           onClick={() => setActiveTab('search')}
@@ -108,339 +209,200 @@ export default function KnowledgePage() {
         </button>
       </div>
 
-      {/* Data Sources Tab */}
-      {activeTab === 'sources' && (
-        <div className="grid md:grid-cols-3 gap-6">
-          {dataSources.map((source) => (
-            <div key={source.name} className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <div className="text-4xl mb-2">{source.icon}</div>
-                  <h3 className="text-lg font-bold text-white">{source.name}</h3>
-                </div>
-                <span
-                  className={`px-3 py-1 rounded text-sm ${
-                    source.status === 'connected'
-                      ? 'bg-green-900 text-green-300'
-                      : 'bg-gray-700 text-gray-400'
-                  }`}
-                >
-                  {source.status}
-                </span>
-              </div>
-              <div className="text-gray-300 mb-4">{source.docs.toLocaleString()} documents</div>
-              <div className="flex gap-2">
-                {source.status === 'connected' ? (
-                  <button
-                    onClick={() => handleManageSource(source)}
-                    className="flex-1 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
-                  >
-                    Manage
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleConnectSource(source)}
-                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-                  >
-                    Connect
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* Documents Tab */}
       {activeTab === 'documents' && (
         <div>
-          <div className="flex justify-between items-center mb-6">
-            <p className="text-gray-300">{documents.length} documents indexed</p>
-            <button
-              onClick={handleUploadDocument}
-              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-            >
-              + Upload Document
-            </button>
-          </div>
-
-          <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-700">
-                <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Name</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Source</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Size</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Date</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-700">
-                {documents.map((doc, i) => (
-                  <tr key={i} className="hover:bg-gray-700">
-                    <td className="px-6 py-4 text-white">{doc.name}</td>
-                    <td className="px-6 py-4 text-gray-300">{doc.source}</td>
-                    <td className="px-6 py-4 text-gray-300">{doc.size}</td>
-                    <td className="px-6 py-4 text-gray-300">{doc.date}</td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleViewDocument(doc)}
-                        className="text-purple-400 hover:text-purple-300"
-                      >
-                        View
-                      </button>
-                    </td>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+            </div>
+          ) : documents.length === 0 ? (
+            <div className="bg-gray-800 rounded-lg p-12 text-center border border-gray-700">
+              <FileText className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-white mb-2">No documents yet</h3>
+              <p className="text-gray-400 mb-6">Upload your first document to get started</p>
+              <button
+                onClick={() => setActiveTab('upload')}
+                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              >
+                Upload Document
+              </button>
+            </div>
+          ) : (
+            <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-700">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Name</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Size</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Status</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Date</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-700">
+                  {documents.map((doc) => (
+                    <tr key={doc.id} className="hover:bg-gray-700">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-5 h-5 text-purple-400" />
+                          <div>
+                            <div className="text-white font-medium">{doc.name}</div>
+                            {doc.summary && (
+                              <div className="text-gray-400 text-sm truncate max-w-md">
+                                {doc.summary}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-300">{formatFileSize(doc.size)}</td>
+                      <td className="px-6 py-4">{getStatusBadge(doc.status)}</td>
+                      <td className="px-6 py-4 text-gray-300">{formatDate(doc.createdAt)}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          {doc.mimeType === 'application/pdf' && doc.status === 'completed' && (
+                            <button
+                              onClick={() => handleViewDocument(doc)}
+                              className="p-2 text-purple-400 hover:text-purple-300 hover:bg-gray-600 rounded"
+                              title="View"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDownload(doc)}
+                            className="p-2 text-blue-400 hover:text-blue-300 hover:bg-gray-600 rounded"
+                            title="Download"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Semantic Search Tab */}
+      {/* Upload Tab */}
+      {activeTab === 'upload' && (
+        <div className="max-w-2xl">
+          <DocumentUpload
+            onUploadComplete={() => {
+              loadDocuments();
+              setActiveTab('documents');
+            }}
+          />
+        </div>
+      )}
+
+      {/* Search Tab */}
       {activeTab === 'search' && (
-        <SemanticSearchTab />
-      )}
-
-      {/* Embeddings Tab */}
-      {activeTab === 'embeddings' && (
-        <div className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
-          <h3 className="text-xl font-bold text-white mb-4">Vector Embeddings</h3>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center py-3 border-b border-gray-700">
-              <div>
-                <div className="font-semibold text-white">Total Embeddings</div>
-                <div className="text-gray-300">7,298 vectors</div>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-white">100%</div>
-                <div className="text-sm text-gray-400">Indexed</div>
-              </div>
-            </div>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="p-4 bg-gray-700 rounded">
-                <div className="text-gray-300 text-sm">Last Query</div>
-                <div className="text-white font-semibold">"market trends 2025"</div>
-                <div className="text-gray-400 text-sm mt-1">2 minutes ago</div>
-              </div>
-              <div className="p-4 bg-gray-700 rounded">
-                <div className="text-gray-300 text-sm">Avg Response Time</div>
-                <div className="text-white font-semibold">0.3s</div>
-                <div className="text-gray-400 text-sm mt-1">Last 100 queries</div>
-              </div>
-              <div className="p-4 bg-gray-700 rounded">
-                <div className="text-gray-300 text-sm">Model</div>
-                <div className="text-white font-semibold">text-embedding-3-large</div>
-                <div className="text-gray-400 text-sm mt-1">OpenAI</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Manage Source Modal */}
-      {showManageModal && selectedSource && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg max-w-2xl w-full p-6 border border-gray-700">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-2">
-                  Manage {selectedSource.name}
-                </h2>
-                <p className="text-gray-300">
-                  Configure sync settings and manage permissions
-                </p>
-              </div>
-              <button
-                onClick={() => setShowManageModal(false)}
-                className="text-gray-400 hover:text-gray-200 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Sync Settings</h3>
-                <div className="space-y-3">
-                  <label className="flex items-center gap-3">
-                    <input type="checkbox" className="w-4 h-4" defaultChecked />
-                    <span className="text-gray-300">Auto-sync enabled</span>
-                  </label>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Sync Frequency
-                    </label>
-                    <select className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded">
-                      <option>Every 15 minutes</option>
-                      <option>Every hour</option>
-                      <option>Every 6 hours</option>
-                      <option>Daily</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Folders/Channels</h3>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-3">
-                    <input type="checkbox" className="w-4 h-4" defaultChecked />
-                    <span className="text-gray-300">All folders</span>
-                  </label>
-                  <label className="flex items-center gap-3">
-                    <input type="checkbox" className="w-4 h-4" />
-                    <span className="text-gray-300">Specific folders only</span>
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3">Permissions</h3>
-                <div className="p-4 bg-gray-700 rounded">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-300">Read access</span>
-                    <span className="text-green-400">✓ Granted</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-300">Write access</span>
-                    <span className="text-green-400">✓ Granted</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={() => setShowManageModal(false)}
-                  className="flex-1 px-6 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    alert('Settings saved successfully!');
-                    setShowManageModal(false);
-                  }}
-                  className="flex-1 px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Connect Source Modal */}
-      {showConnectModal && selectedSource && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg max-w-md w-full p-6 border border-gray-700">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-2">
-                  Connect to {selectedSource.name}
-                </h2>
-                <p className="text-gray-300">
-                  Authorize access to sync your data
-                </p>
-              </div>
-              <button
-                onClick={() => setShowConnectModal(false)}
-                className="text-gray-400 hover:text-gray-200 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="space-y-4 mb-6">
-              <div className="p-4 bg-gray-700 rounded">
-                <h3 className="font-semibold text-white mb-2">This will allow Apex Agents to:</h3>
-                <ul className="space-y-2 text-gray-300 text-sm">
-                  <li>• Read your files and documents</li>
-                  <li>• Access metadata and permissions</li>
-                  <li>• Sync changes automatically</li>
-                  <li>• Create embeddings for search</li>
-                </ul>
-              </div>
-            </div>
-
+        <div>
+          <div className="mb-6">
             <div className="flex gap-3">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="Search your documents using natural language..."
+                className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
               <button
-                onClick={() => setShowConnectModal(false)}
-                className="flex-1 px-6 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
+                onClick={handleSearch}
+                disabled={searching || !searchQuery.trim()}
+                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  alert(`OAuth authentication would be initiated here for ${selectedSource.name}`);
-                  setShowConnectModal(false);
-                }}
-                className="flex-1 px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-              >
-                Authorize
+                {searching ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-5 h-5" />
+                    Search
+                  </>
+                )}
               </button>
             </div>
           </div>
+
+          {searchResults.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white">
+                Found {searchResults.length} relevant document{searchResults.length > 1 ? 's' : ''}
+              </h3>
+              {searchResults.map((result, index) => (
+                <div key={index} className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h4 className="text-lg font-semibold text-white mb-1">
+                        {result.documentName}
+                      </h4>
+                      <p className="text-sm text-gray-400">
+                        Relevance: {(result.maxScore * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    {result.chunks.slice(0, 2).map((chunk, chunkIndex) => (
+                      <div key={chunkIndex} className="bg-gray-700/50 p-4 rounded">
+                        <p className="text-gray-300 text-sm leading-relaxed">
+                          {chunk.text.length > 300
+                            ? chunk.text.substring(0, 300) + '...'
+                            : chunk.text}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Match: {(chunk.score * 100).toFixed(1)}%
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {searchResults.length === 0 && searchQuery && !searching && (
+            <div className="bg-gray-800 rounded-lg p-12 text-center border border-gray-700">
+              <Search className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-white mb-2">No results found</h3>
+              <p className="text-gray-400">Try different keywords or upload more documents</p>
+            </div>
+          )}
         </div>
       )}
 
       {/* Document Viewer Modal */}
       {showDocumentModal && selectedDocument && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-700">
-            <div className="flex justify-between items-center p-6 border-b border-gray-700">
-              <div>
-                <h2 className="text-2xl font-bold text-white">{selectedDocument.name}</h2>
-                <p className="text-gray-400 mt-1">
-                  {selectedDocument.source} • {selectedDocument.size} • {selectedDocument.date}
-                </p>
-              </div>
+          <div className="bg-gray-800 rounded-lg w-full max-w-6xl h-[90vh] flex flex-col border border-gray-700">
+            <div className="flex justify-between items-center p-4 border-b border-gray-700">
+              <h2 className="text-xl font-bold text-white">{selectedDocument.name}</h2>
               <button
                 onClick={() => setShowDocumentModal(false)}
-                className="text-gray-400 hover:text-gray-200 text-2xl"
+                className="text-gray-400 hover:text-white text-2xl"
               >
                 ×
               </button>
             </div>
-
-            <div className="p-8 bg-gray-700 min-h-[400px] flex flex-col items-center justify-center">
-              <div className="text-6xl mb-4">📄</div>
-              <h3 className="text-xl font-semibold text-white mb-2">Document Preview</h3>
-              <p className="text-gray-300 text-center mb-6">
-                Full document viewer would be integrated here
-              </p>
-              <div className="text-sm text-gray-400 bg-gray-800 p-4 rounded max-w-md">
-                <p className="mb-2">Preview would show:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>PDF rendering for .pdf files</li>
-                  <li>Markdown preview for .md files</li>
-                  <li>Syntax highlighting for code</li>
-                  <li>Text extraction for documents</li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="flex gap-3 p-6 border-t border-gray-700 bg-gray-800">
-              <button
-                onClick={() => alert('Download functionality would be implemented here')}
-                className="px-6 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-              >
-                Download
-              </button>
-              <button
-                onClick={() => alert('External viewer would open here')}
-                className="px-6 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
-              >
-                Open in Viewer
-              </button>
-              <button
-                onClick={() => setShowDocumentModal(false)}
-                className="ml-auto px-6 py-2 bg-gray-700 text-white rounded hover:bg-gray-600"
-              >
-                Close
-              </button>
+            <div className="flex-1 overflow-hidden">
+              {selectedDocument.mimeType === 'application/pdf' ? (
+                <PDFViewer
+                  fileUrl={`/api/documents/${selectedDocument.id}/download`}
+                  fileName={selectedDocument.name}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-gray-400">Preview not available for this file type</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
