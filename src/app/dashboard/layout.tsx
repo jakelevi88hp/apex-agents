@@ -43,6 +43,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link href="/dashboard/knowledge" className="text-gray-300 hover:text-purple-400 transition-colors">Knowledge</Link>
             <Link href="/dashboard/analytics" className="text-gray-300 hover:text-purple-400 transition-colors">Analytics</Link>
             <Link href="/dashboard/settings" className="text-gray-300 hover:text-purple-400 transition-colors">Settings</Link>
+            <Link href="/dashboard/agi" className="text-gray-300 hover:text-purple-400 transition-colors flex items-center gap-2">
+              <Bot className="w-4 h-4" />
+              AGI
+            </Link>
             {isAdmin && (
               <Link href="/admin/ai" className="text-gray-300 hover:text-purple-400 transition-colors flex items-center gap-2">
                 <Bot className="w-4 h-4" />

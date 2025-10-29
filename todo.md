@@ -50,3 +50,9 @@
 - [x] Test full AGI system in TypeScript
 - [x] Fix frontend rendering of AGI responses
 
+
+
+## Navigation Issues
+- [ ] Add AGI link to dashboard navigation header
+- [ ] Ensure AI Admin link is visible for all users (or fix admin role detection)
+
