@@ -34,3 +34,10 @@
 ## Critical Bugs
 - [x] Fix login JSON parsing error: Added vercel.json to properly route API requests
 
+
+
+## Immediate Fix
+- [ ] Remove vercel.json to fix login
+- [ ] Remove Python API routes (Vercel doesn't support them properly)
+- [ ] Convert AGI to TypeScript OR reconnect to Railway backend
+
