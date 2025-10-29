@@ -76,7 +76,8 @@ export async function POST(request: NextRequest) {
 
     // Generate unique filename
     const timestamp = Date.now();
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    // Allow alphanumeric, dots, hyphens, underscores, and spaces (replace spaces with underscores)
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const filename = `${timestamp}-${sanitizedName}`;
     const filePath = join(UPLOAD_DIR, filename);
 
