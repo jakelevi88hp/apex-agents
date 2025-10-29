@@ -76,7 +76,15 @@
 
 
 ## AI Admin Codebase Analysis
-- [ ] Fix AI Admin to correctly analyze Next.js App Router structure
-- [ ] Ensure AI Admin points to correct file paths (src/app/* not components/*)
+- [x] Fix AI Admin to correctly analyze Next.js App Router structure
+- [x] Ensure AI Admin points to correct file paths (src/app/* not components/*)
 - [ ] Test AI Admin patch generation with correct file structure
+
+
+
+## AI Admin File Reading Enhancement
+- [ ] Add file content reading to AI Admin codebase analysis
+- [ ] Support reading .ts, .tsx, .js, .jsx, .css, .json files
+- [ ] Add file size limits to prevent reading huge files
+- [ ] Test AI Admin with actual file contents for better patch generation
 

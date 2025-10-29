@@ -179,6 +179,20 @@ export class AIAdminAgent {
   }
 
   /**
+   * Read content of a specific file
+   */
+  private async readFileContent(filePath: string): Promise<string | null> {
+    try {
+      const fullPath = path.join(this.projectRoot, filePath);
+      const content = await fs.readFile(fullPath, 'utf-8');
+      return content;
+    } catch (error) {
+      await this.log(`Failed to read file ${filePath}: ${error}`, 'warning');
+      return null;
+    }
+  }
+
+  /**
    * Generate a code patch based on natural language request
    */
   async generatePatch(requestText: string): Promise<PatchRecord> {
@@ -187,6 +201,23 @@ export class AIAdminAgent {
     try {
       // Analyze codebase first
       const analysis = await this.analyzeCodebase();
+
+      // Read relevant files based on the request
+      // For dashboard/layout changes, read the dashboard layout
+      const relevantFiles: Record<string, string> = {};
+      
+      // Common files that might be relevant
+      const commonFiles = [
+        'src/app/dashboard/layout.tsx',
+        'src/components/NotificationCenter.tsx',
+      ];
+      
+      for (const filePath of commonFiles) {
+        const content = await this.readFileContent(filePath);
+        if (content) {
+          relevantFiles[filePath] = content;
+        }
+      }
 
       // Generate patch using LLM
       const systemPrompt = `You are an expert software engineer working on a ${analysis.frameworks.join(', ')} project.
@@ -223,7 +254,7 @@ Respond with a JSON object containing:
           { role: 'system', content: systemPrompt },
           {
             role: 'user',
-            content: `Request: ${requestText}\n\nCodebase structure: ${JSON.stringify(analysis.structure, null, 2)}`,
+            content: `Request: ${requestText}\n\nCodebase structure: ${JSON.stringify(analysis.structure, null, 2)}\n\nRelevant file contents:\n${Object.entries(relevantFiles).map(([path, content]) => `\n=== ${path} ===\n${content}`).join('\n')}`,
           },
         ],
         response_format: { type: 'json_object' },
