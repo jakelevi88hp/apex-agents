@@ -342,5 +342,54 @@ export const analyticsRouter = router({
 
     return performance.filter((p) => p !== null);
   }),
+
+  /**
+   * Get daily execution trend
+   */
+  getExecutionTrend: protectedProcedure
+    .input(
+      z.object({
+        days: z.number().min(1).max(90).default(30),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.userId;
+      const trend: Array<{ date: string; executions: number; completed: number; failed: number }> = [];
+
+      for (let i = input.days - 1; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        date.setHours(0, 0, 0, 0);
+
+        const nextDate = new Date(date);
+        nextDate.setDate(nextDate.getDate() + 1);
+
+        const stats = await db
+          .select({
+            total: sql<number>`count(*)`,
+            completed: sql<number>`count(*) filter (where ${executions.status} = 'completed')`,
+            failed: sql<number>`count(*) filter (where ${executions.status} = 'failed')`,
+          })
+          .from(executions)
+          .where(
+            and(
+              eq(executions.userId, userId),
+              gte(executions.startedAt, date),
+              sql`${executions.startedAt} < ${nextDate}`
+            )
+          );
+
+        const result = stats[0] || {};
+
+        trend.push({
+          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          executions: Number(result.total || 0),
+          completed: Number(result.completed || 0),
+          failed: Number(result.failed || 0),
+        });
+      }
+
+      return trend;
+    }),
 });
 

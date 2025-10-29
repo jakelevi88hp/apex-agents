@@ -315,6 +315,55 @@ export const alerts = pgTable('alerts', {
 });
 
 // ============================================================================
+// USER SETTINGS & API KEYS
+// ============================================================================
+
+export const userSettings = pgTable('user_settings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
+  organizationName: text('organization_name'),
+  email: varchar('email', { length: 320 }),
+  timezone: varchar('timezone', { length: 50 }).default('UTC-5'),
+  emailNotifications: boolean('email_notifications').default(true).notNull(),
+  realtimeMonitoring: boolean('realtime_monitoring').default(true).notNull(),
+  autoRetry: boolean('auto_retry').default(false).notNull(),
+  openaiApiKey: text('openai_api_key'),
+  anthropicApiKey: text('anthropic_api_key'),
+  defaultModel: varchar('default_model', { length: 100 }).default('gpt-4-turbo'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const apiKeys = pgTable('api_keys', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(),
+  keyValue: text('key_value').notNull(),
+  keyPrefix: varchar('key_prefix', { length: 20 }).notNull(),
+  environment: varchar('environment', { length: 20 }).notNull(), // production, development, test
+  revoked: boolean('revoked').default(false).notNull(),
+  revokedAt: timestamp('revoked_at'),
+  lastUsedAt: timestamp('last_used_at'),
+  expiresAt: timestamp('expires_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index('api_keys_user_idx').on(table.userId),
+  keyPrefixIdx: index('api_keys_prefix_idx').on(table.keyPrefix),
+}));
+
+export const teamMembers = pgTable('team_members', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  ownerId: uuid('owner_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  memberId: uuid('member_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  role: varchar('role', { length: 20 }).notNull(), // admin, member
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  ownerIdx: index('team_members_owner_idx').on(table.ownerId),
+  memberIdx: index('team_members_member_idx').on(table.memberId),
+}));
+
+// ============================================================================
 // SUBSCRIPTIONS & BILLING
 // ============================================================================
 

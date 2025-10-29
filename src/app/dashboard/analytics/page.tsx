@@ -12,12 +12,7 @@ export default function AnalyticsPage() {
   const { data: stats } = trpc.analytics.getExecutionStats.useQuery({ days: parseInt(timeRange) });
   const { data: agentPerf } = trpc.analytics.getAgentPerformance.useQuery();
   const { data: workflowPerf } = trpc.analytics.getWorkflowPerformance.useQuery();
-
-  // Generate mock trend data for now (can be replaced with real daily data later)
-  const executionTrend = Array.from({ length: parseInt(timeRange) }, (_, i) => ({
-    date: new Date(Date.now() - (parseInt(timeRange) - i) * 24 * 60 * 60 * 1000).toLocaleDateString(),
-    executions: Math.floor(Math.random() * 50) + 10,
-  }));
+  const { data: executionTrend } = trpc.analytics.getExecutionTrend.useQuery({ days: parseInt(timeRange) });
 
   // Agent performance data
   const agentData = agentPerf || [];
@@ -157,18 +152,18 @@ export default function AnalyticsPage() {
       <div className="bg-gray-800 p-6 rounded-lg border border-gray-700 mb-8">
         <h2 className="text-xl font-bold text-white mb-4">Agent Performance</h2>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={agentData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis dataKey="agentName" stroke="#9ca3af" />
-            <YAxis stroke="#9ca3af" />
-            <Tooltip
-              contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
-              labelStyle={{ color: '#fff' }}
-            />
-            <Legend />
-            <Bar dataKey="executions" fill="#8b5cf6" />
-            <Bar dataKey="successRate" fill="#10b981" />
-          </BarChart>
+            <BarChart data={agentData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="name" stroke="#9ca3af" />
+              <YAxis stroke="#9ca3af" />
+              <Tooltip
+                contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+                labelStyle={{ color: '#fff' }}
+              />
+              <Legend />
+              <Bar dataKey="executionCount" name="Executions" fill="#8b5cf6" />
+              <Bar dataKey="successRate" name="Success Rate (%)" fill="#10b981" />
+            </BarChart>
         </ResponsiveContainer>
       </div>
 
@@ -176,18 +171,18 @@ export default function AnalyticsPage() {
       <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
         <h2 className="text-xl font-bold text-white mb-4">Workflow Performance</h2>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={workflowData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis dataKey="workflowName" stroke="#9ca3af" />
-            <YAxis stroke="#9ca3af" />
-            <Tooltip
-              contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
-              labelStyle={{ color: '#fff' }}
-            />
-            <Legend />
-            <Bar dataKey="executions" fill="#3b82f6" />
-            <Bar dataKey="avgDuration" fill="#06b6d4" />
-          </BarChart>
+            <BarChart data={workflowData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="name" stroke="#9ca3af" />
+              <YAxis stroke="#9ca3af" />
+              <Tooltip
+                contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }}
+                labelStyle={{ color: '#fff' }}
+              />
+              <Legend />
+              <Bar dataKey="executionCount" name="Executions" fill="#3b82f6" />
+              <Bar dataKey="avgDurationMs" name="Avg Duration (ms)" fill="#06b6d4" />
+            </BarChart>
         </ResponsiveContainer>
       </div>
     </div>

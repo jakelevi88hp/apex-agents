@@ -85,5 +85,63 @@ export const workflowsRouter = router({
         .orderBy(desc(executions.startedAt))
         .limit(input.limit);
     }),
+
+  get: protectedProcedure
+    .input(z.object({
+      id: z.string().uuid(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const [workflow] = await ctx.db
+        .select()
+        .from(workflows)
+        .where(eq(workflows.id, input.id));
+
+      if (!workflow) {
+        throw new Error('Workflow not found');
+      }
+
+      return workflow;
+    }),
+
+  update: protectedProcedure
+    .input(z.object({
+      id: z.string().uuid(),
+      name: z.string().optional(),
+      description: z.string().optional(),
+      trigger: z.record(z.string(), z.any()).optional(),
+      steps: z.array(z.record(z.string(), z.any())).optional(),
+      agents: z.array(z.string()).optional(),
+      status: z.enum(['active', 'draft', 'archived']).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...updates } = input;
+      
+      const [workflow] = await ctx.db
+        .update(workflows)
+        .set({
+          ...updates,
+          updatedAt: new Date(),
+        })
+        .where(eq(workflows.id, id))
+        .returning();
+
+      if (!workflow) {
+        throw new Error('Workflow not found');
+      }
+
+      return workflow;
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({
+      id: z.string().uuid(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .delete(workflows)
+        .where(eq(workflows.id, input.id));
+
+      return { success: true };
+    }),
 });
 

@@ -5,6 +5,7 @@ import { authRouter } from './auth';
 import { aiAdminRouter } from './ai-admin';
 import { analyticsRouter } from './analytics';
 import { executionRouter } from './execution';
+import { settingsRouter } from './settings';
 // import { searchRouter } from './search'; // TODO: Disabled until documents/embeddings tables are created
 
 export const appRouter = router({
@@ -14,6 +15,7 @@ export const appRouter = router({
   aiAdmin: aiAdminRouter,
   analytics: analyticsRouter,
   execution: executionRouter,
+  settings: settingsRouter,
   // search: searchRouter, // TODO: Disabled until documents/embeddings tables are created
 });
 
