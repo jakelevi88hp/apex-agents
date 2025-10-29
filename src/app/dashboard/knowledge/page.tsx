@@ -1,5 +1,8 @@
 'use client';
 
+// Prevent static generation - this page uses browser APIs
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { FileText, Download, Eye, Trash2, Search, Loader2 } from 'lucide-react';
 import DocumentUpload from '@/components/DocumentUpload';
