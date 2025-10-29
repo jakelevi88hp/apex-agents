@@ -29,3 +29,8 @@
 - [x] Create proper Python package structure with __init__.py files
 - [ ] Test full AGI processing in production
 
+
+
+## Critical Bugs
+- [x] Fix login JSON parsing error: Added vercel.json to properly route API requests
+

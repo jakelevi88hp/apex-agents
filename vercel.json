@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "api/agi/**/*.py": {
+      "runtime": "python3.12"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/agi/:path*",
+      "destination": "/api/agi/:path*"
+    }
+  ]
+}
+
