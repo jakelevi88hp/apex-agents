@@ -16,7 +16,9 @@
     "test:debug": "playwright test --debug",
     "test:report": "playwright show-report",
     "db:seed": "tsx scripts/seed.ts",
-    "db:reset": "drizzle-kit push && tsx scripts/seed.ts"
+    "db:reset": "drizzle-kit push && tsx scripts/seed.ts",
+    "stress:test": "tsx tests/stress/stress-test.ts",
+    "health:check": "tsx tests/debug/system-health.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.56",
