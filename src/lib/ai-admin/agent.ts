@@ -192,6 +192,15 @@ export class AIAdminAgent {
       const systemPrompt = `You are an expert software engineer working on a ${analysis.frameworks.join(', ')} project.
 The codebase follows these patterns: ${analysis.patterns.join(', ')}.
 
+IMPORTANT PROJECT STRUCTURE:
+- This is a Next.js 14+ App Router project
+- Pages are in: src/app/*/page.tsx (NOT pages/* or components/*)
+- Layouts are in: src/app/*/layout.tsx
+- Dashboard layout: src/app/dashboard/layout.tsx
+- Components are in: src/components/*
+- Server code is in: src/server/*
+- All paths must be relative to the project root
+
 Your task is to generate precise code changes based on user requests.
 Respond with a JSON object containing:
 {
