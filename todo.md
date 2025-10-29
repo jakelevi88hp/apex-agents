@@ -109,3 +109,10 @@
 - [ ] Fix login API returning HTML instead of JSON
 - [ ] Debug authentication endpoint error
 
+
+
+## AI Admin File Analysis Enhancement
+- [ ] Add intelligent file detection to determine modify vs create
+- [ ] Improve context about existing files in the system prompt
+- [ ] Add validation to prevent duplicate pages in wrong locations
+

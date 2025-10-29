@@ -206,11 +206,23 @@ export class AIAdminAgent {
       // For dashboard/layout changes, read the dashboard layout
       const relevantFiles: Record<string, string> = {};
       
-      // Common files that might be relevant
+      // Common files that might be relevant based on request keywords
       const commonFiles = [
         'src/app/dashboard/layout.tsx',
+        'src/app/admin/ai/page.tsx',
         'src/components/NotificationCenter.tsx',
       ];
+      
+      // Add context-specific files based on request
+      if (requestText.toLowerCase().includes('admin') || requestText.toLowerCase().includes('ai admin')) {
+        commonFiles.push('src/app/admin/ai/page.tsx');
+      }
+      if (requestText.toLowerCase().includes('dashboard') || requestText.toLowerCase().includes('navigation')) {
+        commonFiles.push('src/app/dashboard/layout.tsx');
+      }
+      if (requestText.toLowerCase().includes('agi')) {
+        commonFiles.push('src/app/dashboard/agi/page.tsx');
+      }
       
       for (const filePath of commonFiles) {
         const content = await this.readFileContent(filePath);
@@ -239,6 +251,21 @@ CRITICAL - DO NOT USE PAGES ROUTER PATHS:
 ✅ ALWAYS use: src/app/layout.tsx for root layout
 ❌ NEVER use: src/context/* (singular)
 ✅ ALWAYS use: src/contexts/* (plural) for React contexts
+
+EXISTING FILES IN THIS PROJECT:
+- AI Admin page: src/app/admin/ai/page.tsx (MODIFY this, don't create new)
+- Dashboard layout: src/app/dashboard/layout.tsx
+- AGI page: src/app/dashboard/agi/page.tsx
+- Login page: src/app/login/page.tsx
+- Signup page: src/app/signup/page.tsx
+
+FILE MODIFICATION RULES:
+1. ALWAYS check if a file already exists before deciding to create vs modify
+2. If the request mentions "AI Admin" or "admin page", MODIFY src/app/admin/ai/page.tsx
+3. If the request mentions "dashboard header" or "navigation", MODIFY src/app/dashboard/layout.tsx
+4. ONLY create new files if the feature doesn't exist yet
+5. When modifying existing files, preserve all existing functionality
+6. NEVER create duplicate pages at different paths (e.g., don't create src/app/ai-admin when src/app/admin/ai exists)
 
 Your task is to generate precise code changes based on user requests.
 Respond with a JSON object containing:
