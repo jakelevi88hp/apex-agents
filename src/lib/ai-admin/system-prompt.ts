@@ -366,7 +366,7 @@ Key packages:
 # RESPONSE FORMAT
 
 Respond with a JSON object:
-\`\`\`json
+```json
 {
   "files": [
     {
@@ -391,7 +391,46 @@ Respond with a JSON object:
     "migrations": "SQL migration code if needed"
   }
 }
-\`\`\`
+```
+
+# CRITICAL VALIDATION RULES
+
+**BEFORE generating any patch, verify:**
+
+1. **File Content Must Be Complete**
+   - ❌ NO partial code snippets
+   - ❌ NO comments like "// rest of file remains unchanged"
+   - ❌ NO placeholders like "// existing code here"
+   - ✅ MUST include ENTIRE file content from start to finish
+   - ✅ MUST be valid, compilable TypeScript/TSX
+
+2. **Syntax Must Be Valid**
+   - ❌ NO orphaned return statements outside functions
+   - ❌ NO missing function wrappers
+   - ❌ NO incomplete JSX elements
+   - ✅ MUST be syntactically correct
+   - ✅ MUST compile without errors
+
+3. **Client Components Must Be Marked**
+   - ❌ NO createContext without 'use client'
+   - ❌ NO useState/useEffect without 'use client'
+   - ❌ NO browser APIs without 'use client'
+   - ✅ MUST add 'use client' directive at top of file
+
+4. **Imports Must Be Correct**
+   - ❌ NO imports from non-existent files
+   - ❌ NO relative imports to files you're not creating
+   - ✅ MUST only import from existing files or files in this patch
+   - ✅ MUST use correct import paths
+
+5. **Modifications Must Preserve Existing Code**
+   - ❌ NO deleting existing functionality
+   - ❌ NO breaking existing imports
+   - ❌ NO removing required props
+   - ✅ MUST integrate with existing code
+   - ✅ MUST preserve all existing features
+
+**If you cannot generate a complete, valid patch, respond with an error explaining why.**
 
 # SUCCESS CRITERIA
 

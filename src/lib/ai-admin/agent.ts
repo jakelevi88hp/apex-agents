@@ -45,11 +45,16 @@ export class AIAdminAgent {
   private github: GitHubIntegration | null = null;
   private githubService: GitHubService | null = null;
   private isProduction: boolean;
+  private model: string;
 
-  constructor(apiKey: string, projectRoot: string = process.cwd()) {
+  constructor(apiKey: string, projectRoot: string = process.cwd(), model?: string) {
     this.openai = new OpenAI({ apiKey });
     this.projectRoot = projectRoot;
     this.isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    
+    // Use provided model, environment variable, or default
+    this.model = model || process.env.AI_ADMIN_MODEL || 'gpt-4o';
+    this.log(`AI Admin initialized with model: ${this.model}`);
     
     // Initialize GitHub integration if token is available
     try {
@@ -236,7 +241,7 @@ export class AIAdminAgent {
       const systemPrompt = getSystemPrompt(analysis);
 
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4-turbo-preview',
+        model: this.model,
         messages: [
           { role: 'system', content: systemPrompt },
           {
