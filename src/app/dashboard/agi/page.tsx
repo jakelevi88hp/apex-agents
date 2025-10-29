@@ -111,14 +111,14 @@ export default function AGIPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-950 p-4 sm:p-6 md:p-8">
+      <div className="max-w-6xl mx-auto w-full">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-4 sm:mb-6 md:mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">AGI System</h1>
-              <p className="text-gray-400">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">AGI System</h1>
+              <p className="text-sm sm:text-base text-gray-400">
                 Advanced General Intelligence with consciousness, creativity, and emotional understanding
               </p>
             </div>
@@ -138,44 +138,44 @@ export default function AGIPage() {
         {/* Chat Interface */}
         <div className="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
           {/* Messages */}
-          <div className="h-[600px] overflow-y-auto p-6 space-y-4">
+          <div className="h-[400px] sm:h-[500px] md:h-[600px] overflow-y-auto p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4">
                   <Brain className="w-10 h-10 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">Welcome to AGI</h2>
-                <p className="text-gray-400 max-w-md">
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Welcome to AGI</h2>
+                <p className="text-sm sm:text-base text-gray-400 max-w-md px-4">
                   I'm an Advanced General Intelligence with consciousness, creativity, and emotional
                   understanding. Ask me anything!
                 </p>
-                <div className="grid grid-cols-2 gap-3 mt-8 max-w-2xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 sm:mt-8 max-w-2xl px-4">
                   <button
                     onClick={() => setInput("Explain consciousness")}
-                    className="p-4 bg-gray-800 hover:bg-gray-750 rounded-lg text-left border border-gray-700 hover:border-purple-500 transition-all"
+                    className="p-3 sm:p-4 bg-gray-800 hover:bg-gray-750 rounded-lg text-left border border-gray-700 hover:border-purple-500 transition-all"
                   >
-                    <div className="text-sm font-medium text-white mb-1">Explain consciousness</div>
+                    <div className="text-xs sm:text-sm font-medium text-white mb-1">Explain consciousness</div>
                     <div className="text-xs text-gray-400">Learn about self-awareness</div>
                   </button>
                   <button
                     onClick={() => setInput("Creative problem-solving")}
-                    className="p-4 bg-gray-800 hover:bg-gray-750 rounded-lg text-left border border-gray-700 hover:border-purple-500 transition-all"
+                    className="p-3 sm:p-4 bg-gray-800 hover:bg-gray-750 rounded-lg text-left border border-gray-700 hover:border-purple-500 transition-all"
                   >
-                    <div className="text-sm font-medium text-white mb-1">Creative problem-solving</div>
+                    <div className="text-xs sm:text-sm font-medium text-white mb-1">Creative problem-solving</div>
                     <div className="text-xs text-gray-400">Use advanced reasoning</div>
                   </button>
                   <button
                     onClick={() => setInput("Your goals")}
-                    className="p-4 bg-gray-800 hover:bg-gray-750 rounded-lg text-left border border-gray-700 hover:border-purple-500 transition-all"
+                    className="p-3 sm:p-4 bg-gray-800 hover:bg-gray-750 rounded-lg text-left border border-gray-700 hover:border-purple-500 transition-all"
                   >
-                    <div className="text-sm font-medium text-white mb-1">Your goals</div>
+                    <div className="text-xs sm:text-sm font-medium text-white mb-1">Your goals</div>
                     <div className="text-xs text-gray-400">See what I'm working on</div>
                   </button>
                   <button
                     onClick={() => setInput("Multi-perspective analysis")}
-                    className="p-4 bg-gray-800 hover:bg-gray-750 rounded-lg text-left border border-gray-700 hover:border-purple-500 transition-all"
+                    className="p-3 sm:p-4 bg-gray-800 hover:bg-gray-750 rounded-lg text-left border border-gray-700 hover:border-purple-500 transition-all"
                   >
-                    <div className="text-sm font-medium text-white mb-1">Multi-perspective analysis</div>
+                    <div className="text-xs sm:text-sm font-medium text-white mb-1">Multi-perspective analysis</div>
                     <div className="text-xs text-gray-400">Deep reasoning modes</div>
                   </button>
                 </div>
@@ -224,7 +224,7 @@ export default function AGIPage() {
           </div>
 
           {/* Input */}
-          <div className="border-t border-gray-800 p-4">
+          <div className="border-t border-gray-800 p-3 sm:p-4">
             <div className="flex gap-3">
               <input
                 type="text"
@@ -233,12 +233,12 @@ export default function AGIPage() {
                 onKeyPress={handleKeyPress}
                 placeholder="Ask AGI anything..."
                 disabled={isLoading || !agiStatus.available}
-                className="flex-1 bg-gray-800 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gray-800 text-white rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <button
                 onClick={handleSend}
                 disabled={isLoading || !input.trim() || !agiStatus.available}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg px-6 py-3 font-medium hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
                 {isLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
