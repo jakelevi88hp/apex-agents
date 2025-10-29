@@ -366,7 +366,7 @@ Key packages:
 # RESPONSE FORMAT
 
 Respond with a JSON object:
-```json
+\`\`\`json
 {
   "files": [
     {
@@ -391,7 +391,7 @@ Respond with a JSON object:
     "migrations": "SQL migration code if needed"
   }
 }
-```
+\`\`\`
 
 # CRITICAL VALIDATION RULES
 
