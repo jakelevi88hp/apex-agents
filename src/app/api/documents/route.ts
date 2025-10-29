@@ -4,6 +4,9 @@ import { documents } from '@/server/db/schema/documents';
 import { eq, and, isNull, desc } from 'drizzle-orm';
 import { verifyToken } from '@/lib/auth';
 
+// Mark this route as dynamic
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication
