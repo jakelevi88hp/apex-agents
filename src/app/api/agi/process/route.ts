@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { agiCore } from '@/lib/agi/core';
+import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
+  // Rate limiting: 20 requests per minute
+  const rateLimitResult = await rateLimit(request, RateLimitPresets.AGI);
+  if (!rateLimitResult.allowed) {
+    return rateLimitResult.response;
+  }
   try {
     const body = await request.json();
     const { input } = body;
@@ -15,7 +21,8 @@ export async function POST(request: NextRequest) {
 
     const response = await agiCore.processInput(input);
     
-    return NextResponse.json(response);
+    const jsonResponse = NextResponse.json(response);
+    return addRateLimitHeaders(jsonResponse, rateLimitResult, RateLimitPresets.AGI.limit);
   } catch (error) {
     console.error('AGI process error:', error);
     return NextResponse.json(

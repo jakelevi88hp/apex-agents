@@ -7,6 +7,7 @@ import { documents } from '@/server/db/schema/documents';
 import { DocumentProcessor } from '@/lib/document-processor';
 import { PineconeService } from '@/lib/pinecone-service';
 import { verifyToken } from '@/lib/auth';
+import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
 
 const UPLOAD_DIR = join(process.cwd(), 'uploads');
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -20,6 +21,12 @@ async function ensureUploadDir() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 10 uploads per hour
+    const rateLimitResult = await rateLimit(request, RateLimitPresets.UPLOAD);
+    if (!rateLimitResult.allowed) {
+      return rateLimitResult.response;
+    }
+
     // Verify authentication
     const token = request.headers.get('authorization')?.replace('Bearer ', '');
     if (!token) {
