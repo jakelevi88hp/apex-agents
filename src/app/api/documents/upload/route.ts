@@ -118,8 +118,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Upload error:', error);
+    // Return detailed error for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Failed to upload file';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('Error details:', { message: errorMessage, stack: errorStack });
     return NextResponse.json(
-      { error: 'Failed to upload file' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
