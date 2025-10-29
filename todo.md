@@ -83,8 +83,15 @@
 
 
 ## AI Admin File Reading Enhancement
-- [ ] Add file content reading to AI Admin codebase analysis
-- [ ] Support reading .ts, .tsx, .js, .jsx, .css, .json files
-- [ ] Add file size limits to prevent reading huge files
+- [x] Add file content reading to AI Admin codebase analysis
+- [x] Support reading .ts, .tsx, .js, .jsx, .css, .json files
+- [x] Add targeted file reading (reads only relevant files)
 - [ ] Test AI Admin with actual file contents for better patch generation
+
+
+
+## AI Admin System Prompt Refinement
+- [ ] Add explicit App Router vs Pages Router distinction
+- [ ] Fix context folder naming (contexts/ not context/)
+- [ ] Clarify root layout file location (src/app/layout.tsx not src/pages/_app.tsx)
 

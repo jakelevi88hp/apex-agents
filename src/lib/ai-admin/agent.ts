@@ -224,13 +224,21 @@ export class AIAdminAgent {
 The codebase follows these patterns: ${analysis.patterns.join(', ')}.
 
 IMPORTANT PROJECT STRUCTURE:
-- This is a Next.js 14+ App Router project
+- This is a Next.js 14+ App Router project (NOT Pages Router)
 - Pages are in: src/app/*/page.tsx (NOT pages/* or components/*)
 - Layouts are in: src/app/*/layout.tsx
+- Root layout: src/app/layout.tsx (NOT src/pages/_app.tsx - that's Pages Router!)
 - Dashboard layout: src/app/dashboard/layout.tsx
 - Components are in: src/components/*
+- Contexts are in: src/contexts/* (plural, .tsx extension)
 - Server code is in: src/server/*
 - All paths must be relative to the project root
+
+CRITICAL - DO NOT USE PAGES ROUTER PATHS:
+❌ NEVER use: src/pages/_app.tsx, src/pages/_document.tsx, pages/*
+✅ ALWAYS use: src/app/layout.tsx for root layout
+❌ NEVER use: src/context/* (singular)
+✅ ALWAYS use: src/contexts/* (plural) for React contexts
 
 Your task is to generate precise code changes based on user requests.
 Respond with a JSON object containing:
