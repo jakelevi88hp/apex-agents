@@ -355,14 +355,47 @@ export class AIAdminAgent {
 
   /**
    * Validate patch in sandbox before applying
+   * 
+   * Note: In production (Vercel), filesystem is read-only, so we skip
+   * filesystem checks and only validate patch structure.
    */
   private async validatePatch(patchRecord: PatchRecord): Promise<boolean> {
     await this.log(`Validating patch: ${patchRecord.id}`);
+    await this.log(`Production mode: ${this.isProduction}`);
 
     try {
       const patchData = JSON.parse(patchRecord.patch);
 
-      // Check if files exist and are writable
+      // Validate patch structure
+      if (!patchData.files || !Array.isArray(patchData.files)) {
+        throw new Error('Invalid patch: missing files array');
+      }
+
+      if (patchData.files.length === 0) {
+        throw new Error('Invalid patch: no files to modify');
+      }
+
+      // Validate each file
+      for (const file of patchData.files) {
+        if (!file.path) {
+          throw new Error('Invalid file: missing path');
+        }
+        if (!file.action || !['create', 'modify', 'delete'].includes(file.action)) {
+          throw new Error(`Invalid file action: ${file.action}`);
+        }
+        if ((file.action === 'create' || file.action === 'modify') && !file.content) {
+          throw new Error(`Missing content for ${file.action} action on ${file.path}`);
+        }
+      }
+
+      // In production, skip filesystem checks (read-only environment)
+      if (this.isProduction) {
+        await this.log('Skipping filesystem checks in production (read-only environment)');
+        await this.log(`Patch validation successful: ${patchRecord.id}`);
+        return true;
+      }
+
+      // In development, check if files exist and are writable
       for (const file of patchData.files) {
         const filePath = path.join(this.projectRoot, file.path);
         const fileDir = path.dirname(filePath);
@@ -379,7 +412,7 @@ export class AIAdminAgent {
         }
       }
 
-      // Run TypeScript type checking
+      // Run TypeScript type checking (only in development)
       try {
         await execAsync('npx tsc --noEmit', { cwd: this.projectRoot });
         await this.log('TypeScript validation passed');
@@ -413,9 +446,14 @@ export class AIAdminAgent {
       await this.log(`Patch data parsed successfully`);
       await this.log(`Files to modify: ${JSON.stringify(patchData.files?.map((f: any) => f.path) || [])}`);
 
-      // Always use local filesystem and direct commits to main branch
-      // This avoids creating separate branches and PR complications
-      await this.log('Using local filesystem for patch application (direct commit to main)');
+      // In production (Vercel), use GitHub API to commit directly to main
+      // In development, use local filesystem + git commands
+      if (this.isProduction && this.githubService) {
+        await this.log('Production environment: Using GitHub API to commit directly to main');
+        return await this.applyPatchViaGitHubDirectCommit(patchRecord, patchData);
+      }
+
+      await this.log('Development environment: Using local filesystem');
       return await this.applyPatchLocally(patchRecord, patchData);
     } catch (error) {
       patchRecord.status = 'failed';
@@ -427,7 +465,42 @@ export class AIAdminAgent {
   }
 
   /**
-   * Apply patch via GitHub API (for production)
+   * Apply patch via GitHub API with direct commit to main (for production)
+   */
+  private async applyPatchViaGitHubDirectCommit(patchRecord: PatchRecord, patchData: any): Promise<boolean> {
+    if (!this.githubService) {
+      await this.log('GitHub Service not initialized!', 'error');
+      throw new Error('GitHub Service not initialized');
+    }
+
+    await this.log('Applying patch via GitHub API (direct commit to main)...');
+    await this.log(`Patch data: ${JSON.stringify({ summary: patchData.summary, filesCount: patchData.files?.length })}`);
+
+    try {
+      // Prepare file changes
+      const fileChanges: CommitFileChange[] = patchData.files.map((file: any) => ({
+        path: file.path,
+        content: file.content || '',
+        action: file.action,
+      }));
+
+      // Commit files directly to main branch
+      const commitMessage = `AI Admin: ${patchRecord.request}\n\nPatch ID: ${patchRecord.id}\nFiles modified: ${patchRecord.files.length}`;
+      const commitSha = await this.githubService.commitFiles('main', fileChanges, commitMessage);
+      await this.log(`Committed changes to main: ${commitSha}`);
+
+      patchRecord.status = 'applied';
+      return true;
+    } catch (error) {
+      await this.log(`Failed to apply patch via GitHub: ${error}`, 'error');
+      await this.log(`Error details: ${JSON.stringify(error)}`, 'error');
+      await this.log(`Error stack: ${(error as Error).stack}`, 'error');
+      throw error;
+    }
+  }
+
+  /**
+   * Apply patch via GitHub API (for production) - DEPRECATED: Creates separate branch
    */
   private async applyPatchViaGitHub(patchRecord: PatchRecord, patchData: any): Promise<boolean> {
     if (!this.githubService) {
