@@ -99,6 +99,13 @@
 
 
 ## Navigation Bug Fixes
-- [ ] Fix AI Admin button not showing for admin users
+- [x] Add console logging for admin role debugging
+- [ ] Fix AI Admin button not showing for admin users (waiting for user to test after logout/login)
 - [ ] Verify admin role detection in dashboard layout
+
+
+
+## Login API Issues
+- [ ] Fix login API returning HTML instead of JSON
+- [ ] Debug authentication endpoint error
 
