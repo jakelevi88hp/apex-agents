@@ -1,0 +1,42 @@
+from http.server import BaseHTTPRequestHandler
+import json
+
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        try:
+            status = {
+                "available": True,
+                "components": {
+                    "memory": True,
+                    "reasoning": True,
+                    "consciousness": True,
+                    "creativity": True,
+                    "emotion": True,
+                    "planning": True,
+                    "learning": True,
+                    "perception": True
+                }
+            }
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(status).encode())
+            
+        except Exception as e:
+            self.send_response(500)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "available": False,
+                "error": str(e)
+            }).encode())
+    
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+
