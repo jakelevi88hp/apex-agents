@@ -9,6 +9,10 @@
  * - Error log analysis
  */
 
+// Load environment variables from .env file
+import { config } from 'dotenv';
+config();
+
 import { performance } from 'perf_hooks';
 
 interface HealthCheckResult {
