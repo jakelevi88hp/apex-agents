@@ -452,7 +452,8 @@ Moving to Option C: Business Features...
 - [x] Create checkout session endpoint
 - [x] Implement webhook handler for subscription events
 - [x] Add customer portal integration
-- [ ] Test webhook locally with Stripe CLI (requires STRIPE_WEBHOOK_SECRET)
+- [x] STRIPE_WEBHOOK_SECRET configured in Vercel environment
+- [ ] Test webhook locally with Stripe CLI
 - [x] Automatic product creation with ensureStripeProducts()
 
 ### Feature Gating & Middleware
