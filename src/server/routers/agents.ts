@@ -1,7 +1,7 @@
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { agents, executions } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, inArray } from 'drizzle-orm';
 import { AgentFactory } from '@/lib/ai/agents';
 import { checkUsageLimit } from '../middleware/subscription';
 
@@ -121,6 +121,58 @@ export const agentsRouter = router({
         .where(eq(executions.agentId, input.agentId))
         .orderBy(desc(executions.startedAt))
         .limit(50);
+    }),
+
+  // Bulk Operations
+  bulkDelete: protectedProcedure
+    .input(z.object({ ids: z.array(z.string().uuid()) }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.ids.length === 0) {
+        return { success: true, count: 0 };
+      }
+
+      // Delete agents in a transaction
+      const results = await Promise.all(
+        input.ids.map(id => 
+          ctx.db.delete(agents)
+            .where(eq(agents.id, id))
+            .catch(err => {
+              console.error(`Failed to delete agent ${id}:`, err);
+              return null;
+            })
+        )
+      );
+
+      const successCount = results.filter(r => r !== null).length;
+      return { success: true, count: successCount, failed: input.ids.length - successCount };
+    }),
+
+  bulkUpdateStatus: protectedProcedure
+    .input(z.object({
+      ids: z.array(z.string().uuid()),
+      status: z.enum(['active', 'inactive', 'archived']),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.ids.length === 0) {
+        return { success: true, count: 0 };
+      }
+
+      // Update agents in a transaction
+      const results = await Promise.all(
+        input.ids.map(id =>
+          ctx.db.update(agents)
+            .set({ status: input.status, updatedAt: new Date() })
+            .where(eq(agents.id, id))
+            .returning()
+            .catch(err => {
+              console.error(`Failed to update agent ${id}:`, err);
+              return null;
+            })
+        )
+      );
+
+      const successCount = results.filter(r => r !== null).length;
+      return { success: true, count: successCount, failed: input.ids.length - successCount };
     }),
 });
 

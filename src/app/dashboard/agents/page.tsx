@@ -143,6 +143,21 @@ export default function AgentsPage() {
     },
   });
 
+  // Bulk operations mutations
+  const bulkDeleteMutation = trpc.agents.bulkDelete.useMutation({
+    onSuccess: (data) => {
+      refetch();
+      alert(`Successfully deleted ${data.count} agent(s)${data.failed ? `. Failed: ${data.failed}` : ''}`);
+    },
+  });
+
+  const bulkUpdateStatusMutation = trpc.agents.bulkUpdateStatus.useMutation({
+    onSuccess: (data) => {
+      refetch();
+      alert(`Successfully updated ${data.count} agent(s)${data.failed ? `. Failed: ${data.failed}` : ''}`);
+    },
+  });
+
   const handleCreateAgent = (typeId: string) => {
     setSelectedType(typeId);
     setFormData({ ...formData, type: typeId as keyof typeof defaultCapabilities });
@@ -212,20 +227,23 @@ export default function AgentsPage() {
   const handleBulkDelete = async () => {
     if (!confirm(`Delete ${selectedAgents.size} agent(s)? This cannot be undone.`)) return;
     
-    // TODO: Implement bulk delete mutation
-    console.log('Bulk delete:', Array.from(selectedAgents));
+    await bulkDeleteMutation.mutateAsync({ ids: Array.from(selectedAgents) });
     clearSelection();
   };
 
   const handleBulkPause = async () => {
-    // TODO: Implement bulk pause mutation
-    console.log('Bulk pause:', Array.from(selectedAgents));
+    await bulkUpdateStatusMutation.mutateAsync({ 
+      ids: Array.from(selectedAgents), 
+      status: 'inactive' 
+    });
     clearSelection();
   };
 
   const handleBulkActivate = async () => {
-    // TODO: Implement bulk activate mutation
-    console.log('Bulk activate:', Array.from(selectedAgents));
+    await bulkUpdateStatusMutation.mutateAsync({ 
+      ids: Array.from(selectedAgents), 
+      status: 'active' 
+    });
     clearSelection();
   };
 
