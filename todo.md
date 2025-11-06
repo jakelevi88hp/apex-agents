@@ -490,3 +490,13 @@ Moving to Option C: Business Features...
 - [x] Scan system for placeholder/mock data and replace with real implementations
 - [ ] Test AGI chat functionality end-to-end (user to verify after deployment)
 - [ ] Test billing info displays real subscription data
+
+
+## AI Admin Page (Missing Frontend)
+- [x] Create AI Admin page at /dashboard/ai-admin
+- [x] Add chat interface for natural language commands
+- [x] Display codebase analysis results
+- [x] Show patch generation and application status
+- [x] Add patch history view with apply/rollback buttons
+- [x] Add admin-only access check (handled by backend adminProcedure)
+- [ ] Test all AI Admin endpoints (analyzeCodebase, generatePatch, applyPatch, rollbackPatch, getPatchHistory)
