@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { agents, executions } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { AgentFactory } from '@/lib/ai/agents';
+import { checkUsageLimit } from '../middleware/subscription';
 
 export const agentsRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -17,6 +18,7 @@ export const agentsRouter = router({
     }),
 
   create: protectedProcedure
+    .use(checkUsageLimit('agents', 1))
     .input(z.object({
       name: z.string(),
       description: z.string().optional(),

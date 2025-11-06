@@ -1,9 +1,8 @@
-import { pgTable, text, timestamp, integer, boolean } from 'drizzle-orm/pg-core';
-import { users } from './auth';
+import { pgTable, text, timestamp, integer, boolean, uuid, varchar } from 'drizzle-orm/pg-core';
 
 export const subscriptions = pgTable('subscriptions', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull(),
   
   // Subscription details
   plan: text('plan').notNull().default('trial'), // 'trial', 'premium', 'pro'
@@ -31,7 +30,7 @@ export const subscriptions = pgTable('subscriptions', {
 
 export const usageTracking = pgTable('usage_tracking', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull(),
   
   // Feature tracking
   feature: text('feature').notNull(), // 'agi_messages', 'agents', 'workflows', 'storage'

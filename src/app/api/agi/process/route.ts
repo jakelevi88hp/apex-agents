@@ -1,8 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { agiCore } from '@/lib/agi/core';
 import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-limit';
+import { SubscriptionService } from '@/lib/subscription/service';
+import { verifyToken } from '@/lib/auth/jwt';
 
 export async function POST(request: NextRequest) {
+  // Verify authentication
+  const token = request.cookies.get('token')?.value;
+  if (!token) {
+    return NextResponse.json(
+      { error: 'Authentication required' },
+      { status: 401 }
+    );
+  }
+
+  const user = await verifyToken(token);
+  if (!user) {
+    return NextResponse.json(
+      { error: 'Invalid authentication' },
+      { status: 401 }
+    );
+  }
+
+  // Check subscription limits for AGI messages
+  const canUse = await SubscriptionService.canUseFeature(user.id, 'agi_messages');
+  if (!canUse) {
+    const usage = await SubscriptionService.getUsageStats(user.id);
+    const agiUsage = usage.find(u => u.feature === 'agi_messages');
+    
+    return NextResponse.json(
+      { 
+        error: 'AGI message limit reached',
+        limit: agiUsage?.limit,
+        current: agiUsage?.current,
+        upgradeRequired: true
+      },
+      { status: 403 }
+    );
+  }
+
   // Rate limiting: 20 requests per minute
   const rateLimitResult = await rateLimit(request, RateLimitPresets.AGI);
   if (!rateLimitResult.allowed) {
@@ -20,6 +56,9 @@ export async function POST(request: NextRequest) {
     }
 
     const response = await agiCore.processInput(input);
+    
+    // Track AGI message usage
+    await SubscriptionService.trackUsage(user.id, 'agi_messages', 1);
     
     const jsonResponse = NextResponse.json(response);
     return addRateLimitHeaders(jsonResponse, rateLimitResult, RateLimitPresets.AGI.limit);
