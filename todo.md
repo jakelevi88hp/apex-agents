@@ -426,3 +426,11 @@ Moving to Option C: Business Features...
 - [x] Fix syntax error in workflows/page.tsx (duplicate closing brace and unclosed ternary operator)
 - [x] Successfully deploy to Vercel with all Options A, B, C features
 
+
+
+## UI/UX Fixes (User Feedback)
+- [x] Remove Settings from sidebar (keep only in account dropdown)
+- [x] Move Account button to top of sidebar
+- [x] Remove "+ New Agent" button from agents page (keep only in sidebar)
+- [x] Fix Knowledge page upload JSON error handling (added try-catch for JSON parsing)
+- [ ] Run database migrations to create documents and document_chunks tables (required for Knowledge page uploads)

@@ -309,13 +309,6 @@ export default function AgentsPage() {
             </button>
           )}
         </div>
-        <button
-          onClick={() => setShowWizard(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white rounded-lg font-medium transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-105"
-        >
-          <Plus className="w-5 h-5" />
-          New Agent
-        </button>
       </div>
 
       {/* Bulk Actions Toolbar */}

@@ -59,10 +59,6 @@ export default function Sidebar() {
     { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
   ];
 
-  const settingsItems = [
-    { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
-  ];
-
   const specializedItems = [
     { href: '/dashboard/agi', icon: Brain, label: 'AGI' },
     ...(isAdmin ? [{ href: '/admin/ai', icon: Wrench, label: 'AI Admin' }] : []),
@@ -135,6 +131,57 @@ export default function Sidebar() {
         </button>
       )}
 
+      {/* User Menu - Moved to top */}
+      <div className="p-4 border-b border-gray-700">
+        <div className="relative">
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className={`
+              w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all
+              ${isDarkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}
+            `}
+          >
+            <User className="w-5 h-5 flex-shrink-0" />
+            {!isCollapsed && <span>Account</span>}
+          </button>
+
+          {showUserMenu && (
+            <div
+              className={`
+                absolute top-full left-0 right-0 mt-2 rounded-lg shadow-xl z-50
+                ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'}
+                border
+              `}
+            >
+              <Link
+                href="/dashboard/settings"
+                className={`
+                  flex items-center gap-2 px-4 py-3 transition-colors
+                  ${isDarkMode ? 'hover:bg-gray-600 text-gray-300' : 'hover:bg-gray-50 text-gray-600'}
+                `}
+                onClick={() => setShowUserMenu(false)}
+              >
+                <Settings className="w-4 h-4" />
+                {!isCollapsed && <span>Settings</span>}
+              </Link>
+              <button
+                onClick={handleLogout}
+                className={`
+                  flex items-center gap-2 w-full px-4 py-3 transition-colors border-t
+                  ${isDarkMode 
+                    ? 'hover:bg-gray-600 text-red-400 border-gray-600' 
+                    : 'hover:bg-gray-50 text-red-600 border-gray-200'
+                  }
+                `}
+              >
+                <LogOut className="w-4 h-4" />
+                {!isCollapsed && <span>Logout</span>}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Quick Action Button */}
       <div className="p-4">
         <Link
@@ -172,16 +219,6 @@ export default function Sidebar() {
         </div>
 
         {/* Divider */}
-        <div className={`my-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`} />
-
-        {/* Settings */}
-        <div className="space-y-1">
-          {settingsItems.map((item) => (
-            <NavLink key={item.href} {...item} />
-          ))}
-        </div>
-
-        {/* Divider */}
         {specializedItems.length > 0 && (
           <div className={`my-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`} />
         )}
@@ -211,55 +248,6 @@ export default function Sidebar() {
         {/* Notifications */}
         <div className="flex items-center justify-center">
           <NotificationCenter />
-        </div>
-
-        {/* User Menu */}
-        <div className="relative">
-          <button
-            onClick={() => setShowUserMenu(!showUserMenu)}
-            className={`
-              w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all
-              ${isDarkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}
-            `}
-          >
-            <User className="w-5 h-5 flex-shrink-0" />
-            {!isCollapsed && <span>Account</span>}
-          </button>
-
-          {showUserMenu && (
-            <div
-              className={`
-                absolute bottom-full left-0 right-0 mb-2 rounded-lg shadow-xl
-                ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'}
-                border
-              `}
-            >
-              <Link
-                href="/dashboard/settings"
-                className={`
-                  flex items-center gap-2 px-4 py-3 transition-colors
-                  ${isDarkMode ? 'hover:bg-gray-600 text-gray-300' : 'hover:bg-gray-50 text-gray-600'}
-                `}
-                onClick={() => setShowUserMenu(false)}
-              >
-                <Settings className="w-4 h-4" />
-                {!isCollapsed && <span>Settings</span>}
-              </Link>
-              <button
-                onClick={handleLogout}
-                className={`
-                  flex items-center gap-2 w-full px-4 py-3 transition-colors border-t
-                  ${isDarkMode 
-                    ? 'hover:bg-gray-600 text-red-400 border-gray-600' 
-                    : 'hover:bg-gray-50 text-red-600 border-gray-200'
-                  }
-                `}
-              >
-                <LogOut className="w-4 h-4" />
-                {!isCollapsed && <span>Logout</span>}
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>

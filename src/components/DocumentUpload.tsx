@@ -86,10 +86,20 @@ export default function DocumentUpload({ onUploadComplete }: DocumentUploadProps
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Upload failed');
+        let errorMessage = 'Upload failed';
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch (e) {
+          // If JSON parsing fails, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
+      // Parse success response
+      const data = await response.json();
+      
       // Success
       setSelectedFile(null);
       onUploadComplete();
