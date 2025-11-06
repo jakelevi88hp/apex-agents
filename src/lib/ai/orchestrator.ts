@@ -127,13 +127,22 @@ export class AIOrchestrator {
     // Extract all variables from the prompt template (e.g., {objective}, {context})
     const templateVars = prompt.match(/\{([^}]+)\}/g)?.map(v => v.slice(1, -1)) || [];
     
+    // Filter out format_instructions from input variables since it's a partial variable
+    const inputVars = templateVars.filter(v => v !== 'format_instructions');
+    
+    // Ensure all required variables are provided, use empty string as fallback
+    const safeVariables: Record<string, any> = {};
+    for (const varName of inputVars) {
+      safeVariables[varName] = variables?.[varName] ?? '';
+    }
+    
     const promptTemplate = new PromptTemplate({
       template: `${prompt}\n\n{format_instructions}`,
-      inputVariables: templateVars,
+      inputVariables: inputVars,
       partialVariables: { format_instructions: formatInstructions },
     });
 
-    const input = await promptTemplate.format(variables || {});
+    const input = await promptTemplate.format(safeVariables);
     const model = this.getModel(modelName);
     const response = await model.invoke([new HumanMessage(input)]);
 
