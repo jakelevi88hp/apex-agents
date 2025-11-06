@@ -38,20 +38,25 @@ export async function POST(request: NextRequest) {
   }
 
   // Check subscription limits for AGI messages
-  const canUse = await SubscriptionService.canUseFeature(user.userId, 'agi_messages');
-  if (!canUse) {
-    const usage = await SubscriptionService.getUsageStats(user.userId);
-    const agiUsage = usage.find(u => u.feature === 'agi_messages');
-    
-    return NextResponse.json(
-      { 
-        error: 'AGI message limit reached',
-        limit: agiUsage?.limit,
-        current: agiUsage?.current,
-        upgradeRequired: true
-      },
-      { status: 403 }
-    );
+  try {
+    const canUse = await SubscriptionService.canUseFeature(user.userId, 'agi_messages');
+    if (!canUse) {
+      const usage = await SubscriptionService.getUsageStats(user.userId);
+      const agiUsage = usage.find(u => u.feature === 'agi_messages');
+      
+      return NextResponse.json(
+        { 
+          error: 'AGI message limit reached',
+          limit: agiUsage?.limit,
+          current: agiUsage?.current,
+          upgradeRequired: true
+        },
+        { status: 403 }
+      );
+    }
+  } catch (subscriptionError) {
+    console.error('[AGI API] Subscription check failed:', subscriptionError);
+    // Continue without subscription check if it fails
   }
 
   // Rate limiting: 20 requests per minute
@@ -73,7 +78,12 @@ export async function POST(request: NextRequest) {
     const response = await agiCore.processInput(input);
     
     // Track AGI message usage
-    await SubscriptionService.trackUsage(user.userId, 'agi_messages', 1);
+    try {
+      await SubscriptionService.trackUsage(user.userId, 'agi_messages', 1);
+    } catch (trackingError) {
+      console.error('[AGI API] Usage tracking failed:', trackingError);
+      // Continue even if tracking fails
+    }
     
     const jsonResponse = NextResponse.json(response);
     return addRateLimitHeaders(jsonResponse, rateLimitResult, RateLimitPresets.AGI.limit);
