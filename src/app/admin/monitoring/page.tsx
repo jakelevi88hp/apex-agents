@@ -46,7 +46,7 @@ interface MonitoringData {
 export default function MonitoringPage() {
   const [data, setData] = useState<MonitoringData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   const fetchMetrics = async () => {
