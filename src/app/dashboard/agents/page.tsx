@@ -526,9 +526,10 @@ export default function AgentsPage() {
                     </button>
                   </div>
                 </div>
-              );            })}
+              );
+            })}
           </div>
-          )
+          )}
         </div>
       )}
 
