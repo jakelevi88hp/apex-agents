@@ -15,7 +15,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
-      setIsDarkMode(savedTheme === 'dark');
+      const darkMode = savedTheme === 'dark';
+      setIsDarkMode(darkMode);
+      // Apply dark class to html element
+      if (darkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
     }
   }, []);
 
@@ -23,6 +30,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setIsDarkMode((prevMode) => {
       const newMode = !prevMode;
       localStorage.setItem('theme', newMode ? 'dark' : 'light');
+      // Apply or remove dark class from html element
+      if (newMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
       return newMode;
     });
   };
