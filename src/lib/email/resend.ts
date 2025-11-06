@@ -1,6 +1,13 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resend: Resend | null = null;
+
+function getResendClient() {
+  if (!resend && process.env.RESEND_API_KEY) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'Apex Agents <onboarding@resend.dev>';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -18,7 +25,14 @@ export interface SendEmailOptions {
  */
 export async function sendEmail(options: SendEmailOptions) {
   try {
-    const { data, error } = await resend.emails.send({
+    const client = getResendClient();
+    
+    if (!client) {
+      console.warn('Resend API key not configured, skipping email send');
+      return { success: false, error: 'Email service not configured' };
+    }
+    
+    const { data, error } = await client.emails.send({
       from: FROM_EMAIL,
       to: options.to,
       subject: options.subject,
