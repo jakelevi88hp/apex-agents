@@ -1,15 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { trpc } from "@/lib/trpc-client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { trpc } from "@/lib/trpc/client";
 import { Loader2, Send, Code, History, CheckCircle, XCircle, AlertCircle, RefreshCw } from "lucide-react";
-import { toast } from "sonner";
 
 interface Message {
   role: "user" | "assistant" | "system";
@@ -42,7 +35,7 @@ export default function AIAdminPage() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "patches" | "analysis">("chat");
 
   // tRPC mutations and queries
   const generatePatchMutation = trpc.aiAdmin.generatePatch.useMutation();
@@ -80,7 +73,6 @@ export default function AIAdminPage() {
 
         setMessages((prev) => [...prev, assistantMessage]);
         refetchHistory();
-        toast.success("Patch generated successfully!");
       }
     } catch (error: any) {
       const errorMessage: Message = {
@@ -89,7 +81,6 @@ export default function AIAdminPage() {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
-      toast.error("Failed to generate patch");
     } finally {
       setIsLoading(false);
     }
@@ -108,7 +99,6 @@ export default function AIAdminPage() {
         };
         setMessages((prev) => [...prev, successMessage]);
         refetchHistory();
-        toast.success("Patch applied successfully!");
       }
     } catch (error: any) {
       const errorMessage: Message = {
@@ -117,7 +107,6 @@ export default function AIAdminPage() {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
-      toast.error("Failed to apply patch");
     } finally {
       setIsLoading(false);
     }
@@ -129,11 +118,10 @@ export default function AIAdminPage() {
       const result = await rollbackPatchMutation.mutateAsync({ patchId });
 
       if (result.success) {
-        toast.success("Patch rolled back successfully!");
         refetchHistory();
       }
     } catch (error: any) {
-      toast.error(`Failed to rollback patch: ${error.message}`);
+      console.error("Rollback failed:", error);
     } finally {
       setIsLoading(false);
     }
@@ -152,251 +140,292 @@ export default function AIAdminPage() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      applied: "default",
-      pending: "secondary",
-      failed: "destructive",
-    };
-    return <Badge variant={variants[status] || "outline"}>{status}</Badge>;
-  };
-
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <div className="container mx-auto py-8 space-y-6 max-w-7xl">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">AI Admin</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">AI Admin</h1>
+          <p className="text-gray-600 dark:text-gray-400">
             Manage your codebase with AI-powered analysis and patching
           </p>
         </div>
-        <Badge variant="outline" className="flex items-center gap-2">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm font-medium">
           <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
           Admin Access
-        </Badge>
+        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="chat">
-            <Send className="h-4 w-4 mr-2" />
+      {/* Tabs */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <div className="flex space-x-8">
+          <button
+            onClick={() => setActiveTab("chat")}
+            className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "chat"
+                ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+            }`}
+          >
+            <Send className="h-4 w-4" />
             Chat
-          </TabsTrigger>
-          <TabsTrigger value="patches">
-            <History className="h-4 w-4 mr-2" />
+          </button>
+          <button
+            onClick={() => setActiveTab("patches")}
+            className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "patches"
+                ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+            }`}
+          >
+            <History className="h-4 w-4" />
             Patch History
-          </TabsTrigger>
-          <TabsTrigger value="analysis">
-            <Code className="h-4 w-4 mr-2" />
+          </button>
+          <button
+            onClick={() => setActiveTab("analysis")}
+            className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "analysis"
+                ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+            }`}
+          >
+            <Code className="h-4 w-4" />
             Codebase Analysis
-          </TabsTrigger>
-        </TabsList>
+          </button>
+        </div>
+      </div>
 
-        {/* Chat Tab */}
-        <TabsContent value="chat" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Admin Chat</CardTitle>
-              <CardDescription>
-                Describe what you want to change, and I'll generate a patch for you
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[500px] pr-4">
-                <div className="space-y-4">
-                  {messages.map((message, index) => (
-                    <div
-                      key={index}
-                      className={`flex ${
-                        message.role === "user" ? "justify-end" : "justify-start"
-                      }`}
-                    >
-                      <div
-                        className={`max-w-[80%] rounded-lg p-4 ${
-                          message.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : message.role === "system"
-                            ? "bg-muted"
-                            : "bg-secondary"
-                        }`}
+      {/* Chat Tab */}
+      {activeTab === "chat" && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">AI Admin Chat</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Describe what you want to change, and I'll generate a patch for you
+            </p>
+
+            {/* Messages */}
+            <div className="h-[500px] overflow-y-auto mb-4 space-y-4 pr-4">
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-lg p-4 ${
+                      message.role === "user"
+                        ? "bg-blue-600 text-white"
+                        : message.role === "system"
+                        ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                        : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-xs opacity-70 mt-2">
+                      {message.timestamp.toLocaleTimeString()}
+                    </p>
+                    {message.patchId && (
+                      <button
+                        onClick={() => handleApplyPatch(message.patchId!)}
+                        disabled={isLoading}
+                        className="mt-2 px-3 py-1.5 bg-white text-blue-600 rounded text-sm font-medium hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        <p className="text-xs opacity-70 mt-2">
-                          {message.timestamp.toLocaleTimeString()}
-                        </p>
-                        {message.patchId && (
-                          <Button
-                            size="sm"
-                            className="mt-2"
-                            onClick={() => handleApplyPatch(message.patchId!)}
-                            disabled={isLoading}
-                          >
-                            Apply Patch
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {isLoading && (
-                    <div className="flex justify-start">
-                      <div className="bg-secondary rounded-lg p-4">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      </div>
-                    </div>
-                  )}
+                        Apply Patch
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </ScrollArea>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-200 dark:bg-gray-700 rounded-lg p-4">
+                    <Loader2 className="h-4 w-4 animate-spin text-gray-900 dark:text-white" />
+                  </div>
+                </div>
+              )}
+            </div>
 
-              <div className="flex gap-2 mt-4">
-                <Input
-                  placeholder="Describe the changes you want to make..."
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  disabled={isLoading}
-                />
-                <Button onClick={handleSendMessage} disabled={isLoading || !input.trim()}>
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            {/* Input */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Describe the changes you want to make..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                disabled={isLoading}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={isLoading || !input.trim()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-        {/* Patch History Tab */}
-        <TabsContent value="patches" className="space-y-4">
+      {/* Patch History Tab */}
+      {activeTab === "patches" && (
+        <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Patch History</h2>
-            <Button variant="outline" size="sm" onClick={() => refetchHistory()}>
-              <RefreshCw className="h-4 w-4 mr-2" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Patch History</h2>
+            <button
+              onClick={() => refetchHistory()}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+            >
+              <RefreshCw className="h-4 w-4" />
               Refresh
-            </Button>
+            </button>
           </div>
 
-          <div className="grid gap-4">
+          <div className="space-y-4">
             {patchHistory?.data && patchHistory.data.length > 0 ? (
               patchHistory.data.map((patch: Patch) => (
-                <Card key={patch.id}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <CardTitle className="flex items-center gap-2">
-                          {getStatusIcon(patch.status)}
+                <div
+                  key={patch.id}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(patch.status)}
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                           {patch.description}
-                        </CardTitle>
-                        <CardDescription>
-                          Created: {new Date(patch.createdAt).toLocaleString()}
-                          {patch.appliedAt && (
-                            <> • Applied: {new Date(patch.appliedAt).toLocaleString()}</>
-                          )}
-                        </CardDescription>
+                        </h3>
                       </div>
-                      {getStatusBadge(patch.status)}
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Created: {new Date(patch.createdAt).toLocaleString()}
+                        {patch.appliedAt && (
+                          <> • Applied: {new Date(patch.appliedAt).toLocaleString()}</>
+                        )}
+                      </p>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="text-sm font-semibold mb-2">Files Modified:</h4>
-                        <div className="space-y-1">
-                          {patch.files.map((file, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-center gap-2 text-sm text-muted-foreground"
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded ${
+                        patch.status === "applied"
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                          : patch.status === "failed"
+                          ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                          : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                      }`}
+                    >
+                      {patch.status}
+                    </span>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">
+                        Files Modified:
+                      </h4>
+                      <div className="space-y-1">
+                        {patch.files.map((file, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
+                          >
+                            <span
+                              className={`px-2 py-0.5 text-xs rounded ${
+                                file.action === "create"
+                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                  : file.action === "delete"
+                                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                  : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                              }`}
                             >
-                              <Badge variant="outline" className="text-xs">
-                                {file.action}
-                              </Badge>
-                              <code className="text-xs">{file.path}</code>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {patch.error && (
-                        <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm">
-                          <strong>Error:</strong> {patch.error}
-                        </div>
-                      )}
-
-                      <div className="flex gap-2">
-                        {patch.status === "pending" && (
-                          <Button
-                            size="sm"
-                            onClick={() => handleApplyPatch(patch.id)}
-                            disabled={isLoading}
-                          >
-                            Apply Patch
-                          </Button>
-                        )}
-                        {patch.status === "applied" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleRollbackPatch(patch.id)}
-                            disabled={isLoading}
-                          >
-                            Rollback
-                          </Button>
-                        )}
+                              {file.action}
+                            </span>
+                            <code className="text-xs">{file.path}</code>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+
+                    {patch.error && (
+                      <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-3 rounded-md text-sm">
+                        <strong>Error:</strong> {patch.error}
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      {patch.status === "pending" && (
+                        <button
+                          onClick={() => handleApplyPatch(patch.id)}
+                          disabled={isLoading}
+                          className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Apply Patch
+                        </button>
+                      )}
+                      {patch.status === "applied" && (
+                        <button
+                          onClick={() => handleRollbackPatch(patch.id)}
+                          disabled={isLoading}
+                          className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Rollback
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               ))
             ) : (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  No patches yet. Start a conversation in the Chat tab to generate patches.
-                </CardContent>
-              </Card>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center text-gray-600 dark:text-gray-400">
+                No patches yet. Start a conversation in the Chat tab to generate patches.
+              </div>
             )}
           </div>
-        </TabsContent>
+        </div>
+      )}
 
-        {/* Codebase Analysis Tab */}
-        <TabsContent value="analysis" className="space-y-4">
+      {/* Codebase Analysis Tab */}
+      {activeTab === "analysis" && (
+        <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Codebase Analysis</h2>
-            <Button variant="outline" size="sm" onClick={() => refetchAnalysis()}>
-              <RefreshCw className="h-4 w-4 mr-2" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Codebase Analysis</h2>
+            <button
+              onClick={() => refetchAnalysis()}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+            >
+              <RefreshCw className="h-4 w-4" />
               Refresh
-            </Button>
+            </button>
           </div>
 
           {codebaseAnalysis?.data ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Analysis Results</CardTitle>
-                <CardDescription>
-                  Comprehensive analysis of your codebase structure and patterns
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <pre className="bg-muted p-4 rounded-md overflow-auto text-sm">
-                  {JSON.stringify(codebaseAnalysis.data, null, 2)}
-                </pre>
-              </CardContent>
-            </Card>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                Analysis Results
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Comprehensive analysis of your codebase structure and patterns
+              </p>
+              <pre className="bg-gray-100 dark:bg-gray-900 p-4 rounded-md overflow-auto text-sm text-gray-900 dark:text-gray-100">
+                {JSON.stringify(codebaseAnalysis.data, null, 2)}
+              </pre>
+            </div>
           ) : (
-            <Card>
-              <CardContent className="py-8 text-center">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-                <p className="text-muted-foreground">Analyzing codebase...</p>
-              </CardContent>
-            </Card>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-900 dark:text-white" />
+              <p className="text-gray-600 dark:text-gray-400">Analyzing codebase...</p>
+            </div>
           )}
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 }
