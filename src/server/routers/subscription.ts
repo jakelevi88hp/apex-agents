@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import { SubscriptionService } from '@/lib/subscription/service';
 import { PLAN_FEATURES, PLAN_PRICES } from '@/lib/subscription/config';
+import { getOrCreateStripeCustomer, createCheckoutSession, createCustomerPortalSession, ensureStripeProducts } from '@/lib/stripe/stripe';
+import { TRPCError } from '@trpc/server';
 
 export const subscriptionRouter = router({
   /**
@@ -73,8 +75,33 @@ export const subscriptionRouter = router({
       billingPeriod: z.enum(['monthly', 'yearly']),
     }))
     .mutation(async ({ ctx, input }) => {
-      // This will be implemented in Phase 4 with Stripe integration
-      throw new Error('Stripe integration pending');
+      const user = ctx.user;
+      
+      // Ensure Stripe products exist
+      const priceIds = await ensureStripeProducts();
+      
+      // Get or create Stripe customer
+      const customer = await getOrCreateStripeCustomer(
+        user.id,
+        user.email || '',
+        user.name || undefined
+      );
+
+      // Get the appropriate price ID
+      const priceId = priceIds[input.plan];
+
+      // Create checkout session
+      const session = await createCheckoutSession({
+        customerId: customer.id,
+        priceId,
+        successUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?success=true`,
+        cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/pricing?canceled=true`,
+        userId: user.id,
+      });
+
+      return {
+        url: session.url!,
+      };
     }),
 
   /**
@@ -89,8 +116,23 @@ export const subscriptionRouter = router({
    * Get Stripe customer portal URL
    */
   getCustomerPortal: protectedProcedure.query(async ({ ctx }) => {
-    // This will be implemented in Phase 4 with Stripe integration
-    throw new Error('Stripe integration pending');
+    const subscription = await SubscriptionService.getUserSubscription(ctx.user.id);
+    
+    if (!subscription?.stripeCustomerId) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'No active subscription found. Please subscribe first.',
+      });
+    }
+
+    const session = await createCustomerPortalSession(
+      subscription.stripeCustomerId,
+      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard`
+    );
+
+    return {
+      url: session.url,
+    };
   }),
 });
 
