@@ -84,15 +84,16 @@ export const aiAdminRouter = router({
         console.log('[generatePatch] Saved patch to database with UUID:', savedPatch.id, 'Type:', typeof savedPatch.id);
         
         // Return the saved patch with database UUID, not the original agent patch
+        // Convert UUID and Date objects to strings for tRPC serialization
         const responseData = {
-          id: savedPatch.id, // Use database UUID
+          id: String(savedPatch.id), // Convert UUID to string
           request: savedPatch.request,
           summary: savedPatch.summary,
           description: savedPatch.description || '',
           files: savedPatch.files,
           testingSteps: savedPatch.testingSteps || [],
           risks: savedPatch.risks || [],
-          generatedAt: savedPatch.createdAt,
+          generatedAt: savedPatch.createdAt.toISOString(), // Convert Date to ISO string
           status: savedPatch.status,
         };
         console.log('[generatePatch] Returning patch ID to frontend:', responseData.id, 'Type:', typeof responseData.id);
