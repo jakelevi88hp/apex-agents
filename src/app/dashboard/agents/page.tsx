@@ -7,6 +7,10 @@ import {
   TrendingUp, Network, Plus, X, Loader2, Play, Settings, Send 
 } from 'lucide-react';
 import AgentWizard from '@/components/agent-wizard/AgentWizard';
+import AgentCardSkeleton from '@/components/AgentCardSkeleton';
+import EmptyState from '@/components/EmptyState';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useRef } from 'react';
 
 const agentTypes = [
   { 
@@ -91,6 +95,38 @@ const defaultConfig = {
 
 export default function AgentsPage() {
   const router = useRouter();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'n',
+      meta: true,
+      callback: () => setShowWizard(true),
+      description: 'Create new agent',
+    },
+    {
+      key: 'k',
+      meta: true,
+      callback: () => searchInputRef.current?.focus(),
+      description: 'Focus search',
+    },
+    {
+      key: 'b',
+      meta: true,
+      callback: () => setBulkActionMode(!bulkActionMode),
+      description: 'Toggle bulk select',
+    },
+    {
+      key: 'Escape',
+      callback: () => {
+        if (bulkActionMode) clearSelection();
+        if (showWizard) setShowWizard(false);
+        if (showExecuteModal) setShowExecuteModal(false);
+      },
+      description: 'Cancel/Close',
+    },
+  ]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
   const [showExecuteModal, setShowExecuteModal] = useState(false);
@@ -176,6 +212,51 @@ export default function AgentsPage() {
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'name' | 'created' | 'executions'>('created');
+  
+  // Bulk operations state
+  const [selectedAgents, setSelectedAgents] = useState<Set<string>>(new Set());
+  const [bulkActionMode, setBulkActionMode] = useState(false);
+
+  // Bulk operations handlers
+  const toggleAgentSelection = (agentId: string) => {
+    const newSelected = new Set(selectedAgents);
+    if (newSelected.has(agentId)) {
+      newSelected.delete(agentId);
+    } else {
+      newSelected.add(agentId);
+    }
+    setSelectedAgents(newSelected);
+  };
+
+  const selectAllFiltered = () => {
+    const allIds = new Set(filteredAgents.map((a: any) => a.id));
+    setSelectedAgents(allIds);
+  };
+
+  const clearSelection = () => {
+    setSelectedAgents(new Set());
+    setBulkActionMode(false);
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Delete ${selectedAgents.size} agent(s)? This cannot be undone.`)) return;
+    
+    // TODO: Implement bulk delete mutation
+    console.log('Bulk delete:', Array.from(selectedAgents));
+    clearSelection();
+  };
+
+  const handleBulkPause = async () => {
+    // TODO: Implement bulk pause mutation
+    console.log('Bulk pause:', Array.from(selectedAgents));
+    clearSelection();
+  };
+
+  const handleBulkActivate = async () => {
+    // TODO: Implement bulk activate mutation
+    console.log('Bulk activate:', Array.from(selectedAgents));
+    clearSelection();
+  };
 
   // Filter and sort agents
   const filteredAgents = userAgents?.filter((agent: any) => {
@@ -193,7 +274,21 @@ export default function AgentsPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-white">Agents</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold text-white">Agents</h1>
+          {userAgents && userAgents.length > 0 && (
+            <button
+              onClick={() => setBulkActionMode(!bulkActionMode)}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                bulkActionMode
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              {bulkActionMode ? 'Cancel Selection' : 'Select Multiple'}
+            </button>
+          )}
+        </div>
         <button
           onClick={() => setShowWizard(true)}
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white rounded-lg font-medium transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-105"
@@ -202,6 +297,51 @@ export default function AgentsPage() {
           New Agent
         </button>
       </div>
+
+      {/* Bulk Actions Toolbar */}
+      {bulkActionMode && selectedAgents.size > 0 && (
+        <div className="mb-6 bg-purple-900/30 border border-purple-500/50 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="text-white font-medium">
+                {selectedAgents.size} agent{selectedAgents.size !== 1 ? 's' : ''} selected
+              </span>
+              <button
+                onClick={selectAllFiltered}
+                className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
+              >
+                Select all {filteredAgents.length}
+              </button>
+              <button
+                onClick={clearSelection}
+                className="text-sm text-gray-400 hover:text-gray-300 transition-colors"
+              >
+                Clear selection
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleBulkActivate}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Activate
+              </button>
+              <button
+                onClick={handleBulkPause}
+                className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Pause
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search and Filters */}
       {userAgents && userAgents.length > 0 && (
@@ -212,8 +352,9 @@ export default function AgentsPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
+                  ref={searchInputRef}
                   type="text"
-                  placeholder="Search agents..."
+                  placeholder="Search agents... (⌘K)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
@@ -281,8 +422,31 @@ export default function AgentsPage() {
         </div>
       )}
 
+      {/* Loading State */}
+      {agentsLoading && (
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-white mb-6">Your Agents</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <AgentCardSkeleton key={i} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!agentsLoading && (!userAgents || userAgents.length === 0) && (
+        <EmptyState
+          icon={Network}
+          title="No agents yet"
+          description="Create your first AI agent to automate tasks, analyze data, or assist with research. Get started with our templates or build from scratch."
+          actionLabel="Create Your First Agent"
+          onAction={() => setShowWizard(true)}
+        />
+      )}
+
       {/* User's Created Agents */}
-      {userAgents && userAgents.length > 0 && (
+      {!agentsLoading && userAgents && userAgents.length > 0 && (
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-white mb-6">Your Agents</h2>
           {filteredAgents.length === 0 ? (
@@ -309,9 +473,22 @@ export default function AgentsPage() {
               return (
                 <div
                   key={agent.id}
-                  className="group bg-gray-800 p-6 rounded-lg shadow-lg border-2 border-purple-500/30 hover:border-purple-500 hover:shadow-purple-500/30 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+                  className={`group bg-gray-800 p-6 rounded-lg shadow-lg border-2 transition-all duration-300 ${
+                    selectedAgents.has(agent.id)
+                      ? 'border-purple-500 shadow-purple-500/50 shadow-2xl'
+                      : 'border-purple-500/30 hover:border-purple-500 hover:shadow-purple-500/30 hover:shadow-2xl hover:-translate-y-1'
+                  }`}
                 >
                   <div className="flex items-start justify-between mb-4">
+                    {bulkActionMode && (
+                      <input
+                        type="checkbox"
+                        checked={selectedAgents.has(agent.id)}
+                        onChange={() => toggleAgentSelection(agent.id)}
+                        className="mr-3 mt-1 w-5 h-5 rounded border-gray-600 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-800 cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    )}
                     <div className={`p-3 rounded-lg bg-gradient-to-br ${agentType?.gradient || 'from-purple-500 to-blue-500'} group-hover:scale-110 transition-transform duration-300`}>
                       <IconComponent className="w-6 h-6 text-white" />
                     </div>
