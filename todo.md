@@ -433,4 +433,6 @@ Moving to Option C: Business Features...
 - [x] Move Account button to top of sidebar
 - [x] Remove "+ New Agent" button from agents page (keep only in sidebar)
 - [x] Fix Knowledge page upload JSON error handling (added try-catch for JSON parsing)
-- [ ] Run database migrations to create documents and document_chunks tables (required for Knowledge page uploads)
+- [x] Run database migrations to create documents and document_chunks tables (required for Knowledge page uploads)
+- [x] Update documents schema to match actual database columns
+- [x] Fix upload API to use correct column names (status instead of processingStatus)

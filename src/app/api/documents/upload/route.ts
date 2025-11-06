@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       size: file.size,
       filePath: filename, // Store relative path
       storageType: 'local',
-      processingStatus: 'processing',
+      status: 'processing',
       source: 'upload',
     }).returning();
 
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         name: doc.name,
         size: doc.size,
         mimeType: doc.mimeType,
-        status: doc.processingStatus,
+        status: doc.status,
         createdAt: doc.createdAt,
       },
     });
@@ -168,7 +168,7 @@ async function processDocumentAsync(
         summary,
         pineconeId: pineconeIds[0], // Store first chunk ID as reference
         embeddingModel: 'text-embedding-3-large',
-        processingStatus: 'completed',
+        status: 'completed',
         updatedAt: new Date(),
         metadata: {
           ...processed.metadata,
@@ -187,7 +187,7 @@ async function processDocumentAsync(
     // Update status to failed
     await db.update(documents)
       .set({
-        processingStatus: 'failed',
+        status: 'failed',
         processingError: error instanceof Error ? error.message : 'Unknown error',
         updatedAt: new Date(),
       })

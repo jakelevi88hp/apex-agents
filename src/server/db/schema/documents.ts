@@ -4,36 +4,40 @@ import { users } from '@/lib/db/schema';
 export const documents = pgTable('documents', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  organizationId: uuid('organization_id'),
   
   // Document metadata
   name: text('name').notNull(),
-  originalName: text('original_name').notNull(),
+  originalName: text('original_name'),
   mimeType: text('mime_type').notNull(),
-  size: integer('size').notNull(), // in bytes
+  size: integer('size').notNull(),
   
   // Storage
-  filePath: text('file_path').notNull(), // Local file path or S3 key
-  storageType: text('storage_type').notNull().default('local'), // 'local' or 's3'
+  filePath: text('file_path'),
+  storageType: text('storage_type').default('local'),
   
   // Content
-  extractedText: text('extracted_text'), // Full text extracted from document
-  summary: text('summary'), // AI-generated summary
+  extractedText: text('extracted_text'),
+  summary: text('summary'),
   
   // Vector embeddings
-  pineconeId: text('pinecone_id'), // ID in Pinecone vector database
-  embeddingModel: text('embedding_model'), // e.g., 'text-embedding-3-large'
+  pineconeId: text('pinecone_id'),
+  embeddingModel: text('embedding_model'),
   
   // Organization
-  source: text('source').default('upload'), // 'upload', 'google-drive', 'notion', etc.
-  tags: jsonb('tags').$type<string[]>().default([]),
+  source: text('source').notNull().default('upload'),
+  tags: jsonb('tags').$type<string[]>(),
   folder: text('folder'),
   
-  // Status
-  processingStatus: text('processing_status').notNull().default('pending'), // 'pending', 'processing', 'completed', 'failed'
+  // Status (using both old and new column names for compatibility)
+  status: text('status').notNull().default('processing'),
+  processingStatus: text('processing_status'),
   processingError: text('processing_error'),
+  embeddingStatus: text('embedding_status'),
+  chunkCount: integer('chunk_count').default(0),
   
   // Metadata
-  metadata: jsonb('metadata').$type<Record<string, any>>().default({}),
+  metadata: jsonb('metadata').$type<Record<string, any>>(),
   
   // Timestamps
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -47,15 +51,17 @@ export const documentChunks = pgTable('document_chunks', {
   id: uuid('id').defaultRandom().primaryKey(),
   documentId: uuid('document_id').notNull().references(() => documents.id, { onDelete: 'cascade' }),
   
-  // Chunk data
-  content: text('content').notNull(),
+  // Chunk data (using both old and new column names for compatibility)
+  text: text('text'),
+  content: text('content'),
   chunkIndex: integer('chunk_index').notNull(),
   
   // Vector embedding
-  pineconeId: text('pinecone_id'), // ID in Pinecone
+  embedding: text('embedding'),
+  pineconeId: text('pinecone_id'),
   
   // Metadata
-  metadata: jsonb('metadata').$type<Record<string, any>>().default({}),
+  metadata: jsonb('metadata').$type<Record<string, any>>(),
   
   // Timestamps
   createdAt: timestamp('created_at').defaultNow().notNull(),
