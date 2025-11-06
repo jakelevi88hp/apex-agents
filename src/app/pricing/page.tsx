@@ -1,7 +1,4 @@
 'use client';
-
-export const dynamic = 'force-dynamic';
-
 import { useState } from 'react';
 import { Check, Zap, Crown, Rocket } from 'lucide-react';
 import { trpc } from '@/lib/trpc';

@@ -2,6 +2,8 @@ const { withSentryConfig } = require('@sentry/nextjs');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Use standalone output for Vercel
+  output: 'standalone',
   experimental: {
     missingSuspenseWithCSRBailout: false,
   },
