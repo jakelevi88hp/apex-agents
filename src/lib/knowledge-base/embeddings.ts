@@ -3,13 +3,33 @@
 import { Pinecone } from '@pinecone-database/pinecone';
 import OpenAI from 'openai';
 
-const pinecone = new Pinecone({
-  apiKey: process.env.PINECONE_API_KEY || '',
-});
+// Lazy initialization to prevent build-time errors
+let pinecone: Pinecone | null = null;
+let openai: OpenAI | null = null;
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
-});
+function getPinecone(): Pinecone {
+  if (!pinecone) {
+    if (!process.env.PINECONE_API_KEY) {
+      throw new Error('PINECONE_API_KEY environment variable is not set');
+    }
+    pinecone = new Pinecone({
+      apiKey: process.env.PINECONE_API_KEY,
+    });
+  }
+  return pinecone;
+}
+
+function getOpenAI(): OpenAI {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY environment variable is not set');
+    }
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openai;
+}
 
 const INDEX_NAME = 'apex-agents-knowledge';
 
@@ -27,7 +47,7 @@ export interface EmbedDocumentConfig {
 export async function embedDocument(config: EmbedDocumentConfig) {
   try {
     // Generate embedding using OpenAI
-    const embeddingResponse = await openai.embeddings.create({
+    const embeddingResponse = await getOpenAI().embeddings.create({
       model: 'text-embedding-3-small',
       input: config.text,
     });
@@ -35,7 +55,7 @@ export async function embedDocument(config: EmbedDocumentConfig) {
     const embedding = embeddingResponse.data[0].embedding;
 
     // Store in Pinecone
-    const index = pinecone.index(INDEX_NAME);
+    const index = getPinecone().index(INDEX_NAME);
     await index.upsert([
       {
         id: config.id,
@@ -70,7 +90,7 @@ export interface SearchConfig {
 export async function searchKnowledge(config: SearchConfig) {
   try {
     // Generate query embedding
-    const embeddingResponse = await openai.embeddings.create({
+    const embeddingResponse = await getOpenAI().embeddings.create({
       model: 'text-embedding-3-small',
       input: config.query,
     });
@@ -78,7 +98,7 @@ export async function searchKnowledge(config: SearchConfig) {
     const queryEmbedding = embeddingResponse.data[0].embedding;
 
     // Search in Pinecone
-    const index = pinecone.index(INDEX_NAME);
+    const index = getPinecone().index(INDEX_NAME);
     const searchResults = await index.query({
       vector: queryEmbedding,
       topK: config.topK || 5,
@@ -110,7 +130,7 @@ export async function searchKnowledge(config: SearchConfig) {
 
 export async function deleteDocument(id: string) {
   try {
-    const index = pinecone.index(INDEX_NAME);
+    const index = getPinecone().index(INDEX_NAME);
     await index.deleteOne(id);
     return { success: true };
   } catch (error) {

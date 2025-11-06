@@ -1,13 +1,33 @@
 import { Pinecone } from '@pinecone-database/pinecone';
 import OpenAI from 'openai';
 
-const pinecone = new Pinecone({
-  apiKey: process.env.PINECONE_API_KEY!,
-});
+// Lazy initialization to prevent build-time errors when API keys are missing
+let pinecone: Pinecone | null = null;
+let openai: OpenAI | null = null;
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+function getPinecone(): Pinecone {
+  if (!pinecone) {
+    if (!process.env.PINECONE_API_KEY) {
+      throw new Error('PINECONE_API_KEY environment variable is not set');
+    }
+    pinecone = new Pinecone({
+      apiKey: process.env.PINECONE_API_KEY,
+    });
+  }
+  return pinecone;
+}
+
+function getOpenAI(): OpenAI {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY environment variable is not set');
+    }
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openai;
+}
 
 const INDEX_NAME = process.env.PINECONE_INDEX || 'apex-corporate-brain';
 
@@ -22,14 +42,16 @@ export interface VectorMetadata {
 }
 
 export class PineconeService {
-  private static index = pinecone.index(INDEX_NAME);
+  private static getIndex() {
+    return getPinecone().index(INDEX_NAME);
+  }
 
   /**
    * Generate embeddings using OpenAI
    */
   static async generateEmbedding(text: string): Promise<number[]> {
     try {
-      const response = await openai.embeddings.create({
+      const response = await getOpenAI().embeddings.create({
         model: 'text-embedding-3-large',
         input: text,
       });
@@ -67,7 +89,7 @@ export class PineconeService {
         })
       );
 
-      await this.index.upsert(vectors);
+      await this.getIndex().upsert(vectors);
 
       return vectors.map(v => v.id);
     } catch (error) {
@@ -87,7 +109,7 @@ export class PineconeService {
     try {
       const queryEmbedding = await this.generateEmbedding(query);
 
-      const results = await this.index.query({
+      const results = await this.getIndex().query({
         vector: queryEmbedding,
         topK,
         includeMetadata: true,
@@ -113,7 +135,7 @@ export class PineconeService {
   static async deleteDocument(documentId: string): Promise<void> {
     try {
       // Delete all chunks for this document
-      await this.index.deleteMany({
+      await this.getIndex().deleteMany({
         filter: {
           documentId: { $eq: documentId },
         },
@@ -129,7 +151,7 @@ export class PineconeService {
    */
   static async getStats() {
     try {
-      const stats = await this.index.describeIndexStats();
+      const stats = await this.getIndex().describeIndexStats();
       return stats;
     } catch (error) {
       console.error('Error getting Pinecone stats:', error);
