@@ -18,8 +18,8 @@ export default function SignupPage() {
     onSuccess: (data) => {
       // Store JWT token in localStorage
       localStorage.setItem('token', data.token);
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Redirect to agents page
+      router.push('/dashboard/agents');
     },
     onError: (error) => {
       setError(error.message || 'Failed to create account. Please try again.');

@@ -16,8 +16,8 @@ export default function LoginPage() {
     onSuccess: (data) => {
       // Store JWT token in localStorage
       localStorage.setItem('token', data.token);
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Redirect to agents page
+      router.push('/dashboard/agents');
     },
     onError: (error) => {
       setError(error.message || 'Invalid email or password');
