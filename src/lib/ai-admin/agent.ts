@@ -240,26 +240,54 @@ export class AIAdminAgent {
       // Generate patch using LLM with comprehensive knowledge base
       const systemPrompt = getSystemPrompt(analysis);
 
-      const response = await this.openai.chat.completions.create({
-        model: this.model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: `Request: ${requestText}\n\nCodebase structure: ${JSON.stringify(analysis.structure, null, 2)}\n\nRelevant file contents:\n${Object.entries(relevantFiles).map(([path, content]) => `\n=== ${path} ===\n${content}`).join('\n')}`,
-          },
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0.3,
-      });
+      // Try up to 3 times to get a valid patch
+      let patchData: any = null;
+      let lastError: string = '';
+      
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          await this.log(`Generating patch (attempt ${attempt}/3)...`);
+          
+          const response = await this.openai.chat.completions.create({
+            model: this.model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              {
+                role: 'user',
+                content: `Request: ${requestText}\n\nCodebase structure: ${JSON.stringify(analysis.structure, null, 2)}\n\nRelevant file contents:\n${Object.entries(relevantFiles).map(([path, content]) => `\n=== ${path} ===\n${content}`).join('\n')}${attempt > 1 ? `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}\n\nPlease ensure your response follows the exact JSON format with a 'files' array.` : ''}`,
+              },
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.3,
+          });
 
-      const patchData = JSON.parse(response.choices[0].message.content || '{}');
+          patchData = JSON.parse(response.choices[0].message.content || '{}');
+          
+          // Validate immediately
+          const validationErrors = await this.validatePatchData(patchData, requestText);
+          if (validationErrors.length === 0) {
+            await this.log(`Patch generated successfully on attempt ${attempt}`);
+            break; // Success!
+          }
+          
+          lastError = validationErrors.join(', ');
+          await this.log(`Attempt ${attempt} validation failed: ${lastError}`, 'warning');
+          
+          if (attempt === 3) {
+            throw new Error(`Patch validation failed after 3 attempts:\n${validationErrors.join('\n')}`);
+          }
+        } catch (error) {
+          if (attempt === 3) {
+            throw error;
+          }
+          lastError = String(error);
+          await this.log(`Attempt ${attempt} failed: ${error}`, 'warning');
+        }
+      }
 
-      // Validate patch before creating record
-      const validationErrors = await this.validatePatchData(patchData, requestText);
-      if (validationErrors.length > 0) {
-        await this.log(`Patch validation failed: ${validationErrors.join(', ')}`, 'error');
-        throw new Error(`Patch validation failed:\n${validationErrors.join('\n')}`);
+      // Patch is already validated in the retry loop above
+      if (!patchData) {
+        throw new Error('Failed to generate valid patch after 3 attempts');
       }
 
       const patchRecord: PatchRecord = {
