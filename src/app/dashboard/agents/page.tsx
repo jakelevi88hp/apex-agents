@@ -96,37 +96,8 @@ const defaultConfig = {
 export default function AgentsPage() {
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  // Keyboard shortcuts
-  useKeyboardShortcuts([
-    {
-      key: 'n',
-      meta: true,
-      callback: () => setShowWizard(true),
-      description: 'Create new agent',
-    },
-    {
-      key: 'k',
-      meta: true,
-      callback: () => searchInputRef.current?.focus(),
-      description: 'Focus search',
-    },
-    {
-      key: 'b',
-      meta: true,
-      callback: () => setBulkActionMode(!bulkActionMode),
-      description: 'Toggle bulk select',
-    },
-    {
-      key: 'Escape',
-      callback: () => {
-        if (bulkActionMode) clearSelection();
-        if (showWizard) setShowWizard(false);
-        if (showExecuteModal) setShowExecuteModal(false);
-      },
-      description: 'Cancel/Close',
-    },
-  ]);
+  
+  // State declarations
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
   const [showExecuteModal, setShowExecuteModal] = useState(false);
@@ -257,6 +228,37 @@ export default function AgentsPage() {
     console.log('Bulk activate:', Array.from(selectedAgents));
     clearSelection();
   };
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      key: 'n',
+      meta: true,
+      callback: () => setShowWizard(true),
+      description: 'Create new agent',
+    },
+    {
+      key: 'k',
+      meta: true,
+      callback: () => searchInputRef.current?.focus(),
+      description: 'Focus search',
+    },
+    {
+      key: 'b',
+      meta: true,
+      callback: () => setBulkActionMode(!bulkActionMode),
+      description: 'Toggle bulk select',
+    },
+    {
+      key: 'Escape',
+      callback: () => {
+        if (bulkActionMode) clearSelection();
+        if (showWizard) setShowWizard(false);
+        if (showExecuteModal) setShowExecuteModal(false);
+      },
+      description: 'Cancel/Close',
+    },
+  ]);
 
   // Filter and sort agents
   const filteredAgents = userAgents?.filter((agent: any) => {
