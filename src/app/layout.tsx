@@ -1,18 +1,14 @@
 import React from 'react';
-import { ThemeProvider } from 'next-themes';
-import { DarkModeToggle } from '../components/DarkModeToggle';
+import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 
-const RootLayout: React.FC = ({ children }) => {
+const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <ThemeProvider attribute="class">
-      <div className="min-h-screen bg-background text-text">
-        <header className="p-4">
-          <DarkModeToggle />
-        </header>
-        <main>{children}</main>
+    <ThemeProvider>
+      <div className="app-layout">
+        {children}
       </div>
     </ThemeProvider>
   );
 };
 
-export default RootLayout;
+export default AppLayout;
