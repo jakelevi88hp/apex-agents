@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { 
   Search, BarChart3, PenTool, Code2, Target, Mail, 
@@ -89,6 +90,7 @@ const defaultConfig = {
 };
 
 export default function AgentsPage() {
+  const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
   const [showExecuteModal, setShowExecuteModal] = useState(false);
@@ -169,6 +171,25 @@ export default function AgentsPage() {
 
   const selectedAgentType = agentTypes.find(t => t.id === formData.type);
 
+  // Filter and search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'created' | 'executions'>('created');
+
+  // Filter and sort agents
+  const filteredAgents = userAgents?.filter((agent: any) => {
+    const matchesSearch = agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         agent.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = filterType === 'all' || agent.type === filterType;
+    const matchesStatus = filterStatus === 'all' || agent.status === filterStatus;
+    return matchesSearch && matchesType && matchesStatus;
+  }).sort((a: any, b: any) => {
+    if (sortBy === 'name') return a.name.localeCompare(b.name);
+    if (sortBy === 'created') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    return 0; // executions sort would need execution count data
+  }) || [];
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
@@ -182,12 +203,106 @@ export default function AgentsPage() {
         </button>
       </div>
 
+      {/* Search and Filters */}
+      {userAgents && userAgents.length > 0 && (
+        <div className="mb-6 bg-gray-800 p-4 rounded-lg border border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Search */}
+            <div className="md:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search agents..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Filter by Type */}
+            <div>
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+              >
+                <option value="all">All Types</option>
+                {agentTypes.map((type) => (
+                  <option key={type.id} value={type.id}>{type.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Filter by Status */}
+            <div>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+              >
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Sort Options */}
+          <div className="flex items-center gap-4 mt-4">
+            <span className="text-sm text-gray-400">Sort by:</span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSortBy('name')}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  sortBy === 'name'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                Name
+              </button>
+              <button
+                onClick={() => setSortBy('created')}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  sortBy === 'created'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                Created
+              </button>
+            </div>
+            <span className="text-sm text-gray-400 ml-auto">
+              {filteredAgents.length} of {userAgents.length} agents
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* User's Created Agents */}
       {userAgents && userAgents.length > 0 && (
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-white mb-6">Your Agents</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userAgents.map((agent: any) => {
+          {filteredAgents.length === 0 ? (
+            <div className="text-center py-12 bg-gray-800 rounded-lg border border-gray-700">
+              <Search className="w-12 h-12 mx-auto mb-4 text-gray-600" />
+              <p className="text-gray-400">No agents match your filters</p>
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilterType('all');
+                  setFilterStatus('all');
+                }}
+                className="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+              >
+                Clear Filters
+              </button>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredAgents.map((agent: any) => {
               const agentType = agentTypes.find(t => t.id === agent.type);
               const IconComponent = agentType?.icon || Search;
               
@@ -221,14 +336,20 @@ export default function AgentsPage() {
                       <Play className="w-4 h-4" />
                       Execute
                     </button>
-                    <button className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 hover:scale-105 transition-all duration-200">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/dashboard/agents/${agent.id}`);
+                      }}
+                      className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 hover:scale-105 transition-all duration-200"
+                    >
                       <Settings className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
-              );
-            })}
+              );            })}
           </div>
+          )
         </div>
       )}
 
