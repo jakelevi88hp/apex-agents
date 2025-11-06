@@ -79,23 +79,27 @@ export const aiAdminRouter = router({
         const patch = await agent.generatePatch(input.request);
         
         // Save patch to database for persistence across serverless instances
+        console.log('[generatePatch] Original agent patch ID:', patch.id, 'Type:', typeof patch.id);
         const savedPatch = await patchStorage.savePatch(ctx.userId, patch);
-        console.log('[generatePatch] Saved patch to database with UUID:', savedPatch.id);
+        console.log('[generatePatch] Saved patch to database with UUID:', savedPatch.id, 'Type:', typeof savedPatch.id);
         
         // Return the saved patch with database UUID, not the original agent patch
+        const responseData = {
+          id: savedPatch.id, // Use database UUID
+          request: savedPatch.request,
+          summary: savedPatch.summary,
+          description: savedPatch.description || '',
+          files: savedPatch.files,
+          testingSteps: savedPatch.testingSteps || [],
+          risks: savedPatch.risks || [],
+          generatedAt: savedPatch.createdAt,
+          status: savedPatch.status,
+        };
+        console.log('[generatePatch] Returning patch ID to frontend:', responseData.id, 'Type:', typeof responseData.id);
+        
         return {
           success: true,
-          data: {
-            id: savedPatch.id, // Use database UUID
-            request: savedPatch.request,
-            summary: savedPatch.summary,
-            description: savedPatch.description || '',
-            files: savedPatch.files,
-            testingSteps: savedPatch.testingSteps || [],
-            risks: savedPatch.risks || [],
-            generatedAt: savedPatch.createdAt,
-            status: savedPatch.status,
-          },
+          data: responseData,
         };
       } catch (error) {
         throw new TRPCError({
@@ -116,11 +120,15 @@ export const aiAdminRouter = router({
     )
     .mutation(async ({ input }) => {
       try {
-        console.log('[applyPatch] Requested patch ID:', input.patchId);
+        console.log('[applyPatch] Requested patch ID:', input.patchId, 'Type:', typeof input.patchId, 'Length:', input.patchId.length);
+        console.log('[applyPatch] Patch ID bytes:', Array.from(input.patchId).map(c => c.charCodeAt(0)));
         
         // Get patch from database instead of in-memory storage
         const patch = await patchStorage.getPatch(input.patchId);
         console.log('[applyPatch] Found patch in database:', patch ? 'YES' : 'NO');
+        if (patch) {
+          console.log('[applyPatch] Retrieved patch ID from DB:', patch.id);
+        }
 
         if (!patch) {
           throw new TRPCError({
