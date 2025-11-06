@@ -13,17 +13,21 @@ import { TRPCError } from '@trpc/server';
 // Admin authentication middleware
 const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   // Check if user is admin by querying the database
+  console.log('[AI Admin] Checking admin access for userId:', ctx.userId);
+  
   const { db } = await import('@/lib/db');
   const { users } = await import('@/lib/db/schema');
   const { eq } = await import('drizzle-orm');
   
   const user = await db
-    .select({ role: users.role })
+    .select({ role: users.role, email: users.email })
     .from(users)
     .where(eq(users.id, ctx.userId))
     .limit(1);
 
+  console.log('[AI Admin] User query result:', user);
   const isAdmin = user[0]?.role === 'admin' || user[0]?.role === 'owner';
+  console.log('[AI Admin] isAdmin:', isAdmin, 'role:', user[0]?.role);
 
   if (!isAdmin) {
     throw new TRPCError({
