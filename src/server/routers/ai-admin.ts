@@ -79,12 +79,23 @@ export const aiAdminRouter = router({
         const patch = await agent.generatePatch(input.request);
         
         // Save patch to database for persistence across serverless instances
-        await patchStorage.savePatch(ctx.userId, patch);
-        console.log('[generatePatch] Saved patch to database:', patch.id);
+        const savedPatch = await patchStorage.savePatch(ctx.userId, patch);
+        console.log('[generatePatch] Saved patch to database with UUID:', savedPatch.id);
         
+        // Return the saved patch with database UUID, not the original agent patch
         return {
           success: true,
-          data: patch,
+          data: {
+            id: savedPatch.id, // Use database UUID
+            request: savedPatch.request,
+            summary: savedPatch.summary,
+            description: savedPatch.description || '',
+            files: savedPatch.files,
+            testingSteps: savedPatch.testingSteps || [],
+            risks: savedPatch.risks || [],
+            generatedAt: savedPatch.createdAt,
+            status: savedPatch.status,
+          },
         };
       } catch (error) {
         throw new TRPCError({
