@@ -120,7 +120,7 @@ export default function AIAdminPage() {
           </div>
           
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/dashboard/agents')}
             className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all hover:scale-105 shadow-lg hover:shadow-purple-500/50"
           >
             Return to Dashboard
@@ -311,7 +311,7 @@ export default function AIAdminPage() {
               </div>
             </div>
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push('/dashboard/agents')}
               className="px-4 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg text-white font-medium transition-colors flex items-center gap-2"
             >
               <RotateCcw className="w-4 h-4" />
