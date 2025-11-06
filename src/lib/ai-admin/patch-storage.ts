@@ -133,7 +133,7 @@ export class PatchStorageService {
    */
   private convertToPatchRecord(patch: AIPatch): PatchRecord {
     return {
-      id: patch.id,
+      id: String(patch.id), // Convert UUID to string
       request: patch.request,
       summary: patch.summary,
       description: patch.description || '',
