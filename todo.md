@@ -248,3 +248,98 @@
 - [ ] Test Stripe webhooks
 - [ ] Test feature gating
 
+
+
+## Comprehensive Implementation Plan (Options A → B → C)
+
+### OPTION A: Complete UI/UX Overhaul
+
+#### A.1: Workflow Visual Builder
+- [ ] Install React Flow library (reactflow)
+- [ ] Create WorkflowCanvas component with drag-and-drop
+- [ ] Add node types (agent, condition, loop, parallel)
+- [ ] Implement edge connections with validation
+- [ ] Add zoom/pan controls and minimap
+- [ ] Create node configuration panels
+- [ ] Add workflow save/load functionality
+- [ ] Integrate with backend workflow API
+
+#### A.2: Backend Mutations for Bulk Operations
+- [ ] Create bulk delete agents mutation
+- [ ] Create bulk pause agents mutation
+- [ ] Create bulk activate agents mutation
+- [ ] Add transaction support for bulk operations
+- [ ] Add error handling and rollback
+- [ ] Update frontend to use new mutations
+
+#### A.3: Real Data Endpoints for Analytics
+- [ ] Create execution trends endpoint (daily/weekly/monthly)
+- [ ] Create success rate analytics endpoint
+- [ ] Create token usage analytics endpoint
+- [ ] Create cost analytics endpoint
+- [ ] Add time-range filtering
+- [ ] Update Analytics page to use real data
+
+### OPTION B: Core Functionality
+
+#### B.1: Complete Workflows CRUD
+- [ ] Create workflow schema in database
+- [ ] Implement create workflow mutation
+- [ ] Implement update workflow mutation
+- [ ] Implement delete workflow mutation
+- [ ] Implement list workflows query
+- [ ] Implement get workflow by ID query
+- [ ] Add workflow execution endpoint
+- [ ] Create workflow detail page
+- [ ] Add workflow testing/debugging tools
+
+#### B.2: Finish Settings Page
+- [ ] General Settings: Profile editing (name, email, avatar)
+- [ ] General Settings: Organization management
+- [ ] API Keys: Generate/revoke API keys
+- [ ] API Keys: Display usage statistics
+- [ ] Billing: View current plan and usage
+- [ ] Billing: Manage payment methods
+- [ ] Team: Invite team members
+- [ ] Team: Manage roles and permissions
+- [ ] Notifications: Email preferences
+- [ ] Notifications: Webhook configuration
+
+#### B.3: Knowledge Page Database Setup
+- [ ] Run migrations to create documents table
+- [ ] Run migrations to create document_chunks table
+- [ ] Verify Pinecone index exists
+- [ ] Test document upload flow
+- [ ] Test semantic search
+- [ ] Add document organization (folders/tags)
+
+### OPTION C: Business Features
+
+#### C.1: Trial Expiration & Feature Gating
+- [ ] Add trial_ends_at to users table
+- [ ] Create subscription middleware
+- [ ] Implement feature limit checks (agents, workflows, storage)
+- [ ] Add usage tracking system
+- [ ] Create upgrade prompts in UI
+- [ ] Add trial countdown display
+- [ ] Implement auto-downgrade on trial expiration
+- [ ] Add email notifications for trial expiration
+
+#### C.2: Billing Management & Subscription UI
+- [ ] Create billing management page
+- [ ] Add payment method management
+- [ ] Implement invoice history
+- [ ] Add usage displays per feature
+- [ ] Create upgrade/downgrade flows
+- [ ] Add cancellation flow
+- [ ] Implement proration logic
+- [ ] Add subscription status banners
+
+### Testing & Deployment
+- [ ] Test all new features locally
+- [ ] Run E2E tests for critical flows
+- [ ] Deploy to staging environment
+- [ ] Perform smoke tests on staging
+- [ ] Deploy to production
+- [ ] Monitor for errors
+- [ ] Update documentation

@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
+import WorkflowCanvas from '@/components/WorkflowCanvas';
+import { LayoutGrid, List } from 'lucide-react';
 
 interface WorkflowStep {
   id: string;
@@ -19,6 +21,8 @@ export default function WorkflowsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
+  const [viewMode, setViewMode] = useState<'list' | 'visual'>('list');
+  const [showVisualBuilder, setShowVisualBuilder] = useState(false);
 
   // Fetch workflows from database
   const { data: workflows, isLoading, refetch } = trpc.workflows.list.useQuery();
@@ -129,7 +133,33 @@ export default function WorkflowsPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-white">Workflows</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold text-white">Workflows</h1>
+          <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1.5 rounded flex items-center gap-2 transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <List className="w-4 h-4" />
+              List
+            </button>
+            <button
+              onClick={() => setViewMode('visual')}
+              className={`px-3 py-1.5 rounded flex items-center gap-2 transition-colors ${
+                viewMode === 'visual'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+              Visual
+            </button>
+          </div>
+        </div>
         <button
           onClick={() => setShowCreateModal(true)}
           className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
@@ -138,6 +168,21 @@ export default function WorkflowsPage() {
         </button>
       </div>
 
+      {viewMode === 'visual' ? (
+        <div className="h-[calc(100vh-12rem)] bg-gray-800 rounded-lg overflow-hidden">
+          <WorkflowCanvas
+            workflowId={selectedWorkflowId || undefined}
+            onSave={(nodes, edges) => {
+              console.log('Saving workflow:', { nodes, edges });
+              // TODO: Convert nodes/edges to workflow steps and save
+            }}
+            onExecute={() => {
+              console.log('Executing workflow');
+              // TODO: Execute the workflow
+            }}
+          />
+        </div>
+      ) : (
       <div className="grid md:grid-cols-2 gap-6">
         {/* Workflow Builder */}
         <div className="bg-gray-800 p-6 rounded-lg shadow">
@@ -396,6 +441,7 @@ export default function WorkflowsPage() {
             </div>
           </div>
         </div>
+      )}
       )}
 
       {/* Workflow Detail Modal */}
