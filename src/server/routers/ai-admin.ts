@@ -95,13 +95,21 @@ export const aiAdminRouter = router({
     )
     .mutation(async ({ input }) => {
       try {
+        console.log('[applyPatch] Requested patch ID:', input.patchId);
         const agent = getAIAdminAgent();
+        
+        // Debug: Log all available patches
+        const allPatches = agent.getPatchHistory();
+        console.log('[applyPatch] Total patches in history:', allPatches.length);
+        console.log('[applyPatch] Available patch IDs:', allPatches.map(p => p.id));
+        
         const patch = agent.getPatch(input.patchId);
+        console.log('[applyPatch] Found patch:', patch ? 'YES' : 'NO');
 
         if (!patch) {
           throw new TRPCError({
             code: 'NOT_FOUND',
-            message: 'Patch not found',
+            message: `Patch not found. Requested: ${input.patchId}. Available: ${allPatches.map(p => p.id).join(', ') || 'none'}`,
           });
         }
 
