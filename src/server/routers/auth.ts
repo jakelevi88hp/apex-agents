@@ -138,5 +138,76 @@ export const authRouter = router({
         subscriptionTier: user.subscriptionTier,
       };
     }),
+
+  requestPasswordReset: publicProcedure
+    .input(z.object({
+      email: z.string().email(),
+    }))
+    .mutation(async ({ input }) => {
+      const user = await db.query.users.findFirst({
+        where: eq(users.email, input.email),
+      });
+
+      // Always return success to prevent email enumeration
+      if (!user) {
+        return { success: true, message: 'If an account exists, a reset link has been sent.' };
+      }
+
+      // Generate reset token (valid for 1 hour)
+      const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      // Store reset token in database
+      await db.update(users)
+        .set({
+          resetToken,
+          resetTokenExpiry,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, user.id));
+
+      // TODO: Send email with reset link
+      // For now, just log it (in production, use a real email service)
+      console.log(`Password reset requested for ${input.email}`);
+      console.log(`Reset token: ${resetToken}`);
+      console.log(`Reset link: ${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`);
+
+      return { success: true, message: 'If an account exists, a reset link has been sent.' };
+    }),
+
+  resetPassword: publicProcedure
+    .input(z.object({
+      token: z.string(),
+      newPassword: z.string().min(8),
+    }))
+    .mutation(async ({ input }) => {
+      const user = await db.query.users.findFirst({
+        where: eq(users.resetToken, input.token),
+      });
+
+      if (!user || !user.resetTokenExpiry) {
+        throw new Error('Invalid or expired reset token');
+      }
+
+      // Check if token is expired
+      if (new Date() > user.resetTokenExpiry) {
+        throw new Error('Reset token has expired');
+      }
+
+      // Hash new password
+      const passwordHash = await bcrypt.hash(input.newPassword, 10);
+
+      // Update password and clear reset token
+      await db.update(users)
+        .set({
+          passwordHash,
+          resetToken: null,
+          resetTokenExpiry: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, user.id));
+
+      return { success: true, message: 'Password has been reset successfully' };
+    }),
 });
 

@@ -22,6 +22,9 @@ export const users = pgTable('users', {
   stripeCustomerId: varchar('stripe_customer_id', { length: 255 }),
   apiKey: varchar('api_key', { length: 255 }),
   preferences: jsonb('preferences'),
+  resetToken: varchar('reset_token', { length: 255 }),
+  resetTokenExpiry: timestamp('reset_token_expiry'),
+  updatedAt: timestamp('updated_at').defaultNow(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   lastLogin: timestamp('last_login'),
 }, (table) => ({
