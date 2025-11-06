@@ -399,3 +399,25 @@
 - [x] Team management (list, invite, update role, remove)
 - [x] Frontend integrated with all endpoints
 - [x] Form handling and validation
+
+
+### B.3: Knowledge Page Database Migrations ✅
+- [x] Added documents table to schema (id, user_id, name, mime_type, size, source, status, summary, tags, folder, metadata, embedding_status, chunk_count)
+- [x] Added document_chunks table for vector embeddings (id, document_id, chunk_index, text, embedding, metadata)
+- [x] Created database indexes for performance (user_id, status, folder, document_id, chunk_index)
+- [x] Executed migration on apex-agents-production database using Neon MCP
+- [x] Knowledge page now has full database support for document uploads and search
+
+---
+
+## ✅ OPTIONS A & B COMPLETE!
+
+All UI/UX improvements and core functionality are now implemented:
+- Workflow Visual Builder with React Flow
+- Bulk Operations (backend + frontend)
+- Analytics with real data endpoints
+- Workflows CRUD operations
+- Settings page (general, API keys, model config, billing, team)
+- Knowledge page database tables
+
+Moving to Option C: Business Features...
