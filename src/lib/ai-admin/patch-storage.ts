@@ -15,24 +15,43 @@ export class PatchStorageService {
    * Save a patch to the database
    */
   async savePatch(userId: string, patch: PatchRecord): Promise<AIPatch> {
-    const insertData: InsertAIPatch = {
-      // Don't set id - let database generate UUID
-      userId: userId as any,
-      request: patch.request,
-      summary: patch.summary,
-      description: patch.description,
-      files: patch.files as any,
-      testingSteps: patch.testingSteps as any,
-      risks: patch.risks as any,
-      status: 'pending',
-      metadata: {
-        generatedAt: patch.generatedAt.toISOString(),
-        originalId: patch.id, // Store original agent ID in metadata
-      },
-    };
+    try {
+      console.log('[PatchStorage] Attempting to save patch for user:', userId);
+      console.log('[PatchStorage] Patch data:', JSON.stringify(patch, null, 2));
+      
+      const insertData: InsertAIPatch = {
+        // Don't set id - let database generate UUID
+        userId: userId as any,
+        request: patch.request,
+        summary: patch.summary,
+        description: patch.description,
+        files: patch.files as any,
+        testingSteps: patch.testingSteps as any,
+        risks: patch.risks as any,
+        status: 'pending',
+        metadata: {
+          generatedAt: patch.generatedAt.toISOString(),
+          originalId: patch.id, // Store original agent ID in metadata
+        },
+      };
 
-    const [savedPatch] = await db.insert(aiPatches).values(insertData).returning();
-    return savedPatch;
+      console.log('[PatchStorage] Insert data:', JSON.stringify(insertData, null, 2));
+      
+      const result = await db.insert(aiPatches).values(insertData).returning();
+      console.log('[PatchStorage] Insert result:', JSON.stringify(result, null, 2));
+      
+      const [savedPatch] = result;
+      if (!savedPatch) {
+        throw new Error('Database insert returned no data');
+      }
+      
+      console.log('[PatchStorage] Successfully saved patch with ID:', savedPatch.id);
+      return savedPatch;
+    } catch (error) {
+      console.error('[PatchStorage] Error saving patch:', error);
+      console.error('[PatchStorage] Error stack:', error instanceof Error ? error.stack : 'No stack');
+      throw error;
+    }
   }
 
   /**
