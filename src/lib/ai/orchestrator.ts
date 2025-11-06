@@ -124,9 +124,12 @@ export class AIOrchestrator {
     const parser = StructuredOutputParser.fromZodSchema(schema);
     const formatInstructions = parser.getFormatInstructions();
 
+    // Extract all variables from the prompt template (e.g., {objective}, {context})
+    const templateVars = prompt.match(/\{([^}]+)\}/g)?.map(v => v.slice(1, -1)) || [];
+    
     const promptTemplate = new PromptTemplate({
       template: `${prompt}\n\n{format_instructions}`,
-      inputVariables: Object.keys(variables || {}),
+      inputVariables: templateVars,
       partialVariables: { format_instructions: formatInstructions },
     });
 
