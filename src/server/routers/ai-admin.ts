@@ -7,6 +7,7 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import { getAIAdminAgent } from '@/lib/ai-admin/agent';
+import { patchStorage } from '@/lib/ai-admin/patch-storage';
 import { TRPCError } from '@trpc/server';
 
 // Admin authentication middleware
@@ -68,10 +69,15 @@ export const aiAdminRouter = router({
         request: z.string().min(1, 'Request cannot be empty'),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
         const agent = getAIAdminAgent();
         const patch = await agent.generatePatch(input.request);
+        
+        // Save patch to database for persistence across serverless instances
+        await patchStorage.savePatch(ctx.userId, patch);
+        console.log('[generatePatch] Saved patch to database:', patch.id);
+        
         return {
           success: true,
           data: patch,
@@ -96,30 +102,45 @@ export const aiAdminRouter = router({
     .mutation(async ({ input }) => {
       try {
         console.log('[applyPatch] Requested patch ID:', input.patchId);
-        const agent = getAIAdminAgent();
         
-        // Debug: Log all available patches
-        const allPatches = agent.getPatchHistory();
-        console.log('[applyPatch] Total patches in history:', allPatches.length);
-        console.log('[applyPatch] Available patch IDs:', allPatches.map(p => p.id));
-        
-        const patch = agent.getPatch(input.patchId);
-        console.log('[applyPatch] Found patch:', patch ? 'YES' : 'NO');
+        // Get patch from database instead of in-memory storage
+        const patch = await patchStorage.getPatch(input.patchId);
+        console.log('[applyPatch] Found patch in database:', patch ? 'YES' : 'NO');
 
         if (!patch) {
           throw new TRPCError({
             code: 'NOT_FOUND',
-            message: `Patch not found. Requested: ${input.patchId}. Available: ${allPatches.map(p => p.id).join(', ') || 'none'}`,
+            message: `Patch not found in database: ${input.patchId}`,
           });
         }
 
+        const agent = getAIAdminAgent();
         const success = await agent.applyPatch(patch);
+        
+        // Update patch status in database
+        await patchStorage.updatePatchStatus(
+          input.patchId,
+          success ? 'applied' : 'failed',
+          success ? undefined : 'Application failed'
+        );
+        console.log('[applyPatch] Updated patch status:', success ? 'applied' : 'failed');
 
         return {
           success,
           data: patch,
         };
       } catch (error) {
+        // Mark patch as failed in database
+        try {
+          await patchStorage.updatePatchStatus(
+            input.patchId,
+            'failed',
+            String(error)
+          );
+        } catch (dbError) {
+          console.error('[applyPatch] Failed to update patch status:', dbError);
+        }
+        
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: `Patch application failed: ${error}`,

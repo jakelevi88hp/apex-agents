@@ -4,6 +4,9 @@ import { relations } from 'drizzle-orm';
 // Export subscription tables
 export * from './schema/subscriptions';
 
+// Export AI patches tables
+export * from './schema/ai-patches';
+
 // ============================================================================
 // USERS & AUTHENTICATION
 // ============================================================================
