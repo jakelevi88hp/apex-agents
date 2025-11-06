@@ -36,8 +36,14 @@ export class PatchStorageService {
       };
 
       console.log('[PatchStorage] Insert data:', JSON.stringify(insertData, null, 2));
+      console.log('[PatchStorage] About to call db.insert...');
       
       const result = await db.insert(aiPatches).values(insertData).returning();
+      
+      console.log('[PatchStorage] Insert completed!');
+      console.log('[PatchStorage] Result type:', typeof result);
+      console.log('[PatchStorage] Result is array:', Array.isArray(result));
+      console.log('[PatchStorage] Result length:', result?.length);
       console.log('[PatchStorage] Insert result:', JSON.stringify(result, null, 2));
       
       const [savedPatch] = result;
