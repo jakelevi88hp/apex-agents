@@ -205,3 +205,46 @@
   - [ ] Billing integration
   - [ ] Team management
 
+
+
+
+## Subscription System (3-Day Free Trial + Premium/Pro Tiers)
+
+### Database Schema
+- [ ] Add subscriptions table (user_id, plan, status, trial_ends_at, current_period_end, stripe_customer_id, stripe_subscription_id)
+- [ ] Add usage_tracking table (user_id, feature, count, reset_at)
+- [ ] Update users table with subscription_plan and trial_started_at fields
+
+### Backend Implementation
+- [ ] Create subscription middleware for trial validation
+- [ ] Implement feature gating system (check plan limits)
+- [ ] Add usage tracking for metered features
+- [ ] Create tRPC endpoints for subscription management
+- [ ] Implement trial expiration checks
+
+### Stripe Integration
+- [ ] Set up Stripe products and prices (Premium, Pro)
+- [ ] Create Stripe checkout session endpoint
+- [ ] Implement webhook handler for subscription events
+- [ ] Add customer portal integration
+
+### Frontend UI
+- [ ] Create pricing page with 3 tiers (Free Trial, Premium, Pro)
+- [ ] Add subscription status banner
+- [ ] Build upgrade prompts for locked features
+- [ ] Create billing management page
+- [ ] Add trial countdown display
+
+### Feature Limits
+- [ ] Define limits per tier (agents, workflows, storage, API calls)
+- [ ] Implement limit checks in all features
+- [ ] Add usage displays in UI
+- [ ] Create upgrade CTAs when limits reached
+
+### Testing
+- [ ] Test trial expiration flow
+- [ ] Test upgrade from trial to paid
+- [ ] Test downgrade scenarios
+- [ ] Test Stripe webhooks
+- [ ] Test feature gating
+

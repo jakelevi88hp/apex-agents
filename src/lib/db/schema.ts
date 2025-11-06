@@ -1,6 +1,9 @@
 import { pgTable, text, timestamp, uuid, varchar, integer, decimal, jsonb, boolean, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
+// Export subscription tables
+export * from './schema/subscriptions';
+
 // ============================================================================
 // USERS & AUTHENTICATION
 // ============================================================================
