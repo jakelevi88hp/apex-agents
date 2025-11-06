@@ -113,6 +113,16 @@ export default function AgentsPage() {
     context: {},
   });
   const [executionResult, setExecutionResult] = useState<any>(null);
+  
+  // Filter and search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'created' | 'executions'>('created');
+  
+  // Bulk operations state
+  const [selectedAgents, setSelectedAgents] = useState<Set<string>>(new Set());
+  const [bulkActionMode, setBulkActionMode] = useState(false);
 
   // Fetch user's created agents
   const { data: userAgents, isLoading: agentsLoading, refetch } = trpc.agents.list.useQuery();
@@ -177,16 +187,6 @@ export default function AgentsPage() {
   };
 
   const selectedAgentType = agentTypes.find(t => t.id === formData.type);
-
-  // Filter and search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<string>('all');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'name' | 'created' | 'executions'>('created');
-  
-  // Bulk operations state
-  const [selectedAgents, setSelectedAgents] = useState<Set<string>>(new Set());
-  const [bulkActionMode, setBulkActionMode] = useState(false);
 
   // Bulk operations handlers
   const toggleAgentSelection = (agentId: string) => {
