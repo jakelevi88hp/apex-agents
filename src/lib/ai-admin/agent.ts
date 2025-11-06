@@ -254,14 +254,18 @@ export class AIAdminAgent {
               { role: 'system', content: systemPrompt },
               {
                 role: 'user',
-                content: `Request: ${requestText}\n\nCodebase structure: ${JSON.stringify(analysis.structure, null, 2)}\n\nRelevant file contents:\n${Object.entries(relevantFiles).map(([path, content]) => `\n=== ${path} ===\n${content}`).join('\n')}${attempt > 1 ? `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}\n\nPlease ensure your response follows the exact JSON format with a 'files' array.` : ''}`,
+                content: `Request: ${requestText}\n\nCodebase structure: ${JSON.stringify(analysis.structure, null, 2)}\n\nRelevant file contents:\n${Object.entries(relevantFiles).map(([path, content]) => `\n=== ${path} ===\n${content}`).join('\n')}${attempt > 1 ? `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}\n\nPlease ensure your response follows the exact JSON format with a 'files' array.` : ''}\n\nIMPORTANT: Your response MUST be a valid JSON object with this exact structure:\n{\n  "files": [{"path": "...", "action": "...", "content": "...", "explanation": "..."}],\n  "summary": "...",\n  "testingSteps": [...],\n  "risks": [...],\n  "databaseChanges": {...}\n}`,
               },
             ],
             response_format: { type: 'json_object' },
             temperature: 0.3,
           });
 
-          patchData = JSON.parse(response.choices[0].message.content || '{}');
+          const rawContent = response.choices[0].message.content || '{}';
+          await this.log(`Raw OpenAI response (attempt ${attempt}): ${rawContent.substring(0, 500)}...`);
+          
+          patchData = JSON.parse(rawContent);
+          await this.log(`Parsed patch data keys: ${Object.keys(patchData).join(', ')}`);
           
           // Validate immediately
           const validationErrors = await this.validatePatchData(patchData, requestText);
