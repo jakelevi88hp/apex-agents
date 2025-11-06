@@ -253,26 +253,71 @@ export const settingsRouter = router({
   getBillingInfo: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.userId;
 
-    // Mock billing data for now
-    // In production, this would integrate with Stripe or another payment provider
+    // Get subscription from database
+    const { SubscriptionService } = await import('@/lib/subscription/service');
+    const { PLAN_PRICES } = await import('@/lib/subscription/config');
+    const subscription = await SubscriptionService.getUserSubscription(userId);
+    const usage = await SubscriptionService.getUsageStats(userId);
+    
+    if (!subscription) {
+      // Return trial info if no subscription
+      return {
+        plan: 'Free Trial',
+        price: 0,
+        currency: 'USD',
+        billingCycle: 'trial',
+        usage: {
+          executions: usage.find(u => u.feature === 'agent_executions')?.current || 0,
+          apiCalls: usage.find(u => u.feature === 'api_calls')?.current || 0,
+          storageGB: (usage.find(u => u.feature === 'storage')?.current || 0) / (1024 * 1024 * 1024),
+          aiModelCosts: 0,
+        },
+        paymentMethod: null,
+      };
+    }
+
+    // Get plan details
+    const planName = subscription.plan === 'premium' ? 'Premium' : subscription.plan === 'pro' ? 'Pro' : 'Free Trial';
+    const planPrice = subscription.plan === 'premium' ? PLAN_PRICES.premium.monthly : 
+                      subscription.plan === 'pro' ? PLAN_PRICES.pro.monthly : 0;
+
+    // Get Stripe payment method if available
+    let paymentMethod = null;
+    if (subscription.stripeCustomerId) {
+      try {
+        const { stripe } = await import('@/lib/stripe/stripe');
+        const customer = await stripe.customers.retrieve(subscription.stripeCustomerId);
+        if (customer && !customer.deleted && customer.invoice_settings?.default_payment_method) {
+          const pm = await stripe.paymentMethods.retrieve(
+            customer.invoice_settings.default_payment_method as string
+          );
+          if (pm.card) {
+            paymentMethod = {
+              type: 'card',
+              last4: pm.card.last4,
+              brand: pm.card.brand,
+              expiryMonth: pm.card.exp_month,
+              expiryYear: pm.card.exp_year,
+            };
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching payment method:', error);
+      }
+    }
+
     return {
-      plan: 'Pro Plan',
-      price: 97,
+      plan: planName,
+      price: planPrice,
       currency: 'USD',
       billingCycle: 'monthly',
       usage: {
-        executions: 12847,
-        apiCalls: 45231,
-        storageGB: 8.7,
-        aiModelCosts: 247.32,
+        executions: usage.find(u => u.feature === 'agent_executions')?.current || 0,
+        apiCalls: usage.find(u => u.feature === 'api_calls')?.current || 0,
+        storageGB: (usage.find(u => u.feature === 'storage')?.current || 0) / (1024 * 1024 * 1024),
+        aiModelCosts: 0, // TODO: Track AI model costs separately
       },
-      paymentMethod: {
-        type: 'card',
-        last4: '4242',
-        brand: 'visa',
-        expiryMonth: 12,
-        expiryYear: 2025,
-      },
+      paymentMethod,
     };
   }),
 

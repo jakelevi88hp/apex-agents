@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { agiCore } from '@/lib/agi/core';
 import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-limit';
 import { SubscriptionService } from '@/lib/subscription/service';
-import { verifyToken } from '@/lib/auth/jwt';
+import { extractTokenFromRequest, verifyToken } from '@/lib/auth/jwt';
 
 export async function POST(request: NextRequest) {
   // Verify authentication
-  const token = request.cookies.get('token')?.value;
+  const token = extractTokenFromRequest(request);
   if (!token) {
     return NextResponse.json(
       { error: 'Authentication required' },
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const user = await verifyToken(token);
+  const user = verifyToken(token);
   if (!user) {
     return NextResponse.json(
       { error: 'Invalid authentication' },

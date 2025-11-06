@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SubscriptionMonitor } from '@/lib/monitoring/subscription-monitor';
-import { verifyToken } from '@/lib/auth/jwt';
+import { extractTokenFromRequest, verifyToken } from '@/lib/auth/jwt';
 
 /**
  * GET /api/monitoring/metrics
@@ -11,7 +11,7 @@ import { verifyToken } from '@/lib/auth/jwt';
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication
-    const token = request.cookies.get('token')?.value;
+    const token = extractTokenFromRequest(request);
     if (!token) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = await verifyToken(token);
+    const user = verifyToken(token);
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid authentication' },
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
-    const token = request.cookies.get('token')?.value;
+    const token = extractTokenFromRequest(request);
     if (!token) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await verifyToken(token);
+    const user = verifyToken(token);
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid authentication' },
