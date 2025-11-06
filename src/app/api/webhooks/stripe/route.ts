@@ -4,13 +4,15 @@ import { db } from '@/server/db';
 import { subscriptions } from '@/lib/db/schema/subscriptions';
 import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
+import { WebhookMonitor } from '@/lib/monitoring/webhook-monitor';
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-export async function POST(req: NextRequest) {
-  const body = await req.text();
-  const signature = req.headers.get('stripe-signature');
-
+export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  const body = await request.text();
+  const signature = request.headers.get('stripe-signature');
+  
   if (!signature) {
     return NextResponse.json(
       { error: 'Missing stripe-signature header' },
@@ -21,7 +23,7 @@ export async function POST(req: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret!);
   } catch (err) {
     console.error('Webhook signature verification failed:', err);
     return NextResponse.json(
@@ -67,12 +69,28 @@ export async function POST(req: NextRequest) {
         console.log(`Unhandled event type: ${event.type}`);
     }
 
+    // Log successful webhook
+    const processingTime = Date.now() - startTime;
+    await WebhookMonitor.logEvent(
+      event.type,
+      'success',
+      processingTime
+    );
+
     return NextResponse.json({ received: true });
-  } catch (error) {
-    console.error('Error processing webhook:', error);
+    
+  } catch (error: any) {
+    console.error('Webhook error:', error);
+    const processingTime = Date.now() - startTime;
+    await WebhookMonitor.logEvent(
+      event?.type || 'unknown',
+      'failed',
+      processingTime,
+      error.message
+    );
     return NextResponse.json(
-      { error: 'Webhook processing failed' },
-      { status: 500 }
+      { error: 'Webhook handler failed' },
+      { status: 400 }
     );
   }
 }
@@ -92,13 +110,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // Determine tier based on price
   const priceId = subscription.items.data[0].price.id;
-  let tier: 'premium' | 'pro' = 'premium';
+  let plan: 'premium' | 'pro' = 'premium';
   
   // You'll need to match price IDs to tiers
   // This is a simplified version
   const amount = subscription.items.data[0].price.unit_amount || 0;
   if (amount >= 9900) {
-    tier = 'pro';
+    plan = 'pro';
   }
 
   // Update or create subscription in database
@@ -112,10 +130,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     await db
       .update(subscriptions)
       .set({
-        tier,
+        plan,
         status: 'active',
         stripeSubscriptionId: subscriptionId,
         stripeCustomerId: customerId,
+        stripePriceId: priceId,
         currentPeriodStart: new Date(subscription.current_period_start * 1000),
         currentPeriodEnd: new Date(subscription.current_period_end * 1000),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
@@ -125,17 +144,18 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   } else {
     await db.insert(subscriptions).values({
       userId,
-      tier,
+      plan,
       status: 'active',
       stripeSubscriptionId: subscriptionId,
       stripeCustomerId: customerId,
+      stripePriceId: priceId,
       currentPeriodStart: new Date(subscription.current_period_start * 1000),
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
     });
   }
 
-  console.log(`Subscription created for user ${userId}: ${tier}`);
+  console.log(`Subscription created for user ${userId}: ${plan}`);
 }
 
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
@@ -148,9 +168,9 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
 
   // Determine tier
   const amount = subscription.items.data[0].price.unit_amount || 0;
-  let tier: 'premium' | 'pro' = 'premium';
+  let plan: 'premium' | 'pro' = 'premium';
   if (amount >= 9900) {
-    tier = 'pro';
+    plan = 'pro';
   }
 
   const status = subscription.status === 'active' ? 'active' : 
@@ -160,7 +180,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   await db
     .update(subscriptions)
     .set({
-      tier,
+      plan,
       status,
       currentPeriodStart: new Date(subscription.current_period_start * 1000),
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
@@ -169,7 +189,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     })
     .where(eq(subscriptions.userId, userId));
 
-  console.log(`Subscription updated for user ${userId}: ${tier} (${status})`);
+  console.log(`Subscription updated for user ${userId}: ${plan} (${status})`);
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
