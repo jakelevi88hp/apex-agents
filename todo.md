@@ -437,3 +437,44 @@ Moving to Option C: Business Features...
 - [x] Run database migrations to create documents and document_chunks tables (required for Knowledge page uploads)
 - [x] Update documents schema to match actual database columns
 - [x] Fix upload API to use correct column names (status instead of processingStatus)
+
+
+## Subscription System Implementation (In Progress)
+
+### Database Schema
+- [x] Create subscriptions table (user_id, plan, status, stripe_customer_id, stripe_subscription_id, current_period_end, trial_ends_at)
+- [x] Create usage_tracking table (user_id, feature, count, period_start, period_end)
+- [x] Create indexes for performance
+- [x] Create schema file with PLAN_LIMITS constants
+
+### Stripe Integration
+- [x] Set up Stripe products and prices (Free Trial, Premium $29, Pro $99)
+- [x] Create checkout session endpoint
+- [x] Implement webhook handler for subscription events
+- [x] Add customer portal integration
+- [ ] Test webhook locally with Stripe CLI (requires STRIPE_WEBHOOK_SECRET)
+- [x] Automatic product creation with ensureStripeProducts()
+
+### Feature Gating & Middleware
+- [x] Create subscription middleware for plan validation
+- [x] Implement feature limit checks (agents, workflows, storage, API calls)
+- [x] Add usage tracking functions
+- [x] Create tRPC endpoints for subscription management
+- [x] Implement trial expiration checks
+- [x] requireFeature, checkUsageLimit, requireActiveTrial, requireTier middlewares
+
+### Frontend UI
+- [x] Create pricing page with 3 tiers (Trial, Premium $29, Pro $99)
+- [x] Add subscription status display
+- [x] Build billing management page in Settings
+- [x] Add usage displays per feature
+- [ ] Add subscription status banner to dashboard
+- [ ] Build upgrade prompts for locked features
+- [ ] Add trial countdown display
+
+### Testing
+- [ ] Test trial expiration flow
+- [ ] Test upgrade from trial to paid
+- [ ] Test downgrade scenarios
+- [ ] Test webhook processing
+- [ ] Verify feature gating works correctly
