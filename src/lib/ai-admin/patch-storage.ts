@@ -16,7 +16,7 @@ export class PatchStorageService {
    */
   async savePatch(userId: string, patch: PatchRecord): Promise<AIPatch> {
     const insertData: InsertAIPatch = {
-      id: patch.id as any, // Use the patch ID from the agent
+      // Don't set id - let database generate UUID
       userId: userId as any,
       request: patch.request,
       summary: patch.summary,
@@ -27,6 +27,7 @@ export class PatchStorageService {
       status: 'pending',
       metadata: {
         generatedAt: patch.generatedAt.toISOString(),
+        originalId: patch.id, // Store original agent ID in metadata
       },
     };
 
