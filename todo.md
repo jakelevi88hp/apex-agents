@@ -500,3 +500,11 @@ Moving to Option C: Business Features...
 - [x] Add patch history view with apply/rollback buttons
 - [x] Add admin-only access check (handled by backend adminProcedure)
 - [ ] Test all AI Admin endpoints (analyzeCodebase, generatePatch, applyPatch, rollbackPatch, getPatchHistory)
+
+
+## CRITICAL FIXES (Must Work Before Summary)
+- [ ] Fix AGI authentication - token not being sent properly from localStorage
+- [ ] Test AGI chat end-to-end with real message in production
+- [ ] Fix AI Admin patch generation - must return correct format with files array
+- [ ] Test AI Admin patch generation end-to-end in production
+- [ ] Verify both features work correctly before final summary

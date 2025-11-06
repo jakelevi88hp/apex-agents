@@ -7,25 +7,40 @@ import { extractTokenFromRequest, verifyToken } from '@/lib/auth/jwt';
 export async function POST(request: NextRequest) {
   // Verify authentication
   const token = extractTokenFromRequest(request);
+  
+  console.log('[AGI API] Token extraction:', {
+    hasToken: !!token,
+    tokenLength: token?.length,
+    authHeader: request.headers.get('authorization')?.substring(0, 20) + '...',
+  });
+  
   if (!token) {
+    console.error('[AGI API] No token found in request');
     return NextResponse.json(
-      { error: 'Authentication required' },
+      { error: 'Authentication required. Please log in again.' },
       { status: 401 }
     );
   }
 
   const user = verifyToken(token);
+  
+  console.log('[AGI API] Token verification:', {
+    isValid: !!user,
+    userId: user?.userId,
+  });
+  
   if (!user) {
+    console.error('[AGI API] Token verification failed');
     return NextResponse.json(
-      { error: 'Invalid authentication' },
+      { error: 'Invalid or expired authentication token. Please log in again.' },
       { status: 401 }
     );
   }
 
   // Check subscription limits for AGI messages
-  const canUse = await SubscriptionService.canUseFeature(user.id, 'agi_messages');
+  const canUse = await SubscriptionService.canUseFeature(user.userId, 'agi_messages');
   if (!canUse) {
-    const usage = await SubscriptionService.getUsageStats(user.id);
+    const usage = await SubscriptionService.getUsageStats(user.userId);
     const agiUsage = usage.find(u => u.feature === 'agi_messages');
     
     return NextResponse.json(
@@ -58,7 +73,7 @@ export async function POST(request: NextRequest) {
     const response = await agiCore.processInput(input);
     
     // Track AGI message usage
-    await SubscriptionService.trackUsage(user.id, 'agi_messages', 1);
+    await SubscriptionService.trackUsage(user.userId, 'agi_messages', 1);
     
     const jsonResponse = NextResponse.json(response);
     return addRateLimitHeaders(jsonResponse, rateLimitResult, RateLimitPresets.AGI.limit);
