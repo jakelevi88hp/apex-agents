@@ -5,6 +5,7 @@ import { users } from '@/lib/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { signToken } from '@/lib/auth/jwt';
+import { sendPasswordResetEmail, sendWelcomeEmail } from '@/lib/email/resend';
 
 export const authRouter = router({
   signup: publicProcedure
@@ -43,6 +44,11 @@ export const authRouter = router({
         trialStartDate: new Date(),
         trialEndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
       }).returning();
+
+      // Send welcome email (non-blocking)
+      sendWelcomeEmail(newUser.email, newUser.name || 'there').catch(err => {
+        console.error('Failed to send welcome email:', err);
+      });
 
       // Generate JWT token
       const token = signToken({
@@ -166,11 +172,15 @@ export const authRouter = router({
         })
         .where(eq(users.id, user.id));
 
-      // TODO: Send email with reset link
-      // For now, just log it (in production, use a real email service)
-      console.log(`Password reset requested for ${input.email}`);
-      console.log(`Reset token: ${resetToken}`);
-      console.log(`Reset link: ${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`);
+      // Send password reset email
+      const emailResult = await sendPasswordResetEmail(input.email, resetToken);
+      
+      if (!emailResult.success) {
+        console.error('Failed to send password reset email:', emailResult.error);
+        // Still return success to prevent email enumeration
+      } else {
+        console.log('Password reset email sent successfully:', emailResult.id);
+      }
 
       return { success: true, message: 'If an account exists, a reset link has been sent.' };
     }),
