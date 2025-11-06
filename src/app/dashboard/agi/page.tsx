@@ -57,10 +57,14 @@ export default function AGIPage() {
     setIsLoading(true);
 
     try {
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      
       const response = await fetch("/api/agi/process", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token && { "Authorization": `Bearer ${token}` }),
         },
         body: JSON.stringify({ input: input.trim() }),
       });

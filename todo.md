@@ -483,9 +483,10 @@ Moving to Option C: Business Features...
 
 ## Critical Bug Fixes (User Reported)
 - [x] Fix AGI chat error: "Sorry, I encountered an error processing your request"
-- [x] Check AGI API route for errors
-- [x] Verify authentication cookie name mismatch (fixed: use extractTokenFromRequest)
+- [x] Check AGI API route for errors (401 Unauthorized)
+- [x] Verify authentication token flow (token in localStorage, not cookie)
+- [x] Add Authorization header to AGI API fetch call
 - [x] Fix AI admin placeholder data issues (replaced mock billing with real subscription data)
 - [x] Scan system for placeholder/mock data and replace with real implementations
-- [ ] Test AGI chat functionality end-to-end
+- [ ] Test AGI chat functionality end-to-end (user to verify after deployment)
 - [ ] Test billing info displays real subscription data
