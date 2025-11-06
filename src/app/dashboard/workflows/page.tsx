@@ -303,6 +303,7 @@ export default function WorkflowsPage() {
           )}
         </div>
       </div>
+      )}
 
       {/* Workflow Templates */}
       <div className="mt-8 bg-gray-800 p-6 rounded-lg shadow">
@@ -441,7 +442,6 @@ export default function WorkflowsPage() {
             </div>
           </div>
         </div>
-      )}
       )}
 
       {/* Workflow Detail Modal */}
