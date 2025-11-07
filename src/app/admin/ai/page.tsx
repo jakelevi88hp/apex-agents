@@ -500,8 +500,8 @@ export default function AIAdminPage() {
         </div>
 
         <div className="space-y-3">
-          {patchHistory && patchHistory.length > 0 ? (
-            patchHistory.map((patch: any) => (
+          {patchHistory?.data && patchHistory.data.length > 0 ? (
+            patchHistory.data.map((patch: any) => (
               <div
                 key={patch.id}
                 className="bg-gray-900 border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition"
