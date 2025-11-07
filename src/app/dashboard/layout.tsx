@@ -1,20 +1,22 @@
-'use client';
+import React from 'react';
+import { Sidebar } from '../../components/ui/Sidebar';
 
-import Sidebar from '@/components/Sidebar';
-import { useTheme } from '@/contexts/ThemeContext';
-
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { isDarkMode } = useTheme();
-
+/**
+ * Dashboard Layout Component
+ * 
+ * This component is responsible for rendering the layout of the dashboard.
+ * It includes a sidebar for navigation and a main content area where different
+ * dashboard pages are displayed.
+ */
+const DashboardLayout: React.FC = ({ children }) => {
   return (
-    <div className={`flex min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      {/* Sidebar */}
+    <div className="flex">
       <Sidebar />
-
-      {/* Main Content */}
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1">
         {children}
       </main>
     </div>
   );
-}
+};
+
+export default DashboardLayout;
