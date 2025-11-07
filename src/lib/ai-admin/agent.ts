@@ -18,6 +18,7 @@ import { promisify } from 'util';
 import { createGitHubIntegration, GitHubIntegration } from './github';
 import { GitHubService, CommitFileChange } from './github-service';
 import { getSystemPrompt } from './system-prompt';
+import { patchStorage } from './patch-storage';
 import { ContextBuilder } from './context-builder';
 
 const execAsync = promisify(exec);
