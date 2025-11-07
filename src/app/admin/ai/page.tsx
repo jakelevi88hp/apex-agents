@@ -23,7 +23,7 @@ export default function AIAdminPage() {
     {
       id: 'welcome',
       role: 'system',
-      content: 'AI Admin Agent initialized. \n\n💬 **Chat Mode** (default): Ask questions, get explanations, discuss ideas - no code changes.\n🔧 **Patch Mode**: Generate and apply code changes to the codebase.\n\nTry asking: "What components are available?", "How does authentication work?", or "Explain the database schema".',
+      content: 'AI Admin Agent initialized. I can help you upgrade and modify the codebase using natural language commands. Try commands like "add dark mode toggle", "optimize database queries", or "refactor API routes".',
       timestamp: new Date(),
     },
   ]);
@@ -32,7 +32,6 @@ export default function AIAdminPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [selectedPatchId, setSelectedPatchId] = useState<string | null>(null);
   const [showPatchDetails, setShowPatchDetails] = useState(false);
-  const [mode, setMode] = useState<'chat' | 'patch'>('chat'); // Default to chat mode
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Check authentication
@@ -46,14 +45,6 @@ export default function AIAdminPage() {
   }, [router]);
 
   // tRPC mutations with error handling
-  const chatMutation = trpc.aiAdmin.chat.useMutation({
-    onError: (error: any) => {
-      if (error.data?.code === 'FORBIDDEN') {
-        setAuthError(error.message);
-      }
-    },
-  });
-  
   const generatePatchMutation = trpc.aiAdmin.generatePatch.useMutation({
     onError: (error: any) => {
       if (error.data?.code === 'FORBIDDEN') {
@@ -150,40 +141,12 @@ export default function AIAdminPage() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    const currentInput = input;
     setInput('');
     setIsProcessing(true);
 
     try {
-      // Chat mode - just get a response
-      if (mode === 'chat') {
-        const conversationHistory = messages
-          .filter(m => m.role !== 'system')
-          .map(m => ({
-            role: m.role as 'user' | 'assistant',
-            content: m.content,
-          }));
-
-        const result = await chatMutation.mutateAsync({
-          message: currentInput,
-          conversationHistory,
-        });
-
-        if (result.success && result.message) {
-          const assistantMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            role: 'assistant',
-            content: result.message,
-            timestamp: new Date(),
-          };
-          setMessages((prev) => [...prev, assistantMessage]);
-        }
-        return;
-      }
-
-      // Patch mode - generate and apply patches
       const result = await generatePatchMutation.mutateAsync({ 
-        request: currentInput
+        request: input  // Changed from command to request
       });
 
       if (result.success && result.data) {
@@ -345,41 +308,15 @@ export default function AIAdminPage() {
                 <p className="text-gray-400 text-sm">Self-upgrading system powered by GPT-4</p>
               </div>
             </div>
-            
-            <div className="flex items-center gap-4">
-              {/* Mode Toggle */}
-              <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
-                <button
-                  onClick={() => setMode('chat')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                    mode === 'chat'
-                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  💬 Chat Mode
-                </button>
-                <button
-                  onClick={() => setMode('patch')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                    mode === 'patch'
-                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  🔧 Patch Mode
-                </button>
-              </div>
-              
-              <button
-                onClick={() => router.push('/dashboard/agents')}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition flex items-center gap-2"
-              >
-                <RotateCcw className="w-4 h-4" />
-                Back to Dashboard
-              </button>
-            </div>
+            <button
+              onClick={() => router.push('/dashboard/agents')}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg text-white font-medium transition-colors flex items-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Back to Dashboard
+            </button>
           </div>
+        </div>
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -601,8 +538,6 @@ export default function AIAdminPage() {
           </div>
         </div>
       )}
-    </div>
-    </div>
     </div>
   );
 }
