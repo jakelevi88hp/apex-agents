@@ -344,39 +344,42 @@ export default function AIAdminPage() {
                 <h1 className="text-2xl font-bold text-white">AI Admin Agent</h1>
                 <p className="text-gray-400 text-sm">Self-upgrading system powered by GPT-4</p>
               </div>
-            <div className="flex items-center gap-4">
-            {/* Mode Toggle */}
-            <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
-              <button
-                onClick={() => setMode('chat')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                  mode === 'chat'
-                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                💬 Chat Mode
-              </button>
-              <button
-                onClick={() => setMode('patch')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                  mode === 'patch'
-                    ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                🔧 Patch Mode
-              </button>
             </div>
             
-            <button
-              onClick={() => router.push('/dashboard/agents')}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition flex items-center gap-2"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Back to Dashboard
-            </button>
-          </div>       </div>
+            <div className="flex items-center gap-4">
+              {/* Mode Toggle */}
+              <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
+                <button
+                  onClick={() => setMode('chat')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+                    mode === 'chat'
+                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  💬 Chat Mode
+                </button>
+                <button
+                  onClick={() => setMode('patch')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+                    mode === 'patch'
+                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  🔧 Patch Mode
+                </button>
+              </div>
+              
+              <button
+                onClick={() => router.push('/dashboard/agents')}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm font-medium transition flex items-center gap-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
