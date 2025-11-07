@@ -89,7 +89,7 @@ export class ContextBuilder {
     const keywords: string[] = [];
     const lower = request.toLowerCase();
 
-    // File/feature keywords
+     // Feature keywords
     if (lower.includes('dashboard')) keywords.push('dashboard');
     if (lower.includes('admin')) keywords.push('admin');
     if (lower.includes('agi')) keywords.push('agi');
@@ -101,13 +101,29 @@ export class ContextBuilder {
     if (lower.includes('layout')) keywords.push('layout');
     if (lower.includes('component')) keywords.push('component');
     if (lower.includes('api')) keywords.push('api');
-    if (lower.includes('database')) keywords.push('database');
+    if (lower.includes('database') || lower.includes('schema')) keywords.push('database');
     if (lower.includes('auth')) keywords.push('auth');
+    
+    // Configuration and dependencies
+    if (lower.includes('package') || lower.includes('dependencies') || lower.includes('dependency')) keywords.push('dependencies');
+    if (lower.includes('config') || lower.includes('configuration')) keywords.push('config');
+    if (lower.includes('env') || lower.includes('environment')) keywords.push('environment');
+    if (lower.includes('typescript') || lower.includes('tsconfig')) keywords.push('typescript');
+    if (lower.includes('tailwind') || lower.includes('css')) keywords.push('styling');
+    
+    // Documentation and project structure
+    if (lower.includes('readme') || lower.includes('documentation') || lower.includes('docs')) keywords.push('documentation');
+    if (lower.includes('structure') || lower.includes('architecture') || lower.includes('overview')) keywords.push('structure');
+    
+    // Specific features
+    if (lower.includes('trpc') || lower.includes('router')) keywords.push('trpc');
+    if (lower.includes('drizzle') || lower.includes('orm')) keywords.push('orm');
+    if (lower.includes('upgrade') || lower.includes('outdated') || lower.includes('update')) keywords.push('upgrades');
 
     // Action keywords
     if (lower.includes('create') || lower.includes('add')) keywords.push('create');
     if (lower.includes('modify') || lower.includes('update') || lower.includes('change')) keywords.push('modify');
-    if (lower.includes('delete') || lower.includes('remove')) keywords.push('delete');
+    if (lower.includes('delete') || lower.includes('remove')) keywords.push('delete');e');
 
     return keywords;
   }
@@ -162,6 +178,43 @@ export class ContextBuilder {
         case 'auth':
           files.push('src/server/routers/auth.ts');
           files.push('src/lib/auth.ts');
+          break;
+        case 'dependencies':
+          files.push('package.json');
+          break;
+        case 'config':
+          files.push('next.config.js');
+          files.push('tailwind.config.ts');
+          files.push('tsconfig.json');
+          break;
+        case 'environment':
+          files.push('.env.example');
+          break;
+        case 'typescript':
+          files.push('tsconfig.json');
+          break;
+        case 'styling':
+          files.push('tailwind.config.ts');
+          files.push('src/app/globals.css');
+          break;
+        case 'documentation':
+          files.push('README.md');
+          break;
+        case 'structure':
+          files.push('README.md');
+          files.push('package.json');
+          break;
+        case 'trpc':
+          files.push('src/server/routers/_app.ts');
+          files.push('src/lib/trpc.ts');
+          break;
+        case 'orm':
+          files.push('src/lib/db/schema.ts');
+          files.push('drizzle.config.ts');
+          break;
+        case 'upgrades':
+          files.push('package.json');
+          files.push('README.md');
           break;
       }
     }
