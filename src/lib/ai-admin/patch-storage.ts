@@ -46,11 +46,23 @@ export class PatchStorageService {
       console.log('[PatchStorage] Result length:', result?.length);
       console.log('[PatchStorage] Insert result:', JSON.stringify(result, null, 2));
       
-      const [savedPatch] = result;
-      if (!savedPatch) {
+      const [insertedRow] = result;
+      if (!insertedRow || !insertedRow.id) {
         throw new Error('Database insert returned no data');
       }
       
+      console.log('[PatchStorage] Insert returned ID:', insertedRow.id);
+      console.log('[PatchStorage] Insert returned createdAt:', insertedRow.createdAt, 'Type:', typeof insertedRow.createdAt);
+      
+      // Neon HTTP driver may not return default timestamp values in .returning()
+      // Do an explicit SELECT to get the complete row with all default values
+      const [savedPatch] = await db.select().from(aiPatches).where(eq(aiPatches.id, insertedRow.id)).limit(1);
+      
+      if (!savedPatch) {
+        throw new Error('Failed to retrieve inserted patch');
+      }
+      
+      console.log('[PatchStorage] Retrieved patch createdAt:', savedPatch.createdAt, 'Type:', typeof savedPatch.createdAt);
       console.log('[PatchStorage] Successfully saved patch with ID:', savedPatch.id);
       return savedPatch;
     } catch (error) {
