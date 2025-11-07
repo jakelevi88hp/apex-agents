@@ -123,7 +123,7 @@ export class ContextBuilder {
     // Action keywords
     if (lower.includes('create') || lower.includes('add')) keywords.push('create');
     if (lower.includes('modify') || lower.includes('update') || lower.includes('change')) keywords.push('modify');
-    if (lower.includes('delete') || lower.includes('remove')) keywords.push('delete');e');
+    if (lower.includes('delete') || lower.includes('remove')) keywords.push('delete');
 
     return keywords;
   }
