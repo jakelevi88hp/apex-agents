@@ -18,6 +18,7 @@ import { promisify } from 'util';
 import { createGitHubIntegration, GitHubIntegration } from './github';
 import { GitHubService, CommitFileChange } from './github-service';
 import { getSystemPrompt } from './system-prompt';
+import { ContextBuilder } from './context-builder';
 
 const execAsync = promisify(exec);
 
@@ -46,6 +47,7 @@ export class AIAdminAgent {
   private githubService: GitHubService | null = null;
   private isProduction: boolean;
   private model: string;
+  private contextBuilder: ContextBuilder;
 
   constructor(apiKey: string, projectRoot: string = process.cwd(), model?: string) {
     this.openai = new OpenAI({ apiKey });
@@ -55,6 +57,9 @@ export class AIAdminAgent {
     // Use provided model, environment variable, or default
     this.model = model || process.env.AI_ADMIN_MODEL || 'gpt-4o';
     this.log(`AI Admin initialized with model: ${this.model}`);
+    
+    // Initialize context builder
+    this.contextBuilder = new ContextBuilder(projectRoot);
     
     // Initialize GitHub integration if token is available
     try {
@@ -208,33 +213,15 @@ export class AIAdminAgent {
       // Analyze codebase first
       const analysis = await this.analyzeCodebase();
 
-      // Read relevant files based on the request
-      // For dashboard/layout changes, read the dashboard layout
+      // Gather intelligent context based on the request
+      await this.log('Gathering intelligent context for request...');
+      const context = await this.contextBuilder.gatherContext(requestText);
+      await this.log(`Context gathered: ${context.files.length} files, ${context.componentInventory.components.length} components available`);
+      
+      // Convert to the format expected by the prompt
       const relevantFiles: Record<string, string> = {};
-      
-      // Common files that might be relevant based on request keywords
-      const commonFiles = [
-        'src/app/dashboard/layout.tsx',
-        'src/app/admin/ai/page.tsx',
-        'src/components/NotificationCenter.tsx',
-      ];
-      
-      // Add context-specific files based on request
-      if (requestText.toLowerCase().includes('admin') || requestText.toLowerCase().includes('ai admin')) {
-        commonFiles.push('src/app/admin/ai/page.tsx');
-      }
-      if (requestText.toLowerCase().includes('dashboard') || requestText.toLowerCase().includes('navigation')) {
-        commonFiles.push('src/app/dashboard/layout.tsx');
-      }
-      if (requestText.toLowerCase().includes('agi')) {
-        commonFiles.push('src/app/dashboard/agi/page.tsx');
-      }
-      
-      for (const filePath of commonFiles) {
-        const content = await this.readFileContent(filePath);
-        if (content) {
-          relevantFiles[filePath] = content;
-        }
+      for (const file of context.files) {
+        relevantFiles[file.path] = file.content;
       }
 
       // Generate patch using LLM with comprehensive knowledge base
@@ -254,7 +241,7 @@ export class AIAdminAgent {
               { role: 'system', content: systemPrompt },
               {
                 role: 'user',
-                content: `Request: ${requestText}\n\nCodebase structure: ${JSON.stringify(analysis.structure, null, 2)}\n\nRelevant file contents:\n${Object.entries(relevantFiles).map(([path, content]) => `\n=== ${path} ===\n${content}`).join('\n')}${attempt > 1 ? `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}\n\nPlease ensure your response follows the exact JSON format with a 'files' array.` : ''}\n\nIMPORTANT: Your response MUST be a valid JSON object with this exact structure:\n{\n  "files": [{"path": "...", "action": "...", "content": "...", "explanation": "..."}],\n  "summary": "...",\n  "testingSteps": [...],\n  "risks": [...],\n  "databaseChanges": {...}\n}`,
+                content: `Request: ${requestText}\n\n${context.summary}\n\nCodebase structure: ${JSON.stringify(analysis.structure, null, 2)}\n\n# AVAILABLE COMPONENTS\nYou can ONLY use these components that exist in the project:\n- Components: ${context.componentInventory.components.join(', ')}\n- Layouts: ${context.componentInventory.layouts.join(', ')}\n- Contexts: ${context.componentInventory.contexts.join(', ')}\n\n⚠️ DO NOT reference components that are not in this list! They don't exist.\n\nRelevant file contents:\n${Object.entries(relevantFiles).map(([path, content]) => `\n=== ${path} ===\n${content}`).join('\n')}${attempt > 1 ? `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}\n\nPlease ensure your response follows the exact JSON format with a 'files' array.` : ''}\n\nIMPORTANT: Your response MUST be a valid JSON object with this exact structure:\n{\n  "files": [{"path": "...", "action": "...", "content": "...", "explanation": "..."}],\n  "summary": "...",\n  "testingSteps": [...],\n  "risks": [...],\n  "databaseChanges": {...}\n}`,
               },
             ],
             response_format: { type: 'json_object' },
