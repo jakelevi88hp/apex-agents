@@ -32,6 +32,7 @@ export default function AIAdminPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [selectedPatchId, setSelectedPatchId] = useState<string | null>(null);
   const [showPatchDetails, setShowPatchDetails] = useState(false);
+  const [mode, setMode] = useState<'chat' | 'patch'>('chat'); // Default to chat mode
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Check authentication
@@ -62,6 +63,14 @@ export default function AIAdminPage() {
   });
   
   const rollbackPatch = trpc.aiAdmin.rollbackPatch.useMutation({
+    onError: (error: any) => {
+      if (error.data?.code === 'FORBIDDEN') {
+        setAuthError(error.message);
+      }
+    },
+  });
+  
+  const chatMutation = trpc.aiAdmin.chat.useMutation({
     onError: (error: any) => {
       if (error.data?.code === 'FORBIDDEN') {
         setAuthError(error.message);
