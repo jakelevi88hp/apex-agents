@@ -365,13 +365,47 @@ export class ContextBuilder {
 
   /**
    * Read file content
+   * In production (Vercel), reads from GitHub API
+   * In development, reads from local filesystem
    */
   private async readFile(filePath: string): Promise<string | null> {
     try {
-      const fullPath = path.join(this.projectRoot, filePath);
-      const content = await fs.readFile(fullPath, 'utf-8');
-      return content;
+      // Check if we're in production (Vercel)
+      const isProduction = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
+      
+      if (isProduction && process.env.GITHUB_TOKEN) {
+        // Read from GitHub API
+        const owner = process.env.GITHUB_OWNER || 'jakelevi88hp';
+        const repo = process.env.GITHUB_REPO || 'apex-agents';
+        const branch = 'main';
+        
+        try {
+          const response = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}?ref=${branch}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+                'Accept': 'application/vnd.github.v3.raw',
+              },
+            }
+          );
+          
+          if (response.ok) {
+            return await response.text();
+          }
+          return null;
+        } catch (error) {
+          console.error(`[ContextBuilder] Failed to read ${filePath} from GitHub:`, error);
+          return null;
+        }
+      } else {
+        // Read from local filesystem (development)
+        const fullPath = path.join(this.projectRoot, filePath);
+        const content = await fs.readFile(fullPath, 'utf-8');
+        return content;
+      }
     } catch (error) {
+      console.error(`[ContextBuilder] Failed to read ${filePath}:`, error);
       return null;
     }
   }
