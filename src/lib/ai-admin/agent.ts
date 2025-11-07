@@ -239,6 +239,14 @@ ${context.summary}
 - Layouts: ${context.componentInventory.layouts.join(', ')}
 - Contexts: ${context.componentInventory.contexts.join(', ')}
 
+# RELEVANT FILES
+
+${context.files.length > 0 ? context.files.map(f => `## ${f.path}
+
+\`\`\`${f.language || ''}
+${f.content}
+\`\`\``).join('\n\n') : 'No specific files loaded for this query.'}
+
 # YOUR ROLE
 
 You are in CHAT MODE. Your job is to:
