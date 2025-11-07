@@ -19,19 +19,30 @@ export class PatchStorageService {
       console.log('[PatchStorage] Attempting to save patch for user:', userId);
       console.log('[PatchStorage] Patch data:', JSON.stringify(patch, null, 2));
       
+      // Parse the patch JSON string to extract fields
+      let patchData: any = {};
+      try {
+        patchData = JSON.parse(patch.patch);
+        console.log('[PatchStorage] Parsed patch data:', JSON.stringify(patchData, null, 2));
+      } catch (error) {
+        console.error('[PatchStorage] Failed to parse patch JSON:', error);
+        throw new Error('Invalid patch JSON format');
+      }
+      
       const insertData: InsertAIPatch = {
         // Don't set id - let database generate UUID
         userId: userId as any,
         request: patch.request,
-        summary: patch.summary,
-        description: patch.description,
+        summary: patchData.summary || 'No summary provided',
+        description: patchData.description || null,
         files: patch.files as any,
-        testingSteps: patch.testingSteps as any,
-        risks: patch.risks as any,
+        testingSteps: patchData.testingSteps as any || null,
+        risks: patchData.risks as any || null,
         status: 'pending',
         metadata: {
           generatedAt: patch.timestamp instanceof Date ? patch.timestamp.toISOString() : patch.timestamp,
           originalId: patch.id, // Store original agent ID in metadata
+          patchData: patchData, // Store full patch data for reference
         },
       };
 
