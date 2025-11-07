@@ -23,7 +23,7 @@ export default function AIAdminPage() {
     {
       id: 'welcome',
       role: 'system',
-      content: 'AI Admin Agent initialized. I can help you upgrade and modify the codebase using natural language commands. Try commands like "add dark mode toggle", "optimize database queries", or "refactor API routes".',
+      content: 'AI Admin Agent initialized. Toggle between **Chat Mode** (ask questions, explore the codebase) and **Patch Mode** (generate and apply code changes). Try asking "What components are available?" in Chat mode, or "add dark mode toggle" in Patch mode.',
       timestamp: new Date(),
     },
   ]);
@@ -344,13 +344,39 @@ export default function AIAdminPage() {
                 <p className="text-gray-400 text-sm">Self-upgrading system powered by GPT-4</p>
               </div>
             </div>
-            <button
-              onClick={() => router.push('/dashboard/agents')}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg text-white font-medium transition-colors flex items-center gap-2"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Back to Dashboard
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Mode Toggle */}
+              <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
+                <button
+                  onClick={() => setMode('chat')}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    mode === 'chat'
+                      ? 'bg-purple-600 text-white'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  💬 Chat
+                </button>
+                <button
+                  onClick={() => setMode('patch')}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    mode === 'patch'
+                      ? 'bg-purple-600 text-white'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  🔧 Patch
+                </button>
+              </div>
+              
+              <button
+                onClick={() => router.push('/dashboard/agents')}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg text-white font-medium transition-colors flex items-center gap-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Back to Dashboard
+              </button>
+            </div>
           </div>
         </div>
 
