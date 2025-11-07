@@ -18,7 +18,8 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:reset": "drizzle-kit push && tsx scripts/seed.ts",
     "stress:test": "tsx tests/stress/stress-test.ts",
-    "health:check": "tsx tests/debug/system-health.ts"
+    "health:check": "tsx tests/debug/system-health.ts",
+    "analyze:bundle": "next build && next analyze"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.56",
