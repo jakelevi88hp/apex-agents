@@ -508,3 +508,102 @@ Moving to Option C: Business Features...
 - [ ] Fix AI Admin patch generation - must return correct format with files array
 - [ ] Test AI Admin patch generation end-to-end in production
 - [ ] Verify both features work correctly before final summary
+
+
+## AI Admin Enhancement: Manus/Cursor-like Features
+
+### Phase 1: Core Conversation Infrastructure
+- [x] Add conversations table to database (id, user_id, title, created_at, updated_at)
+- [x] Add messages table (id, conversation_id, role, content, created_at)
+- [x] Implement conversation persistence in backend
+- [ ] Add conversation list sidebar
+- [ ] Add "New Conversation" button
+- [ ] Add conversation switching functionality
+- [x] Implement streaming responses with Server-Sent Events (SSE)
+- [ ] Add real-time typing indicators
+- [x] Implement multi-turn context retention (load conversation history)
+- [x] Add conversation search functionality
+
+### Phase 2: File Upload & Repository Search
+- [ ] Add file upload component with drag-and-drop
+- [ ] Support multiple file types (images, PDFs, code files, text)
+- [ ] Implement file analysis with OpenAI Vision API
+- [ ] Store uploaded files in S3 with metadata in database
+- [ ] Add repository-wide code search using GitHub API
+- [ ] Implement fuzzy file search with file tree navigation
+- [ ] Add syntax highlighting for code preview
+- [ ] Create file tree component with expand/collapse
+- [ ] Add "Open in GitHub" links for files
+- [ ] Implement semantic code search (search by description)
+
+### Phase 3: Advanced Patch Management
+- [ ] Create side-by-side diff viewer component
+- [ ] Add syntax highlighting to diff view
+- [ ] Implement apply/reject individual changes (hunks)
+- [ ] Add patch editing before applying
+- [ ] Create patch preview modal
+- [ ] Add "Undo" functionality for applied patches
+- [ ] Implement multi-file patch visualization
+- [ ] Add conflict detection and resolution UI
+- [ ] Create patch templates for common operations
+- [ ] Add patch validation with linting
+
+### Phase 4: GitHub Integration
+- [ ] Implement GitHub Issues integration (list, create, comment)
+- [ ] Add Pull Request creation from patches
+- [ ] Implement PR review and comment functionality
+- [ ] Add GitHub code search API integration
+- [ ] Create issue/PR reference in conversations
+- [ ] Add branch management (create, switch, merge)
+- [ ] Implement commit history viewer
+- [ ] Add GitHub Actions workflow triggers
+- [ ] Create automated PR descriptions from patches
+- [ ] Add GitHub notifications integration
+
+### Phase 5: Conversation Branching & Multi-file Editing
+- [ ] Implement conversation branching (fork at any message)
+- [ ] Add branch visualization tree
+- [ ] Create branch merge functionality
+- [ ] Implement multi-file editing in single operation
+- [ ] Add batch file operations (rename, move, delete)
+- [ ] Create workspace state management
+- [ ] Add "Compare branches" feature
+- [ ] Implement conversation export (markdown, JSON)
+- [ ] Add conversation sharing with unique URLs
+- [ ] Create conversation templates
+
+### Phase 6: Code Suggestions & Completions
+- [ ] Implement inline code suggestions
+- [ ] Add autocomplete for file paths
+- [ ] Create smart import suggestions
+- [ ] Add code snippet library
+- [ ] Implement "Fix this" quick actions
+- [ ] Add refactoring suggestions
+- [ ] Create code quality checks
+- [ ] Add performance optimization suggestions
+- [ ] Implement security vulnerability detection
+- [ ] Add best practices recommendations
+
+### Phase 7: UI/UX Enhancements
+- [ ] Add keyboard shortcuts (Cmd+K for search, etc.)
+- [ ] Implement dark/light theme toggle
+- [ ] Add customizable layout (resizable panels)
+- [ ] Create command palette (Cmd+P)
+- [ ] Add markdown rendering for messages
+- [ ] Implement code block copy buttons
+- [ ] Add message reactions/feedback
+- [ ] Create collapsible code sections
+- [ ] Add loading skeletons for better UX
+- [ ] Implement infinite scroll for conversations
+
+### Phase 8: Testing & Documentation
+- [ ] Write unit tests for conversation persistence
+- [ ] Add E2E tests for file upload
+- [ ] Test streaming responses
+- [ ] Create integration tests for GitHub API
+- [ ] Write documentation for all new features
+- [ ] Create user guide with screenshots
+- [ ] Add API documentation
+- [ ] Create video tutorials
+- [ ] Write migration guide from old version
+- [ ] Add troubleshooting guide

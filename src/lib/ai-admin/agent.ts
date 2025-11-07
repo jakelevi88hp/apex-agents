@@ -205,6 +205,41 @@ export class AIAdminAgent {
   }
 
   /**
+   * Get context for a message (used by streaming API)
+   */
+  async getContext(message: string): Promise<string> {
+    try {
+      const analysis = await this.analyzeCodebase();
+      const context = await this.contextBuilder.gatherContext(message);
+
+      const contextStr = `# PROJECT CONTEXT
+
+${context.summary}
+
+**Frameworks:** ${analysis.frameworks.join(', ')}
+**Patterns:** ${analysis.patterns.join(', ')}
+
+# AVAILABLE COMPONENTS
+- Components: ${context.componentInventory.components.join(', ')}
+- Layouts: ${context.componentInventory.layouts.join(', ')}
+- Contexts: ${context.componentInventory.contexts.join(', ')}
+
+# RELEVANT FILES
+
+${context.files.length > 0 ? context.files.map(f => `## ${f.path}
+
+\`\`\`${f.language || ''}
+${f.content}
+\`\`\``).join('\n\n') : 'No specific files loaded for this query.'}`;
+
+      return contextStr;
+    } catch (error) {
+      this.log(`Error gathering context: ${error}`, 'error');
+      return 'Unable to gather context.';
+    }
+  }
+
+  /**
    * Chat with AI Admin (no patch generation)
    */
   async chat(

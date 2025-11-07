@@ -7,6 +7,9 @@ export * from './schema/subscriptions';
 // Export AI patches tables
 export * from './schema/ai-patches';
 
+// Export AI conversations tables
+export * from './schema/ai-conversations';
+
 // ============================================================================
 // USERS & AUTHENTICATION
 // ============================================================================
