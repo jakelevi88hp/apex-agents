@@ -93,9 +93,10 @@ export const aiAdminRouter = router({
           files: savedPatch.files,
           testingSteps: savedPatch.testingSteps || [],
           risks: savedPatch.risks || [],
-          generatedAt: savedPatch.createdAt.toISOString(), // Convert Date to ISO string
+          generatedAt: savedPatch.createdAt ? savedPatch.createdAt.toISOString() : new Date().toISOString(), // Convert Date to ISO string with fallback
           status: savedPatch.status,
         };
+        console.log('[generatePatch] savedPatch.createdAt:', savedPatch.createdAt, 'Type:', typeof savedPatch.createdAt);
         console.log('[generatePatch] Returning patch ID to frontend:', responseData.id, 'Type:', typeof responseData.id);
         
         return {
