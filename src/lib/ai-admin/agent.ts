@@ -811,10 +811,16 @@ Be helpful, concise, and technical. Provide code examples when relevant.`,
   }
 
   /**
-   * Get patch history
+   * Get patch history from database
    */
-  getPatchHistory(): PatchRecord[] {
-    return this.patchHistory;
+  async getPatchHistory(): Promise<PatchRecord[]> {
+    try {
+      const patches = await patchStorage.getAllPatches();
+      return patches;
+    } catch (error) {
+      await this.log(`Failed to get patch history: ${error}`, 'error');
+      return [];
+    }
   }
 
   /**

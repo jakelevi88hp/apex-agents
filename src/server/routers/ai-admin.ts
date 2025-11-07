@@ -237,7 +237,7 @@ export const aiAdminRouter = router({
   getPatchHistory: adminProcedure.query(async () => {
     try {
       const agent = getAIAdminAgent();
-      const history = agent.getPatchHistory();
+      const history = await agent.getPatchHistory();
 
       return {
         success: true,

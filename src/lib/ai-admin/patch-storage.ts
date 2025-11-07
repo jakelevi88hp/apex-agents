@@ -180,6 +180,24 @@ export class PatchStorageService {
       status: patch.status as any,
     };
   }
+
+  /**
+   * Get all patches for display in history
+   */
+  async getAllPatches(): Promise<PatchRecord[]> {
+    try {
+      const patches = await db
+        .select()
+        .from(aiPatches)
+        .orderBy(desc(aiPatches.createdAt))
+        .limit(100); // Limit to last 100 patches
+
+      return patches.map(this.convertToPatchRecord);
+    } catch (error) {
+      console.error('[PatchStorage] Failed to get all patches:', error);
+      return [];
+    }
+  }
 }
 
 // Export singleton instance
