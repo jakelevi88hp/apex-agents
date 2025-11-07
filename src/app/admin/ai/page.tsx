@@ -602,6 +602,8 @@ export default function AIAdminPage() {
         </div>
       )}
     </div>
+    </div>
+    </div>
   );
 }
 
