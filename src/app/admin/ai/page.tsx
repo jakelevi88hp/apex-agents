@@ -45,7 +45,7 @@ export default function AIAdminPage() {
   }, [router]);
 
   // tRPC mutations with error handling
-  const executeCommand = trpc.aiAdmin.executeCommand.useMutation({
+  const generatePatchMutation = trpc.aiAdmin.generatePatch.useMutation({
     onError: (error: any) => {
       if (error.data?.code === 'FORBIDDEN') {
         setAuthError(error.message);
@@ -145,19 +145,13 @@ export default function AIAdminPage() {
     setIsProcessing(true);
 
     try {
-      const result = await executeCommand.mutateAsync({ 
-        command: input,
-        autoApply: false  // Keep false for manual approval
+      const result = await generatePatchMutation.mutateAsync({ 
+        request: input  // Changed from command to request
       });
 
       if (result.success && result.data) {
-        // Parse the patch to show details
-        let patchData: any = {};
-        try {
-          patchData = JSON.parse(result.data.patch || '{}');
-        } catch (e) {
-          console.error('Failed to parse patch:', e);
-        }
+        // Data is already in the correct format from generatePatch
+        const patchData = result.data;
         
         // Build detailed message content
         let messageContent = '**Patch Generated Successfully**\n\n';
@@ -166,9 +160,13 @@ export default function AIAdminPage() {
           messageContent += `${patchData.summary}\n\n`;
         }
         
-        if (result.data.files && result.data.files.length > 0) {
-          messageContent += '**Files to be modified:**\n';
-          messageContent += result.data.files.map((f: string) => `• ${f}`).join('\n');
+        if (patchData.description) {
+          messageContent += `${patchData.description}\n\n`;
+        }
+        
+        if (patchData.files && patchData.files.length > 0) {
+          messageContent += '**Files to be modified:** ' + patchData.files.length + '\n';
+          messageContent += patchData.files.map((f: any) => `• ${f.path} (${f.action})`).join('\n');
           messageContent += '\n\n';
         }
         
