@@ -204,6 +204,89 @@ export class AIAdminAgent {
   }
 
   /**
+   * Chat with AI Admin (no patch generation)
+   */
+  async chat(
+    message: string,
+    conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = []
+  ): Promise<string> {
+    await this.log(`Chat message received: "${message}"`);
+
+    try {
+      // Analyze codebase for context
+      const analysis = await this.analyzeCodebase();
+
+      // Gather context based on the message
+      await this.log('Gathering context for chat...');
+      const context = await this.contextBuilder.gatherContext(message);
+      await this.log(`Context gathered: ${context.files.length} files`);
+
+      // Build conversation messages
+      const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+        {
+          role: 'system',
+          content: `You are an expert AI software engineer helping with the Apex Agents platform.
+
+# PROJECT CONTEXT
+
+${context.summary}
+
+**Frameworks:** ${analysis.frameworks.join(', ')}
+**Patterns:** ${analysis.patterns.join(', ')}
+
+# AVAILABLE COMPONENTS
+- Components: ${context.componentInventory.components.join(', ')}
+- Layouts: ${context.componentInventory.layouts.join(', ')}
+- Contexts: ${context.componentInventory.contexts.join(', ')}
+
+# YOUR ROLE
+
+You are in CHAT MODE. Your job is to:
+- Answer questions about the codebase
+- Explain how things work
+- Provide recommendations and best practices
+- Discuss potential changes and their implications
+- Help understand the architecture and patterns
+
+You should NOT generate code patches in this mode. If the user wants to make changes, suggest they switch to Patch Mode.
+
+Be helpful, concise, and technical. Provide code examples when relevant.`,
+        },
+      ];
+
+      // Add conversation history
+      for (const msg of conversationHistory) {
+        messages.push({
+          role: msg.role,
+          content: msg.content,
+        });
+      }
+
+      // Add current message
+      messages.push({
+        role: 'user',
+        content: message,
+      });
+
+      // Get response from OpenAI
+      const response = await this.openai.chat.completions.create({
+        model: this.model,
+        messages,
+        temperature: 0.7,
+        max_tokens: 2000,
+      });
+
+      const reply = response.choices[0].message.content || 'I apologize, but I could not generate a response.';
+      await this.log('Chat response generated');
+
+      return reply;
+    } catch (error) {
+      await this.log(`Chat error: ${error}`, 'error');
+      throw error;
+    }
+  }
+
+  /**
    * Generate a code patch based on natural language request
    */
   async generatePatch(requestText: string): Promise<PatchRecord> {

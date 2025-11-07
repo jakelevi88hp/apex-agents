@@ -46,6 +46,38 @@ const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 
 export const aiAdminRouter = router({
   /**
+   * Chat with AI Admin (no patch generation)
+   */
+  chat: adminProcedure
+    .input(
+      z.object({
+        message: z.string().min(1, 'Message cannot be empty'),
+        conversationHistory: z.array(
+          z.object({
+            role: z.enum(['user', 'assistant']),
+            content: z.string(),
+          })
+        ).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const agent = getAIAdminAgent();
+        const response = await agent.chat(input.message, input.conversationHistory || []);
+        
+        return {
+          success: true,
+          message: response,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Chat failed: ${error}`,
+        });
+      }
+    }),
+
+  /**
    * Analyze the codebase
    */
   analyzeCodebase: adminProcedure.query(async () => {
