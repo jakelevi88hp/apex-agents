@@ -30,7 +30,7 @@ export class PatchStorageService {
         risks: patch.risks as any,
         status: 'pending',
         metadata: {
-          generatedAt: patch.generatedAt.toISOString(),
+          generatedAt: patch.timestamp instanceof Date ? patch.timestamp.toISOString() : patch.timestamp,
           originalId: patch.id, // Store original agent ID in metadata
         },
       };
