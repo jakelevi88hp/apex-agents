@@ -25,6 +25,7 @@ interface Patch {
   error?: string;
 }
 
+// Force rebuild - using generatePatch endpoint
 export default function AIAdminPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
