@@ -154,6 +154,33 @@ export default function AIAdminPage() {
     setIsProcessing(true);
 
     try {
+      // Chat mode - just get a response without generating patches
+      if (mode === 'chat') {
+        const conversationHistory = messages
+          .filter(m => m.role !== 'system')
+          .map(m => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          }));
+
+        const result = await chatMutation.mutateAsync({
+          message: input,
+          conversationHistory,
+        });
+
+        if (result.success && result.message) {
+          const assistantMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: result.message,
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+        }
+        return;
+      }
+
+      // Patch mode - generate and store patches
       const result = await generatePatchMutation.mutateAsync({ 
         request: input  // Changed from command to request
       });
