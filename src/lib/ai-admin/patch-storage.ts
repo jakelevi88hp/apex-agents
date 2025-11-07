@@ -161,15 +161,22 @@ export class PatchStorageService {
    * Convert database patch to PatchRecord format
    */
   private convertToPatchRecord(patch: AIPatch): PatchRecord {
+    // Reconstruct the patch JSON string from database fields
+    const patchData = {
+      files: (patch.metadata as any)?.patchData?.files || [],
+      summary: patch.summary,
+      description: patch.description,
+      testingSteps: patch.testingSteps,
+      risks: patch.risks,
+      databaseChanges: (patch.metadata as any)?.patchData?.databaseChanges || { required: false, tables: [], migrations: '' },
+    };
+    
     return {
       id: String(patch.id), // Convert UUID to string
+      timestamp: patch.createdAt, // Use createdAt as timestamp
       request: patch.request,
-      summary: patch.summary,
-      description: patch.description || '',
+      patch: JSON.stringify(patchData, null, 2), // Reconstruct patch JSON string
       files: patch.files as any,
-      testingSteps: (patch.testingSteps as any) || [],
-      risks: (patch.risks as any) || [],
-      generatedAt: patch.createdAt,
       status: patch.status as any,
     };
   }
