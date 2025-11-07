@@ -34,3 +34,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Project Overview
+
+This project is an AI Agent Management System called Apex Agents Platform. It is built using Next.js 14 with the App Router, TypeScript, tRPC, PostgreSQL (Neon), and Pinecone. The platform includes various features such as agent management, AGI chat interface, analytics dashboard, workflow builder, settings management, and knowledge management with Pinecone.
