@@ -664,12 +664,14 @@ Moving to Option C: Business Features...
 
 
 ## File Context Integration (Current)
-- [ ] Design file context integration architecture
-- [ ] Create FileContextGatherer class to retrieve uploaded files
-- [ ] Add getConversationFiles endpoint to fetch files by conversation
-- [ ] Integrate file context into chat message generation
-- [ ] Integrate file context into patch generation
-- [ ] Pass Vision API analysis results to AI in prompts
-- [ ] Test file context with image-based code generation
-- [ ] Test file context with error screenshot debugging
-- [ ] Document file context integration
+- [x] Design file context integration architecture
+- [x] Create FileContextGatherer class to retrieve uploaded files
+- [x] Add getConversationFiles endpoint to fetch files by conversation
+- [x] Integrate file context into chat message generation
+- [x] Integrate file context into patch generation
+- [x] Pass Vision API analysis results to AI in prompts
+- [x] Create comprehensive test plan with 10 test scenarios
+- [x] Document file context integration
+- [ ] Test file context with image-based code generation (ready for testing)
+- [ ] Test file context with error screenshot debugging (ready for testing)
+- [ ] Update frontend to pass conversationId to chat and patch endpoints
