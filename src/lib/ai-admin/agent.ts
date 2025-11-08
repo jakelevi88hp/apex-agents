@@ -22,6 +22,7 @@ import { patchStorage } from './patch-storage';
 import { ContextBuilder } from './context-builder';
 import { ContextGatherer } from './context-gatherer';
 import { PatchValidator, PatchData } from './patch-validator';
+import { RequestInterpreter, InterpretedRequest } from './request-interpreter';
 
 const execAsync = promisify(exec);
 
@@ -53,6 +54,7 @@ export class AIAdminAgent {
   private contextBuilder: ContextBuilder;
   private contextGatherer: ContextGatherer | null = null;
   private patchValidator: PatchValidator;
+  private requestInterpreter: RequestInterpreter;
 
   constructor(apiKey: string, projectRoot: string = process.cwd(), model?: string) {
     this.openai = new OpenAI({ apiKey });
@@ -69,6 +71,10 @@ export class AIAdminAgent {
     // Initialize patch validator
     this.patchValidator = new PatchValidator();
     this.log('PatchValidator initialized');
+    
+    // Initialize request interpreter
+    this.requestInterpreter = new RequestInterpreter(apiKey, this.model);
+    this.log('RequestInterpreter initialized');
     
     // Initialize GitHub integration if token is available
     try {

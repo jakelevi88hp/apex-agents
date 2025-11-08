@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import { getAIAdminAgent } from '@/lib/ai-admin/agent';
 import { patchStorage } from '@/lib/ai-admin/patch-storage';
+import { generatePatchFromPlainLanguage, getExampleRequests } from '@/lib/ai-admin/plain-language-patch';
 import * as conversationManager from '@/lib/ai-admin/conversation-manager';
 import { uploadFile } from '@/lib/knowledge-base/storage';
 import { observable } from '@trpc/server/observable';
@@ -49,6 +50,67 @@ const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 });
 
 export const aiAdminRouter = router({
+  /**
+   * Get example plain-language requests
+   */
+  getExampleRequests: adminProcedure
+    .query(() => {
+      return {
+        success: true,
+        examples: getExampleRequests(),
+      };
+    }),
+
+  /**
+   * Generate patch from plain-language request (simplified flow)
+   */
+  generatePatchFromPlainLanguage: adminProcedure
+    .input(
+      z.object({
+        request: z.string().min(1, 'Request cannot be empty'),
+        skipConfirmation: z.boolean().optional().default(false),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const agent = getAIAdminAgent();
+        const result = await generatePatchFromPlainLanguage(
+          agent,
+          input.request,
+          input.skipConfirmation
+        );
+
+        // If patch was generated, save it to database
+        if (result.success && result.patch) {
+          const savedPatch = await patchStorage.savePatch(ctx.userId, result.patch);
+          
+          return {
+            success: true,
+            interpreted: result.interpreted,
+            patch: {
+              id: String(savedPatch.id),
+              request: savedPatch.request,
+              summary: savedPatch.summary,
+              description: savedPatch.description || '',
+              files: savedPatch.files,
+              testingSteps: savedPatch.testingSteps || [],
+              risks: savedPatch.risks || [],
+              generatedAt: savedPatch.createdAt ? savedPatch.createdAt.toISOString() : new Date().toISOString(),
+              status: savedPatch.status,
+            },
+          };
+        }
+
+        // Return interpretation or clarification
+        return result;
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Plain-language patch generation failed: ${error}`,
+        });
+      }
+    }),
+
   /**
    * Chat with AI Admin (no patch generation)
    */

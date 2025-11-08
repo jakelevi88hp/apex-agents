@@ -700,3 +700,15 @@ Moving to Option C: Business Features...
 - [ ] Test chat with file context in UI (ready for testing)
 - [ ] Test patch generation with file context in UI (ready for testing)
 - [ ] Document frontend integration
+
+
+## AI Admin Plain-Language Patch Improvement (Current)
+- [ ] Analyze current patch generation flow and identify pain points
+- [ ] Enhance system prompt with better plain-language understanding
+- [ ] Add intelligent request interpretation and expansion
+- [ ] Implement automatic codebase context gathering
+- [ ] Add request examples and templates
+- [ ] Improve error messages with suggestions
+- [ ] Test with simple requests (e.g., "add dark mode", "fix the login bug")
+- [ ] Create user guide for administrators
+- [ ] Document best practices for patch requests
