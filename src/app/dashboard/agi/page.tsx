@@ -60,20 +60,35 @@ export default function AGIPage() {
       // Get token from localStorage
       const token = localStorage.getItem('token');
       
+      console.log('[AGI Page] Token check:', {
+        hasToken: !!token,
+        tokenLength: token?.length,
+        tokenPreview: token?.substring(0, 20) + '...'
+      });
+      
+      if (!token) {
+        throw new Error('No authentication token found. Please log in again.');
+      }
+      
       const response = await fetch("/api/agi/process", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token && { "Authorization": `Bearer ${token}` }),
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({ input: input.trim() }),
       });
+      
+      console.log('[AGI Page] Response status:', response.status);
 
       if (!response.ok) {
-        throw new Error("Failed to process input");
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('[AGI Page] API error:', errorData);
+        throw new Error(errorData.error || `Server error: ${response.status}`);
       }
 
       const result = await response.json();
+      console.log('[AGI Page] Success response:', result);
 
       const assistantMessage: Message = {
         role: "assistant",
