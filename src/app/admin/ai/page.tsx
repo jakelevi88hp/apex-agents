@@ -40,6 +40,13 @@ export default function AIAdminPage() {
   // Create conversation mutations
   const createConversation = trpc.aiAdmin.createConversation.useMutation();
   const deleteConversation = trpc.aiAdmin.deleteConversation.useMutation();
+  const saveMessageMutation = trpc.aiAdmin.saveMessage.useMutation();
+
+  // Query for conversation history
+  const { data: conversationHistory, refetch: refetchHistory } = trpc.aiAdmin.getConversationHistory.useQuery(
+    { conversationId: activeConversationId! },
+    { enabled: !!activeConversationId }
+  );
 
   // Check authentication
   useEffect(() => {
@@ -159,6 +166,19 @@ export default function AIAdminPage() {
     setInput('');
     setIsProcessing(true);
 
+    // Save user message to database if we have an active conversation
+    if (activeConversationId) {
+      try {
+        await saveMessageMutation.mutateAsync({
+          conversationId: activeConversationId,
+          role: 'user',
+          content: input,
+        });
+      } catch (error) {
+        console.error('Failed to save user message:', error);
+      }
+    }
+
     try {
       // Chat mode - just get a response without generating patches
       if (mode === 'chat') {
@@ -182,6 +202,19 @@ export default function AIAdminPage() {
             timestamp: new Date(),
           };
           setMessages((prev) => [...prev, assistantMessage]);
+
+          // Save assistant message to database
+          if (activeConversationId) {
+            try {
+              await saveMessageMutation.mutateAsync({
+                conversationId: activeConversationId,
+                role: 'assistant',
+                content: result.message,
+              });
+            } catch (error) {
+              console.error('Failed to save assistant message:', error);
+            }
+          }
         }
         return;
       }
@@ -235,6 +268,20 @@ export default function AIAdminPage() {
           status: 'pending',
         };
         setMessages((prev) => [...prev, assistantMessage]);
+
+        // Save patch message to database
+        if (activeConversationId) {
+          try {
+            await saveMessageMutation.mutateAsync({
+              conversationId: activeConversationId,
+              role: 'assistant',
+              content: messageContent,
+              metadata: { patchId: result.data.id, status: 'pending' },
+            });
+          } catch (error) {
+            console.error('Failed to save patch message:', error);
+          }
+        }
       }
     } catch (error: any) {
       const errorMessage: Message = {
@@ -360,17 +407,29 @@ export default function AIAdminPage() {
 
   // Load conversation history when active conversation changes
   useEffect(() => {
-    if (!activeConversationId) return;
+    if (!activeConversationId || !conversationHistory) return;
 
-    // TODO: Fetch and load conversation history
-    // For now, just reset to welcome message
-    setMessages([{
-      id: 'welcome',
-      role: 'system',
-      content: `Switched to conversation ${activeConversationId}. History loading will be implemented next.`,
-      timestamp: new Date(),
-    }]);
-  }, [activeConversationId]);
+    if (conversationHistory.success && conversationHistory.data) {
+      const loadedMessages: Message[] = conversationHistory.data.map((msg: any) => ({
+        id: msg.id,
+        role: msg.role as 'user' | 'assistant' | 'system',
+        content: msg.content,
+        timestamp: new Date(msg.createdAt),
+      }));
+
+      // If no messages, show welcome message
+      if (loadedMessages.length === 0) {
+        setMessages([{
+          id: 'welcome',
+          role: 'system',
+          content: 'AI Admin Agent initialized. Toggle between **Chat Mode** and **Patch Mode**.',
+          timestamp: new Date(),
+        }]);
+      } else {
+        setMessages(loadedMessages);
+      }
+    }
+  }, [activeConversationId, conversationHistory]);
 
   return (
     <div className="min-h-screen bg-gray-900 flex">

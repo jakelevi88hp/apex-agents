@@ -704,5 +704,36 @@ export const aiAdminRouter = router({
         });
       }
     }),
+
+  // MESSAGE MANAGEMENT
+  saveMessage: adminProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+        role: z.enum(['user', 'assistant', 'system']),
+        content: z.string(),
+        metadata: z.any().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const message = await conversationManager.saveMessage(
+          input.conversationId,
+          input.role,
+          input.content,
+          input.metadata
+        );
+
+        return {
+          success: true,
+          data: message,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to save message: ${error}`,
+        });
+      }
+    }),
 });
 
