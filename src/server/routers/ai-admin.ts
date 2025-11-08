@@ -333,6 +333,94 @@ export const aiAdminRouter = router({
   // ============================================================================
 
   /**
+   * Create a conversation branch
+   */
+  createConversationBranch: adminProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+        title: z.string().optional(),
+        atMessageId: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const branch = await conversationManager.branchConversation(
+          input.conversationId,
+          input.atMessageId || '',
+          ctx.userId,
+          input.title
+        );
+
+        return {
+          success: true,
+          data: branch,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to create branch: ${error}`,
+        });
+      }
+    }),
+
+  /**
+   * Get conversation branches
+   */
+  getConversationBranches: adminProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      try {
+        const branches = await conversationManager.getConversationBranches(
+          input.conversationId,
+          ctx.userId
+        );
+
+        return {
+          success: true,
+          data: branches,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to get branches: ${error}`,
+        });
+      }
+    }),
+
+  /**
+   * Get conversation tree
+   */
+  getConversationTree: adminProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      try {
+        const tree = await conversationManager.getConversationTree(
+          input.conversationId,
+          ctx.userId
+        );
+
+        return {
+          success: true,
+          data: tree,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to get conversation tree: ${error}`,
+        });
+      }
+    }),
+
+  /**
    * Create a new conversation
    */
   createConversation: adminProcedure
