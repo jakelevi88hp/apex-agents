@@ -722,3 +722,17 @@ Moving to Option C: Business Features...
 - [ ] Update frontend UI to use new plain-language endpoints
 - [ ] Add example requests display in AI Admin UI
 - [ ] Add confirmation dialog before patch generation
+
+
+## AI Admin Frontend Plain-Language Integration (Current)
+- [ ] Analyze current AI Admin UI structure
+- [ ] Create PatchConfirmationDialog component
+- [ ] Create ExampleRequestsPanel component
+- [ ] Add simple request mode toggle
+- [ ] Integrate generatePatchFromPlainLanguage mutation
+- [ ] Integrate getExampleRequests query
+- [ ] Handle confirmation flow in UI
+- [ ] Handle clarification prompts in UI
+- [ ] Add loading states and error handling
+- [ ] Test complete flow end-to-end
+- [ ] Document UI integration

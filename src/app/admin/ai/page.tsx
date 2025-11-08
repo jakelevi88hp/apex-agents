@@ -12,6 +12,8 @@ import FileUpload from './components/FileUpload';
 import RepositorySearch from './components/RepositorySearch';
 import GitHubIssues from './components/GitHubIssues';
 import ConversationBranching from './components/ConversationBranching';
+import PatchConfirmationDialog from './components/PatchConfirmationDialog';
+import ExampleRequestsPanel from './components/ExampleRequestsPanel';
 
 interface Message {
   id: string;
@@ -43,6 +45,10 @@ export default function AIAdminPage() {
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [rightSidebarView, setRightSidebarView] = useState<'patches' | 'issues'>('patches');
   const [showBranching, setShowBranching] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [interpretedRequest, setInterpretedRequest] = useState<any>(null);
+  const [pendingRequest, setPendingRequest] = useState<string>('');
+  const [useSimpleMode, setUseSimpleMode] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Create conversation mutations
@@ -96,6 +102,10 @@ export default function AIAdminPage() {
       }
     },
   });
+  
+  // Plain-language patch mutations
+  const getExampleRequests = trpc.aiAdmin.getExampleRequests.useQuery();
+  const generatePlainLanguagePatch = trpc.aiAdmin.generatePatchFromPlainLanguage.useMutation();
   
   const chatMutation = trpc.aiAdmin.chat.useMutation({
     onError: (error: any) => {
@@ -239,7 +249,88 @@ export default function AIAdminPage() {
         return;
       }
 
-      // Patch mode - generate and store patches
+      // Patch mode - use plain-language patch generation if simple mode is enabled
+      if (useSimpleMode) {
+        // Step 1: Get interpretation and confirmation
+        const result = await generatePlainLanguagePatch.mutateAsync({
+          request: input,
+          skipConfirmation: false,
+        });
+
+        if (result.clarificationNeeded) {
+          // Show clarification message
+          const assistantMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: result.clarificationNeeded,
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+          setIsProcessing(false);
+          return;
+        }
+
+        if (result.confirmationMessage && result.interpreted) {
+          // Show confirmation dialog
+          setPendingRequest(input);
+          setInterpretedRequest(result.interpreted);
+          setShowConfirmation(true);
+          setIsProcessing(false);
+          return;
+        }
+
+        // If patch was generated directly (skipConfirmation was true)
+        if (result.success && result.patch) {
+          const patchData = result.patch;
+          
+          // Build detailed message content
+          let messageContent = '**Patch Generated Successfully** (Plain-Language Mode)\n\n';
+          
+          if (patchData.summary) {
+            messageContent += `${patchData.summary}\n\n`;
+          }
+          
+          if (patchData.description) {
+            messageContent += `${patchData.description}\n\n`;
+          }
+          
+          if (patchData.files && patchData.files.length > 0) {
+            messageContent += '**Files to be modified:** ' + patchData.files.length + '\n';
+            messageContent += patchData.files.map((f: any) => `• ${f.path} (${f.action})`).join('\n');
+            messageContent += '\n\n';
+          }
+          
+          if (patchData.testingSteps && patchData.testingSteps.length > 0) {
+            messageContent += '**Testing Steps:**\n';
+            messageContent += patchData.testingSteps.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n');
+            messageContent += '\n\n';
+          }
+          
+          if (patchData.risks && patchData.risks.length > 0) {
+            messageContent += '**Risks:**\n';
+            messageContent += patchData.risks.map((r: string) => `⚠️ ${r}`).join('\n');
+            messageContent += '\n\n';
+          }
+          
+          messageContent += `**Patch ID:** ${patchData.id}\n\n`;
+          messageContent += 'Use the "Apply Patch" button to apply these changes.';
+
+          const assistantMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: messageContent,
+            timestamp: new Date(),
+            patchId: patchData.id,
+            status: 'pending',
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+          setSelectedPatchId(patchData.id);
+          setIsProcessing(false);
+          return;
+        }
+      }
+
+      // Standard patch mode - generate and store patches
       // Log file context status
       if (activeConversationId && conversationFiles?.data) {
         console.log(`[AI Admin] File context available: ${conversationFiles.data.totalFiles} files, ${conversationFiles.data.analyzedFiles} analyzed`);
@@ -542,6 +633,25 @@ export default function AIAdminPage() {
                 </button>
               </div>
               
+              {/* Simple Mode Toggle (only in Patch mode) */}
+              {mode === 'patch' && (
+                <div className="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2">
+                  <span className="text-sm text-gray-400">Simple Mode:</span>
+                  <button
+                    onClick={() => setUseSimpleMode(!useSimpleMode)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      useSimpleMode ? 'bg-purple-600' : 'bg-gray-600'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        useSimpleMode ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              )}
+              
               <button
                 onClick={() => router.push('/dashboard/agents')}
                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg text-white font-medium transition-colors flex items-center gap-2"
@@ -552,6 +662,17 @@ export default function AIAdminPage() {
             </div>
           </div>
         </div>
+
+        {/* Example Requests Panel (only in Patch mode with Simple Mode) */}
+        {mode === 'patch' && useSimpleMode && (
+          <div className="px-6 pt-6">
+            <ExampleRequestsPanel
+              examples={getExampleRequests.data?.examples || []}
+              onSelectExample={(example) => setInput(example)}
+              isLoading={getExampleRequests.isLoading}
+            />
+          </div>
+        )}
 
         {/* Messages or Search */}
         {mode === 'search' ? (
@@ -865,6 +986,97 @@ export default function AIAdminPage() {
           </div>
         </div>
       )}
+
+      {/* Patch Confirmation Dialog */}
+      <PatchConfirmationDialog
+        isOpen={showConfirmation}
+        interpreted={interpretedRequest}
+        onConfirm={async () => {
+          try {
+            // Step 2: User confirmed, generate patch with skipConfirmation=true
+            const result = await generatePlainLanguagePatch.mutateAsync({
+              request: pendingRequest,
+              skipConfirmation: true,
+            });
+
+            if (result.success && result.patch) {
+              const patchData = result.patch;
+              
+              // Build detailed message content
+              let messageContent = '**Patch Generated Successfully** (Plain-Language Mode)\n\n';
+              
+              if (patchData.summary) {
+                messageContent += `${patchData.summary}\n\n`;
+              }
+              
+              if (patchData.description) {
+                messageContent += `${patchData.description}\n\n`;
+              }
+              
+              if (patchData.files && patchData.files.length > 0) {
+                messageContent += '**Files to be modified:** ' + patchData.files.length + '\n';
+                messageContent += patchData.files.map((f: any) => `• ${f.path} (${f.action})`).join('\n');
+                messageContent += '\n\n';
+              }
+              
+              if (patchData.testingSteps && patchData.testingSteps.length > 0) {
+                messageContent += '**Testing Steps:**\n';
+                messageContent += patchData.testingSteps.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n');
+                messageContent += '\n\n';
+              }
+              
+              if (patchData.risks && patchData.risks.length > 0) {
+                messageContent += '**Risks:**\n';
+                messageContent += patchData.risks.map((r: string) => `⚠️ ${r}`).join('\n');
+                messageContent += '\n\n';
+              }
+              
+              messageContent += `**Patch ID:** ${patchData.id}\n\n`;
+              messageContent += 'Use the "Apply Patch" button to apply these changes.';
+
+              const assistantMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: messageContent,
+                timestamp: new Date(),
+                patchId: patchData.id,
+                status: 'pending',
+              };
+              
+              setMessages((prev) => [...prev, assistantMessage]);
+              setSelectedPatchId(patchData.id);
+            }
+
+            // Close dialog
+            setShowConfirmation(false);
+            setInterpretedRequest(null);
+            setPendingRequest('');
+          } catch (error) {
+            console.error('Failed to generate patch:', error);
+            
+            // Show error message
+            const errorMessage: Message = {
+              id: (Date.now() + 1).toString(),
+              role: 'assistant',
+              content: `**Error generating patch:** ${error}`,
+              timestamp: new Date(),
+            };
+            
+            setMessages((prev) => [...prev, errorMessage]);
+            
+            // Close dialog
+            setShowConfirmation(false);
+            setInterpretedRequest(null);
+            setPendingRequest('');
+          }
+        }}
+        onCancel={() => {
+          setShowConfirmation(false);
+          setInterpretedRequest(null);
+          setPendingRequest('');
+        }}
+        isGenerating={generatePlainLanguagePatch.isLoading}
+      />
     </div>
   );
 }
