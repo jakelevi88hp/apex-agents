@@ -245,5 +245,26 @@ export class GitHubService {
       throw new Error(`Failed to delete branch: ${error}`);
     }
   }
+
+  /**
+   * Search code in repository
+   */
+  async searchCode(query: string, repository?: string): Promise<any[]> {
+    try {
+      const repo = repository || `${this.owner}/${this.repo}`;
+      const { data } = await this.octokit.search.code({
+        q: `${query} repo:${repo}`,
+      });
+
+      return data.items.map((item: any) => ({
+        path: item.path,
+        content: item.text_matches?.[0]?.fragment || '',
+        lineNumber: 1,
+        repository: item.repository.full_name,
+      }));
+    } catch (error) {
+      throw new Error(`Code search failed: ${error}`);
+    }
+  }
 }
 

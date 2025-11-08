@@ -528,8 +528,13 @@ Moving to Option C: Business Features...
 - [x] Persist chat and patch responses
 
 ### Phase 2: File Upload & Repository Search
-- [ ] Add file upload component with drag-and-drop
-- [ ] Support multiple file types (images, PDFs, code files, text)
+- [x] Add file upload component with drag-and-drop
+- [x] Support multiple file types (images, PDFs, code files, text)
+- [x] Integrate S3 storage for file uploads
+- [x] Add upload endpoint to tRPC router
+- [x] Create RepositorySearch component
+- [x] Add searchRepository method to AI Admin agent
+- [x] Implement GitHub code search API integration
 - [ ] Implement file analysis with OpenAI Vision API
 - [ ] Store uploaded files in S3 with metadata in database
 - [ ] Add repository-wide code search using GitHub API

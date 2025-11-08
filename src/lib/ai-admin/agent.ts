@@ -865,6 +865,24 @@ Be helpful, concise, and technical. Provide code examples when relevant.`,
   getPatch(patchId: string): PatchRecord | undefined {
     return this.patchHistory.find(p => p.id === patchId);
   }
+
+  /**
+   * Search repository for code/text
+   */
+  async searchRepository(query: string, repository?: string): Promise<any[]> {
+    try {
+      if (!this.githubService) {
+        throw new Error('GitHub service not initialized');
+      }
+
+      // Use GitHub code search API
+      const results = await this.githubService.searchCode(query, repository);
+      return results;
+    } catch (error) {
+      await this.log(`Repository search failed: ${error}`, 'error');
+      return [];
+    }
+  }
 }
 
 // Export singleton instance

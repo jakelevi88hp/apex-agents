@@ -706,6 +706,31 @@ export const aiAdminRouter = router({
       }
     }),
 
+  // REPOSITORY SEARCH
+  searchRepository: adminProcedure
+    .input(
+      z.object({
+        query: z.string(),
+        repository: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const agent = getAIAdminAgent();
+        const results = await agent.searchRepository(input.query, input.repository);
+
+        return {
+          success: true,
+          data: results,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Repository search failed: ${error}`,
+        });
+      }
+    }),
+
   // FILE UPLOAD
   uploadFile: adminProcedure
     .input(
