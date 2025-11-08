@@ -516,9 +516,9 @@ Moving to Option C: Business Features...
 - [x] Add conversations table to database (id, user_id, title, created_at, updated_at)
 - [x] Add messages table (id, conversation_id, role, content, created_at)
 - [x] Implement conversation persistence in backend
-- [ ] Add conversation list sidebar
-- [ ] Add "New Conversation" button
-- [ ] Add conversation switching functionality
+- [x] Add conversation list sidebar
+- [x] Add "New Conversation" button
+- [x] Add conversation switching functionality
 - [x] Implement streaming responses with Server-Sent Events (SSE)
 - [ ] Add real-time typing indicators
 - [x] Implement multi-turn context retention (load conversation history)

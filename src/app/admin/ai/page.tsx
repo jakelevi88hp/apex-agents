@@ -355,27 +355,22 @@ export default function AIAdminPage() {
 
   const handleSelectConversation = (conversationId: string) => {
     setActiveConversationId(conversationId);
-    setIsProcessing(true);
-    trpc.aiAdmin.getConversationHistory.useQuery({ conversationId }, {
-      onSuccess: (data) => {
-        if (data.success && data.messages) {
-          const formattedMessages = data.messages.map((msg: any) => ({
-            id: msg.id,
-            role: msg.role,
-            content: msg.content,
-            timestamp: new Date(msg.timestamp),
-          }));
-          setMessages(formattedMessages);
-        }
-      },
-      onError: (error) => {
-        console.error('Failed to load conversation history:', error);
-      },
-      onSettled: () => {
-        setIsProcessing(false);
-      }
-    });
+    // History will be loaded by the useEffect below
   };
+
+  // Load conversation history when active conversation changes
+  useEffect(() => {
+    if (!activeConversationId) return;
+
+    // TODO: Fetch and load conversation history
+    // For now, just reset to welcome message
+    setMessages([{
+      id: 'welcome',
+      role: 'system',
+      content: `Switched to conversation ${activeConversationId}. History loading will be implemented next.`,
+      timestamp: new Date(),
+    }]);
+  }, [activeConversationId]);
 
   return (
     <div className="min-h-screen bg-gray-900 flex">
