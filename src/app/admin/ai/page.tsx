@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import ConversationList from './components/ConversationList';
 import FileUpload from './components/FileUpload';
+import RepositorySearch from './components/RepositorySearch';
 
 interface Message {
   id: string;
@@ -34,7 +35,7 @@ export default function AIAdminPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [selectedPatchId, setSelectedPatchId] = useState<string | null>(null);
   const [showPatchDetails, setShowPatchDetails] = useState(false);
-  const [mode, setMode] = useState<'chat' | 'patch'>('chat'); // Default to chat mode
+  const [mode, setMode] = useState<'chat' | 'patch' | 'search'>('chat'); // Default to chat mode
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
   const [showFileUpload, setShowFileUpload] = useState(false);
@@ -482,6 +483,16 @@ export default function AIAdminPage() {
                 >
                   🔧 Patch
                 </button>
+                <button
+                  onClick={() => setMode('search')}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    mode === 'search'
+                      ? 'bg-purple-600 text-white'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  🔍 Search
+                </button>
               </div>
               
               <button
@@ -495,8 +506,28 @@ export default function AIAdminPage() {
           </div>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        {/* Messages or Search */}
+        {mode === 'search' ? (
+          <div className="flex-1 overflow-hidden">
+            <RepositorySearch
+              onSelectFile={(file) => {
+                // Add selected file to context
+                setMessages(prev => [
+                  ...prev,
+                  {
+                    id: Date.now().toString(),
+                    role: 'system',
+                    content: `Selected file: ${file.path}\n\n${file.content}`,
+                    timestamp: new Date(),
+                  },
+                ]);
+                // Switch back to chat mode
+                setMode('chat');
+              }}
+            />
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -582,8 +613,10 @@ export default function AIAdminPage() {
           
           <div ref={messagesEndRef} />
         </div>
+        )}
 
         {/* Input */}
+        {mode !== 'search' && (
         <div className="border-t border-gray-700 p-6 bg-gray-800/50 space-y-4">
           {/* File Upload */}
           {showFileUpload && (
@@ -625,6 +658,7 @@ export default function AIAdminPage() {
             </button>
           </div>
         </div>
+        )}
       </div>
 
       {/* Sidebar - Patch History */}
