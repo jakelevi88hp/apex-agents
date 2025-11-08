@@ -678,11 +678,12 @@ Moving to Option C: Business Features...
 
 
 ## Frontend File Context Integration (Current)
-- [ ] Analyze current conversation management in AI Admin UI
-- [ ] Update chat component to pass conversationId to chat endpoint
-- [ ] Update patch generation to pass conversationId to generatePatch endpoint
-- [ ] Ensure conversationId is available in both Chat and Patch modes
-- [ ] Test chat with file context in UI
-- [ ] Test patch generation with file context in UI
-- [ ] Add visual indicators for file context usage
+- [x] Analyze current conversation management in AI Admin UI
+- [x] Update chat component to pass conversationId to chat endpoint
+- [x] Update patch generation to pass conversationId to generatePatch endpoint
+- [x] Ensure conversationId is available in both Chat and Patch modes
+- [x] Add visual indicators for file context usage
+- [x] Add console logging for debugging
+- [ ] Test chat with file context in UI (ready for testing)
+- [ ] Test patch generation with file context in UI (ready for testing)
 - [ ] Document frontend integration
