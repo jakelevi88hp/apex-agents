@@ -410,7 +410,7 @@ Be helpful, concise, and technical. Provide code examples when relevant.`,
               { role: 'system', content: systemPrompt },
               {
                 role: 'user',
-                content: `Request: ${requestText}\n\n${context.summary}\n\nCodebase structure: ${JSON.stringify(analysis.structure, null, 2)}\n\n# AVAILABLE COMPONENTS\nYou can ONLY use these components that exist in the project:\n- Components: ${context.componentInventory.components.join(', ')}\n- Layouts: ${context.componentInventory.layouts.join(', ')}\n- Contexts: ${context.componentInventory.contexts.join(', ')}\n\n⚠️ DO NOT reference components that are not in this list! They don't exist.\n\nRelevant file contents:\n${Object.entries(relevantFiles).map(([path, content]) => `\n=== ${path} ===\n${content}`).join('\n')}${attempt > 1 ? `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}\n\nPlease ensure your response follows the exact JSON format with a 'files' array.` : ''}\n\nIMPORTANT: Your response MUST be a valid JSON object with this exact structure:\n{\n  "files": [{"path": "...", "action": "...", "content": "...", "explanation": "..."}],\n  "summary": "...",\n  "testingSteps": [...],\n  "risks": [...],\n  "databaseChanges": {...}\n}`,
+                content: `Request: ${requestText}\n\n${context.summary}\n\nCodebase structure: ${JSON.stringify(analysis.structure, null, 2)}\n\n# AVAILABLE COMPONENTS\nYou can ONLY use these components that exist in the project:\n- Components: ${context.componentInventory.components.join(', ')}\n- Layouts: ${context.componentInventory.layouts.join(', ')}\n- Contexts: ${context.componentInventory.contexts.join(', ')}\n\n⚠️ DO NOT reference components that are not in this list! They don't exist.\n\nRelevant file contents:\n${Object.entries(relevantFiles).map(([path, content]) => `\n=== ${path} ===\n${content}`).join('\n')}${attempt > 1 ? `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}\n\nPlease ensure your response follows the exact JSON format with a 'files' array.` : ''}\n\n🚨 CRITICAL: Your response MUST be a valid JSON object with this EXACT structure:\n{\n  "files": [\n    {\n      "path": "src/path/to/file.tsx",  ← REQUIRED: Must be a valid relative file path\n      "action": "create" | "modify" | "delete",  ← REQUIRED: Must be one of these three\n      "content": "...complete file content...",  ← REQUIRED for create/modify\n      "explanation": "...why this change..."  ← REQUIRED: Explain the change\n    }\n  ],\n  "summary": "Brief description of all changes",\n  "testingSteps": ["step 1", "step 2"],\n  "risks": ["risk 1"],\n  "databaseChanges": { "required": false }\n}\n\n⚠️ EVERY file object MUST have a "path" field with a valid file path!\n⚠️ DO NOT leave "path" as undefined, null, or empty string!`,
               },
             ],
             response_format: { type: 'json_object' },
@@ -422,6 +422,22 @@ Be helpful, concise, and technical. Provide code examples when relevant.`,
           
           patchData = JSON.parse(rawContent);
           await this.log(`Parsed patch data keys: ${Object.keys(patchData).join(', ')}`);
+          
+          // CRITICAL: Check for undefined paths immediately after parsing
+          if (patchData.files && Array.isArray(patchData.files)) {
+            const filesWithUndefinedPaths = patchData.files.filter((f: any) => !f.path || f.path === 'undefined');
+            if (filesWithUndefinedPaths.length > 0) {
+              lastError = `AI generated ${filesWithUndefinedPaths.length} file(s) with undefined or missing "path" field. This is a critical error.`;
+              await this.log(lastError, 'error');
+              await this.log(`Files with undefined paths: ${JSON.stringify(filesWithUndefinedPaths, null, 2)}`, 'error');
+              if (attempt < 3) {
+                continue; // Retry
+              } else {
+                throw new Error(lastError);
+              }
+            }
+            await this.log(`All ${patchData.files.length} files have valid path fields`);
+          }
           
           // Validate immediately using PatchValidator
           const validationResult = this.patchValidator.validate(patchData as PatchData, requestText);
