@@ -10,6 +10,9 @@ export * from './schema/ai-patches';
 // Export AI conversations tables
 export * from './schema/ai-conversations';
 
+// Export AGI memory tables
+export * from './schema/agi-memory';
+
 // ============================================================================
 // USERS & AUTHENTICATION
 // ============================================================================

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { agiCore } from '@/lib/agi/core';
+import { EnhancedAGICore } from '@/lib/agi/enhanced-core';
 import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-limit';
 import { SubscriptionService } from '@/lib/subscription/service';
 import { extractTokenFromRequest, verifyToken } from '@/lib/auth/jwt';
@@ -75,7 +75,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await agiCore.processInput(input);
+    // Create enhanced AGI instance with user context
+    const enhancedAGI = new EnhancedAGICore({
+      userId: user.userId,
+      enableMemory: true,
+      enableConversationHistory: true,
+      enableAdvancedReasoning: true,
+      enableEmotionalIntelligence: true,
+      enableCreativity: true,
+    });
+
+    const response = await enhancedAGI.processInput(input);
     
     // Track AGI message usage
     try {
