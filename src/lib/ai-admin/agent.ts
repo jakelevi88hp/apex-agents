@@ -883,6 +883,70 @@ Be helpful, concise, and technical. Provide code examples when relevant.`,
       return [];
     }
   }
+
+  /**
+   * List GitHub issues
+   */
+  async listGitHubIssues(repository?: string, state: 'open' | 'closed' | 'all' = 'open'): Promise<any[]> {
+    try {
+      if (!this.githubService) {
+        throw new Error('GitHub service not initialized');
+      }
+
+      const issues = await this.githubService.listIssues(state);
+      return issues;
+    } catch (error) {
+      await this.log(`Failed to list issues: ${error}`, 'error');
+      return [];
+    }
+  }
+
+  /**
+   * Create GitHub issue
+   */
+  async createGitHubIssue(
+    title: string,
+    body?: string,
+    repository?: string,
+    labels?: string[]
+  ): Promise<any> {
+    try {
+      if (!this.githubService) {
+        throw new Error('GitHub service not initialized');
+      }
+
+      const issue = await this.githubService.createIssue(title, body, labels);
+      await this.log(`Created issue: ${title}`);
+      return issue;
+    } catch (error) {
+      await this.log(`Failed to create issue: ${error}`, 'error');
+      throw error;
+    }
+  }
+
+  /**
+   * Create Pull Request
+   */
+  async createPullRequest(
+    title: string,
+    head: string,
+    base: string = 'main',
+    body?: string,
+    repository?: string
+  ): Promise<any> {
+    try {
+      if (!this.githubService) {
+        throw new Error('GitHub service not initialized');
+      }
+
+      const pr = await this.githubService.createPullRequest(title, head, base, body);
+      await this.log(`Created PR: ${title}`);
+      return pr;
+    } catch (error) {
+      await this.log(`Failed to create PR: ${error}`, 'error');
+      throw error;
+    }
+  }
 }
 
 // Export singleton instance

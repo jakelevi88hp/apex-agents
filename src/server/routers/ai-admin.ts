@@ -706,6 +706,95 @@ export const aiAdminRouter = router({
       }
     }),
 
+  // GITHUB INTEGRATION
+  listIssues: adminProcedure
+    .input(
+      z.object({
+        repository: z.string().optional(),
+        state: z.enum(['open', 'closed', 'all']).optional().default('open'),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        const agent = getAIAdminAgent();
+        const issues = await agent.listGitHubIssues(input.repository, input.state);
+
+        return {
+          success: true,
+          data: issues,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to list issues: ${error}`,
+        });
+      }
+    }),
+
+  createIssue: adminProcedure
+    .input(
+      z.object({
+        repository: z.string().optional(),
+        title: z.string(),
+        body: z.string().optional(),
+        labels: z.array(z.string()).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const agent = getAIAdminAgent();
+        const issue = await agent.createGitHubIssue(
+          input.title,
+          input.body,
+          input.repository,
+          input.labels
+        );
+
+        return {
+          success: true,
+          data: issue,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to create issue: ${error}`,
+        });
+      }
+    }),
+
+  createPullRequest: adminProcedure
+    .input(
+      z.object({
+        repository: z.string().optional(),
+        title: z.string(),
+        body: z.string().optional(),
+        head: z.string(),
+        base: z.string().optional().default('main'),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const agent = getAIAdminAgent();
+        const pr = await agent.createPullRequest(
+          input.title,
+          input.head,
+          input.base,
+          input.body,
+          input.repository
+        );
+
+        return {
+          success: true,
+          data: pr,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to create PR: ${error}`,
+        });
+      }
+    }),
+
   // REPOSITORY SEARCH
   searchRepository: adminProcedure
     .input(

@@ -266,5 +266,63 @@ export class GitHubService {
       throw new Error(`Code search failed: ${error}`);
     }
   }
+
+  /**
+   * List issues
+   */
+  async listIssues(state: 'open' | 'closed' | 'all' = 'open'): Promise<any[]> {
+    try {
+      const { data } = await this.octokit.issues.listForRepo({
+        owner: this.owner,
+        repo: this.repo,
+        state,
+      });
+      return data;
+    } catch (error) {
+      throw new Error(`Failed to list issues: ${error}`);
+    }
+  }
+
+  /**
+   * Create issue
+   */
+  async createIssue(title: string, body?: string, labels?: string[]): Promise<any> {
+    try {
+      const { data } = await this.octokit.issues.create({
+        owner: this.owner,
+        repo: this.repo,
+        title,
+        body,
+        labels,
+      });
+      return data;
+    } catch (error) {
+      throw new Error(`Failed to create issue: ${error}`);
+    }
+  }
+
+  /**
+   * Create pull request
+   */
+  async createPullRequest(
+    title: string,
+    head: string,
+    base: string = 'main',
+    body?: string
+  ): Promise<any> {
+    try {
+      const { data } = await this.octokit.pulls.create({
+        owner: this.owner,
+        repo: this.repo,
+        title,
+        head,
+        base,
+        body,
+      });
+      return data;
+    } catch (error) {
+      throw new Error(`Failed to create pull request: ${error}`);
+    }
+  }
 }
 
