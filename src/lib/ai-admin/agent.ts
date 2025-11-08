@@ -21,6 +21,7 @@ import { getSystemPrompt } from './system-prompt';
 import { patchStorage } from './patch-storage';
 import { ContextBuilder } from './context-builder';
 import { ContextGatherer } from './context-gatherer';
+import { PatchValidator, PatchData } from './patch-validator';
 
 const execAsync = promisify(exec);
 
@@ -51,6 +52,7 @@ export class AIAdminAgent {
   private model: string;
   private contextBuilder: ContextBuilder;
   private contextGatherer: ContextGatherer | null = null;
+  private patchValidator: PatchValidator;
 
   constructor(apiKey: string, projectRoot: string = process.cwd(), model?: string) {
     this.openai = new OpenAI({ apiKey });
@@ -63,6 +65,10 @@ export class AIAdminAgent {
     
     // Initialize context builder
     this.contextBuilder = new ContextBuilder(projectRoot);
+    
+    // Initialize patch validator
+    this.patchValidator = new PatchValidator();
+    this.log('PatchValidator initialized');
     
     // Initialize GitHub integration if token is available
     try {
@@ -417,18 +423,23 @@ Be helpful, concise, and technical. Provide code examples when relevant.`,
           patchData = JSON.parse(rawContent);
           await this.log(`Parsed patch data keys: ${Object.keys(patchData).join(', ')}`);
           
-          // Validate immediately
-          const validationErrors = await this.validatePatchData(patchData, requestText);
-          if (validationErrors.length === 0) {
+          // Validate immediately using PatchValidator
+          const validationResult = this.patchValidator.validate(patchData as PatchData, requestText);
+          
+          if (validationResult.valid) {
+            // Log warnings if any
+            if (validationResult.warnings.length > 0) {
+              await this.log(`Patch validation warnings: ${validationResult.warnings.join('; ')}`, 'warning');
+            }
             await this.log(`Patch generated successfully on attempt ${attempt}`);
             break; // Success!
           }
           
-          lastError = validationErrors.join(', ');
-          await this.log(`Attempt ${attempt} validation failed: ${lastError}`, 'warning');
+          lastError = this.patchValidator.formatErrorMessage(validationResult, requestText);
+          await this.log(`Attempt ${attempt} validation failed: ${validationResult.errors.join('; ')}`, 'warning');
           
           if (attempt === 3) {
-            throw new Error(`Patch validation failed after 3 attempts:\n${validationErrors.join('\n')}`);
+            throw new Error(lastError);
           }
         } catch (error) {
           if (attempt === 3) {
