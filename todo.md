@@ -545,11 +545,11 @@ Moving to Option C: Business Features...
 - [ ] Implement semantic code search (search by description)
 
 ### Phase 3: Advanced Patch Management
-- [ ] Create side-by-side diff viewer component
-- [ ] Add syntax highlighting to diff view
-- [ ] Implement apply/reject individual changes (hunks)
+- [x] Create side-by-side diff viewer component
+- [x] Add syntax highlighting to diff view
+- [x] Implement apply/reject individual changes (hunks)
 - [ ] Add patch editing before applying
-- [ ] Create patch preview modal
+- [x] Create patch preview modal
 - [ ] Add "Undo" functionality for applied patches
 - [ ] Implement multi-file patch visualization
 - [ ] Add conflict detection and resolution UI
