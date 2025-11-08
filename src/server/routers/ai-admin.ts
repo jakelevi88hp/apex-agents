@@ -9,6 +9,7 @@ import { router, protectedProcedure } from '../trpc';
 import { getAIAdminAgent } from '@/lib/ai-admin/agent';
 import { patchStorage } from '@/lib/ai-admin/patch-storage';
 import * as conversationManager from '@/lib/ai-admin/conversation-manager';
+import { uploadFile } from '@/lib/knowledge-base/storage';
 import { observable } from '@trpc/server/observable';
 import OpenAI from 'openai';
 import { TRPCError } from '@trpc/server';
@@ -701,6 +702,46 @@ export const aiAdminRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: `Failed to search conversations: ${error}`,
+        });
+      }
+    }),
+
+  // FILE UPLOAD
+  uploadFile: adminProcedure
+    .input(
+      z.object({
+        fileName: z.string(),
+        fileData: z.string(),
+        contentType: z.string(),
+        messageId: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const fileBuffer = Buffer.from(input.fileData, 'base64');
+        
+        const result = await uploadFile({
+          file: fileBuffer,
+          fileName: input.fileName,
+          contentType: input.contentType,
+          userId: ctx.userId,
+        });
+
+        if (!result.success) {
+          throw new Error(result.error || 'Upload failed');
+        }
+
+        return {
+          success: true,
+          data: {
+            key: result.key,
+            url: result.url,
+          },
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `File upload failed: ${error}`,
         });
       }
     }),

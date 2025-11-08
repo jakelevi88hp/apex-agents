@@ -8,6 +8,7 @@ import {
   History, RotateCcw, ShieldAlert, LogIn
 } from 'lucide-react';
 import ConversationList from './components/ConversationList';
+import FileUpload from './components/FileUpload';
 
 interface Message {
   id: string;
@@ -35,6 +36,8 @@ export default function AIAdminPage() {
   const [showPatchDetails, setShowPatchDetails] = useState(false);
   const [mode, setMode] = useState<'chat' | 'patch'>('chat'); // Default to chat mode
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [showFileUpload, setShowFileUpload] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Create conversation mutations
@@ -581,8 +584,28 @@ export default function AIAdminPage() {
         </div>
 
         {/* Input */}
-        <div className="border-t border-gray-700 p-6 bg-gray-800/50">
+        <div className="border-t border-gray-700 p-6 bg-gray-800/50 space-y-4">
+          {/* File Upload */}
+          {showFileUpload && (
+            <FileUpload
+              onFilesUploaded={(files) => setUploadedFiles(files)}
+              maxFiles={3}
+              maxSizeMB={10}
+            />
+          )}
+
           <div className="flex gap-3">
+            <button
+              onClick={() => setShowFileUpload(!showFileUpload)}
+              className={`px-4 py-3 rounded-lg transition-colors flex items-center gap-2 ${
+                showFileUpload
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+              title="Attach files"
+            >
+              <FileText className="w-5 h-5" />
+            </button>
             <input
               type="text"
               value={input}
