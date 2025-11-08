@@ -7,6 +7,7 @@ import {
   Code, FileText, AlertTriangle, Loader2, Terminal,
   History, RotateCcw, ShieldAlert, LogIn
 } from 'lucide-react';
+import ConversationList from './components/ConversationList';
 
 interface Message {
   id: string;
@@ -33,7 +34,12 @@ export default function AIAdminPage() {
   const [selectedPatchId, setSelectedPatchId] = useState<string | null>(null);
   const [showPatchDetails, setShowPatchDetails] = useState(false);
   const [mode, setMode] = useState<'chat' | 'patch'>('chat'); // Default to chat mode
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Create conversation mutations
+  const createConversation = trpc.aiAdmin.createConversation.useMutation();
+  const deleteConversation = trpc.aiAdmin.deleteConversation.useMutation();
 
   // Check authentication
   useEffect(() => {
@@ -328,8 +334,41 @@ export default function AIAdminPage() {
     }
   };
 
+  // Handle conversation actions
+  const handleNewConversation = async () => {
+    try {
+      const result = await createConversation.mutateAsync({ title: 'New Conversation' });
+      if (result.success && result.data) {
+        setActiveConversationId(result.data.id);
+        // Clear messages for new conversation
+        setMessages([{
+          id: 'welcome',
+          role: 'system',
+          content: 'AI Admin Agent initialized. Toggle between **Chat Mode** (ask questions, explore the codebase) and **Patch Mode** (generate and apply code changes).',
+          timestamp: new Date(),
+        }]);
+      }
+    } catch (error) {
+      console.error('Failed to create conversation:', error);
+    }
+  };
+
+  const handleSelectConversation = (conversationId: string) => {
+    setActiveConversationId(conversationId);
+    // TODO: Load conversation history
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 flex">
+      {/* Conversation List Sidebar */}
+      <div className="w-80 flex-shrink-0">
+        <ConversationList
+          activeConversationId={activeConversationId}
+          onSelectConversation={handleSelectConversation}
+          onNewConversation={handleNewConversation}
+        />
+      </div>
+
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
