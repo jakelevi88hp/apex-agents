@@ -661,3 +661,15 @@ Moving to Option C: Business Features...
 - [x] Update patch generation examples in system prompt
 - [ ] Test patch generation with various requests (ready for testing)
 - [ ] Verify fix on production deployment
+
+
+## File Context Integration (Current)
+- [ ] Design file context integration architecture
+- [ ] Create FileContextGatherer class to retrieve uploaded files
+- [ ] Add getConversationFiles endpoint to fetch files by conversation
+- [ ] Integrate file context into chat message generation
+- [ ] Integrate file context into patch generation
+- [ ] Pass Vision API analysis results to AI in prompts
+- [ ] Test file context with image-based code generation
+- [ ] Test file context with error screenshot debugging
+- [ ] Document file context integration

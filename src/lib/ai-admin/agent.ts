@@ -260,7 +260,8 @@ ${f.content}
    */
   async chat(
     message: string,
-    conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = []
+    conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [],
+    fileContextText?: string
   ): Promise<string> {
     await this.log(`Chat message received: "${message}"`);
 
@@ -299,6 +300,7 @@ ${context.files.length > 0 ? context.files.map(f => `## ${f.path}
 ${f.content}
 \`\`\``).join('\n\n') : 'No specific files loaded for this query.'}
 
+${fileContextText ? `\n${fileContextText}\n` : ''}
 # YOUR ROLE
 
 You are in CHAT MODE. Your job is to:
@@ -349,7 +351,7 @@ Be helpful, concise, and technical. Provide code examples when relevant.`,
   /**
    * Generate a code patch based on natural language request
    */
-  async generatePatch(requestText: string): Promise<PatchRecord> {
+  async generatePatch(requestText: string, fileContextText?: string): Promise<PatchRecord> {
     await this.log(`Generating patch for request: "${requestText}"`);
 
     try {
@@ -410,7 +412,7 @@ Be helpful, concise, and technical. Provide code examples when relevant.`,
               { role: 'system', content: systemPrompt },
               {
                 role: 'user',
-                content: `Request: ${requestText}\n\n${context.summary}\n\nCodebase structure: ${JSON.stringify(analysis.structure, null, 2)}\n\n# AVAILABLE COMPONENTS\nYou can ONLY use these components that exist in the project:\n- Components: ${context.componentInventory.components.join(', ')}\n- Layouts: ${context.componentInventory.layouts.join(', ')}\n- Contexts: ${context.componentInventory.contexts.join(', ')}\n\n⚠️ DO NOT reference components that are not in this list! They don't exist.\n\nRelevant file contents:\n${Object.entries(relevantFiles).map(([path, content]) => `\n=== ${path} ===\n${content}`).join('\n')}${attempt > 1 ? `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}\n\nPlease ensure your response follows the exact JSON format with a 'files' array.` : ''}\n\n🚨 CRITICAL: Your response MUST be a valid JSON object with this EXACT structure:\n{\n  "files": [\n    {\n      "path": "src/path/to/file.tsx",  ← REQUIRED: Must be a valid relative file path\n      "action": "create" | "modify" | "delete",  ← REQUIRED: Must be one of these three\n      "content": "...complete file content...",  ← REQUIRED for create/modify\n      "explanation": "...why this change..."  ← REQUIRED: Explain the change\n    }\n  ],\n  "summary": "Brief description of all changes",\n  "testingSteps": ["step 1", "step 2"],\n  "risks": ["risk 1"],\n  "databaseChanges": { "required": false }\n}\n\n⚠️ EVERY file object MUST have a "path" field with a valid file path!\n⚠️ DO NOT leave "path" as undefined, null, or empty string!`,
+                content: `Request: ${requestText}\n\n${context.summary}\n\nCodebase structure: ${JSON.stringify(analysis.structure, null, 2)}\n\n# AVAILABLE COMPONENTS\nYou can ONLY use these components that exist in the project:\n- Components: ${context.componentInventory.components.join(', ')}\n- Layouts: ${context.componentInventory.layouts.join(', ')}\n- Contexts: ${context.componentInventory.contexts.join(', ')}\n\n⚠️ DO NOT reference components that are not in this list! They don't exist.\n\nRelevant file contents:\n${Object.entries(relevantFiles).map(([path, content]) => `\n=== ${path} ===\n${content}`).join('\n')}\n\n${fileContextText ? `${fileContextText}\n\n` : ''}${attempt > 1 ? `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}\n\nPlease ensure your response follows the exact JSON format with a 'files' array.` : ''}\n\n🚨 CRITICAL: Your response MUST be a valid JSON object with this EXACT structure:\n{\n  "files": [\n    {\n      "path": "src/path/to/file.tsx",  ← REQUIRED: Must be a valid relative file path\n      "action": "create" | "modify" | "delete",  ← REQUIRED: Must be one of these three\n      "content": "...complete file content...",  ← REQUIRED for create/modify\n      "explanation": "...why this change..."  ← REQUIRED: Explain the change\n    }\n  ],\n  "summary": "Brief description of all changes",\n  "testingSteps": ["step 1", "step 2"],\n  "risks": ["risk 1"],\n  "databaseChanges": { "required": false }\n}\n\n⚠️ EVERY file object MUST have a "path" field with a valid file path!\n⚠️ DO NOT leave "path" as undefined, null, or empty string!`,
               },
             ],
             response_format: { type: 'json_object' },

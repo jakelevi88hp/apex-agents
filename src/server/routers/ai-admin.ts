@@ -62,12 +62,31 @@ export const aiAdminRouter = router({
             content: z.string(),
           })
         ).optional(),
+        conversationId: z.string().optional(),
       })
     )
     .mutation(async ({ input }) => {
       try {
         const agent = getAIAdminAgent();
-        const response = await agent.chat(input.message, input.conversationHistory || []);
+        
+        // Get file context if conversation ID is provided
+        let fileContextText: string | undefined;
+        if (input.conversationId) {
+          const { FileContextGatherer } = await import('@/lib/ai-admin/file-context-gatherer');
+          const gatherer = new FileContextGatherer();
+          const fileContext = await gatherer.getConversationFileContext(input.conversationId);
+          
+          if (fileContext.totalFiles > 0) {
+            fileContextText = fileContext.contextText;
+            console.log(`[chat] Including ${fileContext.totalFiles} uploaded files in context`);
+          }
+        }
+        
+        const response = await agent.chat(
+          input.message, 
+          input.conversationHistory || [],
+          fileContextText
+        );
         
         return {
           success: true,
@@ -107,12 +126,27 @@ export const aiAdminRouter = router({
     .input(
       z.object({
         request: z.string().min(1, 'Request cannot be empty'),
+        conversationId: z.string().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
       try {
         const agent = getAIAdminAgent();
-        const patch = await agent.generatePatch(input.request);
+        
+        // Get file context if conversation ID is provided
+        let fileContextText: string | undefined;
+        if (input.conversationId) {
+          const { FileContextGatherer } = await import('@/lib/ai-admin/file-context-gatherer');
+          const gatherer = new FileContextGatherer();
+          const fileContext = await gatherer.getConversationFileContext(input.conversationId);
+          
+          if (fileContext.totalFiles > 0) {
+            fileContextText = fileContext.contextText;
+            console.log(`[generatePatch] Including ${fileContext.totalFiles} uploaded files in context`);
+          }
+        }
+        
+        const patch = await agent.generatePatch(input.request, fileContextText);
         
         // Save patch to database for persistence across serverless instances
         console.log('[generatePatch] Original agent patch ID:', patch.id, 'Type:', typeof patch.id);
@@ -1085,6 +1119,57 @@ export const aiAdminRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: `Batch image analysis failed: ${error}`,
+        });
+      }
+    }),
+
+  // FILE CONTEXT
+  getConversationFiles: adminProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        const { FileContextGatherer } = await import('@/lib/ai-admin/file-context-gatherer');
+        const gatherer = new FileContextGatherer();
+        
+        const fileContext = await gatherer.getConversationFileContext(input.conversationId);
+
+        return {
+          success: true,
+          data: fileContext,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to get conversation files: ${error}`,
+        });
+      }
+    }),
+
+  getRecentFiles: adminProcedure
+    .input(
+      z.object({
+        limit: z.number().optional().default(5),
+      })
+    )
+    .query(async ({ input }) => {
+      try {
+        const { FileContextGatherer } = await import('@/lib/ai-admin/file-context-gatherer');
+        const gatherer = new FileContextGatherer();
+        
+        const fileContext = await gatherer.getRecentFileContext(input.limit);
+
+        return {
+          success: true,
+          data: fileContext,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to get recent files: ${error}`,
         });
       }
     }),
