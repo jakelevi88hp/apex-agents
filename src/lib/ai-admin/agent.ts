@@ -20,6 +20,7 @@ import { GitHubService, CommitFileChange } from './github-service';
 import { getSystemPrompt } from './system-prompt';
 import { patchStorage } from './patch-storage';
 import { ContextBuilder } from './context-builder';
+import { ContextGatherer } from './context-gatherer';
 
 const execAsync = promisify(exec);
 
@@ -49,6 +50,7 @@ export class AIAdminAgent {
   private isProduction: boolean;
   private model: string;
   private contextBuilder: ContextBuilder;
+  private contextGatherer: ContextGatherer | null = null;
 
   constructor(apiKey: string, projectRoot: string = process.cwd(), model?: string) {
     this.openai = new OpenAI({ apiKey });
@@ -79,6 +81,14 @@ export class AIAdminAgent {
         defaultBranch: 'main',
       });
       this.log('GitHub Service initialized for production patch application');
+      
+      // Initialize ContextGatherer for intelligent file discovery
+      this.contextGatherer = new ContextGatherer(
+        this.githubService,
+        process.env.GITHUB_OWNER || 'jakelevi88hp',
+        process.env.GITHUB_REPO || 'apex-agents'
+      );
+      this.log('ContextGatherer initialized for intelligent context gathering');
     }
   }
 
@@ -342,8 +352,34 @@ Be helpful, concise, and technical. Provide code examples when relevant.`,
 
       // Gather intelligent context based on the request
       await this.log('Gathering intelligent context for request...');
+      
+      // Use ContextGatherer in production for better file discovery
+      let gatheredContext = null;
+      if (this.contextGatherer) {
+        try {
+          await this.log('Using ContextGatherer for intelligent file discovery...');
+          gatheredContext = await this.contextGatherer.gatherContext(requestText, 15, 100000);
+          await this.log(`ContextGatherer found ${gatheredContext.files.length} relevant files using ${gatheredContext.strategy} strategy`);
+          await this.log(`Keywords extracted: ${gatheredContext.keywords.join(', ')}`);
+        } catch (error) {
+          await this.log(`ContextGatherer failed, falling back to ContextBuilder: ${error}`, 'warning');
+        }
+      }
+      
       const context = await this.contextBuilder.gatherContext(requestText);
       await this.log(`Context gathered: ${context.files.length} files, ${context.componentInventory.components.length} components available`);
+      
+      // Merge contexts if we have both
+      if (gatheredContext) {
+        // Add files from ContextGatherer that aren't already in context
+        const existingPaths = new Set(context.files.map(f => f.path));
+        for (const file of gatheredContext.files) {
+          if (!existingPaths.has(file.path)) {
+            context.files.push(file);
+          }
+        }
+        await this.log(`Enhanced context: ${context.files.length} total files after merging`);
+      }
       
       // Convert to the format expected by the prompt
       const relevantFiles: Record<string, string> = {};
