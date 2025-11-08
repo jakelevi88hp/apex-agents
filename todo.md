@@ -644,3 +644,11 @@ Moving to Option C: Business Features...
 - [x] Implement patch quality assessment scoring
 - [ ] Implement incremental context loading
 - [ ] Add user feedback when context is insufficient
+
+
+## Patch Generation Format Fix (Critical)
+- [x] Fix AI prompt to ensure "path" field is always included in patch files
+- [x] Add validation to reject patches with undefined/missing paths
+- [x] Update patch generation examples in system prompt
+- [ ] Test patch generation with various requests (ready for testing)
+- [ ] Verify fix on production deployment
