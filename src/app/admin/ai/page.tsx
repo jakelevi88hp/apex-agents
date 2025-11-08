@@ -355,7 +355,26 @@ export default function AIAdminPage() {
 
   const handleSelectConversation = (conversationId: string) => {
     setActiveConversationId(conversationId);
-    // TODO: Load conversation history
+    setIsProcessing(true);
+    trpc.aiAdmin.getConversationHistory.useQuery({ conversationId }, {
+      onSuccess: (data) => {
+        if (data.success && data.messages) {
+          const formattedMessages = data.messages.map((msg: any) => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+            timestamp: new Date(msg.timestamp),
+          }));
+          setMessages(formattedMessages);
+        }
+      },
+      onError: (error) => {
+        console.error('Failed to load conversation history:', error);
+      },
+      onSettled: () => {
+        setIsProcessing(false);
+      }
+    });
   };
 
   return (
@@ -748,4 +767,3 @@ function PatchDetailsContent({ patchId }: { patchId: string }) {
     </div>
   );
 }
-
