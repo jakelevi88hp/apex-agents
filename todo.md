@@ -675,3 +675,14 @@ Moving to Option C: Business Features...
 - [ ] Test file context with image-based code generation (ready for testing)
 - [ ] Test file context with error screenshot debugging (ready for testing)
 - [ ] Update frontend to pass conversationId to chat and patch endpoints
+
+
+## Frontend File Context Integration (Current)
+- [ ] Analyze current conversation management in AI Admin UI
+- [ ] Update chat component to pass conversationId to chat endpoint
+- [ ] Update patch generation to pass conversationId to generatePatch endpoint
+- [ ] Ensure conversationId is available in both Chat and Patch modes
+- [ ] Test chat with file context in UI
+- [ ] Test patch generation with file context in UI
+- [ ] Add visual indicators for file context usage
+- [ ] Document frontend integration

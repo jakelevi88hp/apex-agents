@@ -56,6 +56,12 @@ export default function AIAdminPage() {
     { enabled: !!activeConversationId }
   );
 
+  // Query for conversation files (for file context)
+  const { data: conversationFiles } = trpc.aiAdmin.getConversationFiles.useQuery(
+    { conversationId: activeConversationId! },
+    { enabled: !!activeConversationId }
+  );
+
   // Check authentication
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -197,9 +203,15 @@ export default function AIAdminPage() {
             content: m.content,
           }));
 
+        // Log file context status
+        if (activeConversationId && conversationFiles?.data) {
+          console.log(`[AI Admin] File context available: ${conversationFiles.data.totalFiles} files, ${conversationFiles.data.analyzedFiles} analyzed`);
+        }
+
         const result = await chatMutation.mutateAsync({
           message: input,
           conversationHistory,
+          conversationId: activeConversationId || undefined,
         });
 
         if (result.success && result.message) {
@@ -228,8 +240,14 @@ export default function AIAdminPage() {
       }
 
       // Patch mode - generate and store patches
+      // Log file context status
+      if (activeConversationId && conversationFiles?.data) {
+        console.log(`[AI Admin] File context available: ${conversationFiles.data.totalFiles} files, ${conversationFiles.data.analyzedFiles} analyzed`);
+      }
+
       const result = await generatePatchMutation.mutateAsync({ 
-        request: input  // Changed from command to request
+        request: input,  // Changed from command to request
+        conversationId: activeConversationId || undefined,
       });
 
       if (result.success && result.data) {
@@ -686,6 +704,22 @@ export default function AIAdminPage() {
               Send
             </button>
           </div>
+          
+          {/* File Context Indicator */}
+          {conversationFiles?.data && conversationFiles.data.totalFiles > 0 && (
+            <div className="px-4 py-2 bg-purple-500/10 border-t border-purple-500/20 text-xs text-purple-300 flex items-center gap-2">
+              <FileText className="w-3 h-3" />
+              <span>
+                {conversationFiles.data.totalFiles} file{conversationFiles.data.totalFiles > 1 ? 's' : ''} uploaded
+                {conversationFiles.data.analyzedFiles > 0 && (
+                  <span className="ml-1 text-green-400">
+                    ({conversationFiles.data.analyzedFiles} analyzed)
+                  </span>
+                )}
+                - AI will use this context
+              </span>
+            </div>
+          )}
         </div>
         )}
       </div>
