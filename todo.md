@@ -523,6 +523,9 @@ Moving to Option C: Business Features...
 - [ ] Add real-time typing indicators
 - [x] Implement multi-turn context retention (load conversation history)
 - [x] Add conversation search functionality
+- [x] Save messages to database when sent
+- [x] Load messages from database when switching conversations
+- [x] Persist chat and patch responses
 
 ### Phase 2: File Upload & Repository Search
 - [ ] Add file upload component with drag-and-drop
