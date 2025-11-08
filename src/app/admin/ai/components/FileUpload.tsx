@@ -4,6 +4,15 @@ import { useState, useCallback } from 'react';
 import { Upload, X, File, Image, FileText, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 
+interface VisionAnalysisResult {
+  description: string;
+  detectedElements: string[];
+  suggestedContext: string;
+  codeSnippets?: string[];
+  uiComponents?: string[];
+  errorMessages?: string[];
+}
+
 interface UploadedFile {
   id: string;
   name: string;
@@ -12,18 +21,22 @@ interface UploadedFile {
   url?: string;
   uploading: boolean;
   error?: string;
+  analysis?: VisionAnalysisResult;
+  analyzing?: boolean;
 }
 
 interface FileUploadProps {
   onFilesUploaded: (files: UploadedFile[]) => void;
   maxFiles?: number;
   maxSizeMB?: number;
+  showAnalysis?: boolean;
 }
 
 export default function FileUpload({
   onFilesUploaded,
   maxFiles = 5,
   maxSizeMB = 10,
+  showAnalysis = true,
 }: FileUploadProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -68,6 +81,7 @@ export default function FileUpload({
   };
 
   const uploadFileMutation = trpc.aiAdmin.uploadFile.useMutation();
+  const analyzeImageMutation = trpc.aiAdmin.analyzeImage.useMutation();
 
   const uploadFile = async (file: globalThis.File): Promise<UploadedFile> => {
     const uploadedFile: UploadedFile = {
@@ -98,6 +112,23 @@ export default function FileUpload({
       
       uploadedFile.uploading = false;
       uploadedFile.url = result.data.url;
+      
+      // Automatically analyze images
+      if (file.type.startsWith('image/') && result.data.url && result.data.id) {
+        uploadedFile.analyzing = true;
+        try {
+          const analysis = await analyzeImageMutation.mutateAsync({
+            imageUrl: result.data.url,
+            fileId: result.data.id,
+          });
+          console.log('[FileUpload] Image analysis completed:', analysis.data);
+          uploadedFile.analysis = analysis.data;
+          uploadedFile.analyzing = false;
+        } catch (error) {
+          console.error('[FileUpload] Image analysis failed:', error);
+          uploadedFile.analyzing = false;
+        }
+      }
       
       return uploadedFile;
     } catch (error) {
@@ -227,8 +258,19 @@ export default function FileUpload({
                 <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
               )}
 
+              {file.analyzing && (
+                <div className="text-xs text-purple-400 flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Analyzing...
+                </div>
+              )}
+
               {file.error && (
                 <div className="text-xs text-red-400">{file.error}</div>
+              )}
+
+              {file.analysis && showAnalysis && (
+                <div className="text-xs text-green-400">✓ Analyzed</div>
               )}
 
               <button

@@ -922,6 +922,7 @@ export const aiAdminRouter = router({
       try {
         const fileBuffer = Buffer.from(input.fileData, 'base64');
         
+        // Upload to S3
         const result = await uploadFile({
           file: fileBuffer,
           fileName: input.fileName,
@@ -933,9 +934,28 @@ export const aiAdminRouter = router({
           throw new Error(result.error || 'Upload failed');
         }
 
+        // Save metadata to database if messageId is provided
+        let fileRecord = null;
+        if (input.messageId) {
+          const { db } = await import('@/lib/db');
+          const { aiUploadedFiles } = await import('@/lib/db/schema/ai-conversations');
+          
+          const [record] = await db.insert(aiUploadedFiles).values({
+            messageId: input.messageId,
+            fileName: input.fileName,
+            fileType: input.contentType,
+            fileSize: fileBuffer.length,
+            s3Key: result.key!,
+            s3Url: result.url!,
+          }).returning();
+          
+          fileRecord = record;
+        }
+
         return {
           success: true,
           data: {
+            id: fileRecord?.id,
             key: result.key,
             url: result.url,
           },
@@ -975,6 +995,96 @@ export const aiAdminRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: `Failed to save message: ${error}`,
+        });
+      }
+    }),
+
+  // IMAGE ANALYSIS
+  analyzeImage: adminProcedure
+    .input(
+      z.object({
+        imageUrl: z.string(),
+        context: z.string().optional(),
+        fileId: z.string().optional(), // Optional: to update the file record with analysis
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const { VisionAnalyzer } = await import('@/lib/ai-admin/vision-analyzer');
+        const analyzer = new VisionAnalyzer();
+        
+        const analysis = await analyzer.analyzeImage(input.imageUrl, input.context);
+
+        // If fileId is provided, update the database record with analysis results
+        if (input.fileId) {
+          const { db } = await import('@/lib/db');
+          const { aiUploadedFiles } = await import('@/lib/db/schema/ai-conversations');
+          const { eq } = await import('drizzle-orm');
+          
+          await db.update(aiUploadedFiles)
+            .set({ analysisResult: analysis as any })
+            .where(eq(aiUploadedFiles.id, input.fileId));
+        }
+
+        return {
+          success: true,
+          data: analysis,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Image analysis failed: ${error}`,
+        });
+      }
+    }),
+
+  // BATCH IMAGE ANALYSIS
+  analyzeImages: adminProcedure
+    .input(
+      z.object({
+        images: z.array(z.object({
+          url: z.string(),
+          fileId: z.string().optional(),
+        })),
+        context: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const { VisionAnalyzer } = await import('@/lib/ai-admin/vision-analyzer');
+        const analyzer = new VisionAnalyzer();
+        
+        const imageUrls = input.images.map(img => img.url);
+        const analyses = await analyzer.analyzeImages(imageUrls, input.context);
+
+        // Update database records with analysis results
+        const { db } = await import('@/lib/db');
+        const { aiUploadedFiles } = await import('@/lib/db/schema/ai-conversations');
+        const { eq } = await import('drizzle-orm');
+
+        for (let i = 0; i < input.images.length; i++) {
+          const image = input.images[i];
+          if (image.fileId) {
+            await db.update(aiUploadedFiles)
+              .set({ analysisResult: analyses[i] as any })
+              .where(eq(aiUploadedFiles.id, image.fileId));
+          }
+        }
+
+        // Generate summary
+        const summary = analyzer.summarizeAnalyses(analyses);
+
+        return {
+          success: true,
+          data: {
+            analyses,
+            summary,
+          },
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Batch image analysis failed: ${error}`,
         });
       }
     }),
