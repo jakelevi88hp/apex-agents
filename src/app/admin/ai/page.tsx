@@ -10,6 +10,8 @@ import {
 import ConversationList from './components/ConversationList';
 import FileUpload from './components/FileUpload';
 import RepositorySearch from './components/RepositorySearch';
+import GitHubIssues from './components/GitHubIssues';
+import ConversationBranching from './components/ConversationBranching';
 
 interface Message {
   id: string;
@@ -39,6 +41,8 @@ export default function AIAdminPage() {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
   const [showFileUpload, setShowFileUpload] = useState(false);
+  const [rightSidebarView, setRightSidebarView] = useState<'patches' | 'issues'>('patches');
+  const [showBranching, setShowBranching] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Create conversation mutations
@@ -438,12 +442,37 @@ export default function AIAdminPage() {
   return (
     <div className="min-h-screen bg-gray-900 flex">
       {/* Conversation List Sidebar */}
-      <div className="w-80 flex-shrink-0">
-        <ConversationList
-          activeConversationId={activeConversationId}
-          onSelectConversation={handleSelectConversation}
-          onNewConversation={handleNewConversation}
-        />
+      <div className="w-80 flex-shrink-0 flex flex-col bg-gray-900">
+        {/* Branching Toggle */}
+        <button
+          onClick={() => setShowBranching(!showBranching)}
+          className="px-4 py-3 bg-gray-800 hover:bg-gray-750 border-b border-gray-700 text-left text-sm font-medium text-white transition-colors flex items-center justify-between"
+        >
+          <span>🌳 Conversation Branches</span>
+          <span className="text-gray-400">{showBranching ? '▲' : '▼'}</span>
+        </button>
+
+        {/* Branching Panel */}
+        {showBranching && activeConversationId && (
+          <div className="border-b border-gray-700 max-h-64 overflow-y-auto">
+            <ConversationBranching
+              conversationId={activeConversationId}
+              onSelectBranch={(branchId) => {
+                setActiveConversationId(branchId);
+                setShowBranching(false);
+              }}
+            />
+          </div>
+        )}
+
+        {/* Conversation List */}
+        <div className="flex-1 overflow-hidden">
+          <ConversationList
+            activeConversationId={activeConversationId}
+            onSelectConversation={handleSelectConversation}
+            onNewConversation={handleNewConversation}
+          />
+        </div>
       </div>
 
       {/* Main Chat Area */}
@@ -661,12 +690,39 @@ export default function AIAdminPage() {
         )}
       </div>
 
-      {/* Sidebar - Patch History */}
-      <div className="w-80 bg-gray-800 border-l border-gray-700 p-6 overflow-y-auto">
-        <div className="flex items-center gap-2 mb-6">
-          <History className="w-5 h-5 text-purple-400" />
-          <h2 className="text-lg font-bold text-white">Patch History</h2>
+      {/* Sidebar - Patch History / GitHub Issues */}
+      <div className="w-80 bg-gray-800 border-l border-gray-700 overflow-hidden flex flex-col">
+        {/* Tab Toggle */}
+        <div className="flex border-b border-gray-700">
+          <button
+            onClick={() => setRightSidebarView('patches')}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+              rightSidebarView === 'patches'
+                ? 'bg-gray-900 text-white border-b-2 border-purple-500'
+                : 'text-gray-400 hover:text-white hover:bg-gray-750'
+            }`}
+          >
+            📝 Patches
+          </button>
+          <button
+            onClick={() => setRightSidebarView('issues')}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+              rightSidebarView === 'issues'
+                ? 'bg-gray-900 text-white border-b-2 border-purple-500'
+                : 'text-gray-400 hover:text-white hover:bg-gray-750'
+            }`}
+          >
+            🐛 Issues
+          </button>
         </div>
+
+        {/* Content */}
+        {rightSidebarView === 'patches' ? (
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <History className="w-5 h-5 text-purple-400" />
+              <h2 className="text-lg font-bold text-white">Patch History</h2>
+            </div>
 
         <div className="space-y-3">
           {patchHistory?.data && patchHistory.data.length > 0 ? (
@@ -716,6 +772,12 @@ export default function AIAdminPage() {
             </div>
           )}
         </div>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-hidden">
+            <GitHubIssues />
+          </div>
+        )}
       </div>
 
       {/* Patch Details Modal */}

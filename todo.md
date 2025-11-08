@@ -620,7 +620,7 @@ Moving to Option C: Business Features...
 ## UI Integration Tasks (Current)
 - [x] Integrate RepositorySearch as a new mode/tab in AI Admin
 - [x] Add Search mode toggle button alongside Chat and Patch
-- [ ] Integrate GitHubIssues component into UI (sidebar or modal)
-- [ ] Integrate ConversationBranching component into UI (tree view panel)
+- [x] Integrate GitHubIssues component into UI (sidebar or modal)
+- [x] Integrate ConversationBranching component into UI (tree view panel)
 - [ ] Add keyboard shortcuts for mode switching
 - [ ] Test all integrated components
