@@ -28,6 +28,7 @@ export class StorageTracker {
    * Check if user can upload a file of given size
    */
   static async canUploadFile(userId: string, fileSizeBytes: number): Promise<boolean> {
+    // Aggregate current usage to compare against plan limits
     const currentUsage = await this.getUserStorageUsage(userId);
     const subscription = await SubscriptionService.getUserSubscription(userId);
 
@@ -35,9 +36,9 @@ export class StorageTracker {
       return false;
     }
 
-    // Get storage limit from subscription tier (in GB, convert to bytes)
+    // Get storage limit from subscription tier (stored in bytes)
     const limits = await SubscriptionService.getUsageLimits(userId);
-    const storageLimit = limits.storage * 1024 * 1024 * 1024; // Convert GB to bytes
+    const storageLimit = limits.storage;
 
     return (currentUsage + fileSizeBytes) <= storageLimit;
   }
@@ -47,11 +48,8 @@ export class StorageTracker {
    */
   static async trackFileUpload(userId: string, fileSizeBytes: number): Promise<void> {
     const totalUsage = await this.getUserStorageUsage(userId);
-    
-    // Update usage tracking in bytes, but store as GB for consistency
-    const usageInGB = totalUsage / (1024 * 1024 * 1024);
-    
-    await SubscriptionService.trackUsage(userId, 'storage', usageInGB);
+    // Sync the usage table with the absolute total usage in bytes
+    await SubscriptionService.trackUsage(userId, 'storage', totalUsage, { mode: 'set' });
   }
 
   /**
@@ -59,9 +57,8 @@ export class StorageTracker {
    */
   static async trackFileDeletion(userId: string): Promise<void> {
     const totalUsage = await this.getUserStorageUsage(userId);
-    const usageInGB = totalUsage / (1024 * 1024 * 1024);
-    
-    await SubscriptionService.trackUsage(userId, 'storage', usageInGB);
+    // Reset the stored count so deletions are reflected immediately
+    await SubscriptionService.trackUsage(userId, 'storage', totalUsage, { mode: 'set' });
   }
 
   /**
@@ -76,9 +73,10 @@ export class StorageTracker {
   }> {
     const usedBytes = await this.getUserStorageUsage(userId);
     const limits = await SubscriptionService.getUsageLimits(userId);
-    const limitBytes = limits.storage * 1024 * 1024 * 1024;
+    const limitBytes = limits.storage;
 
-    const percentage = (usedBytes / limitBytes) * 100;
+    // Guard against divide-by-zero when a plan has unlimited storage
+    const percentage = limitBytes > 0 ? (usedBytes / limitBytes) * 100 : 0;
 
     return {
       used: usedBytes,

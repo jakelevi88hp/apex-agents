@@ -1,7 +1,28 @@
 import { db } from '../db';
-import { subscriptions, usageTracking, users } from '../db/schema';
-import { eq, and, lt } from 'drizzle-orm';
-import { PLAN_LIMITS, TRIAL_DURATION_DAYS, type SubscriptionPlan } from './config';
+import { subscriptions, usageTracking } from '../db/schema';
+import { eq, and } from 'drizzle-orm';
+import { PLAN_LIMITS, TRIAL_DURATION_DAYS, type SubscriptionPlan, type PlanLimits } from './config';
+
+const USAGE_FEATURES = [
+  'agi_messages',
+  'agents',
+  'workflows',
+  'storage',
+  'api_calls',
+] as const;
+
+type UsageFeature = (typeof USAGE_FEATURES)[number];
+
+const isUsageFeature = (value: string): value is UsageFeature =>
+  USAGE_FEATURES.includes(value as UsageFeature);
+
+const FEATURE_LIMIT_KEY: Record<UsageFeature, keyof PlanLimits> = {
+  agi_messages: 'agiMessages',
+  agents: 'agents',
+  workflows: 'workflows',
+  storage: 'storage',
+  api_calls: 'apiCalls',
+};
 
 export class SubscriptionService {
   /**
@@ -32,22 +53,22 @@ export class SubscriptionService {
     const limits = PLAN_LIMITS[plan];
     const resetAt = this.getNextResetDate();
 
-    const features = [
-      { feature: 'agi_messages', limit: limits.agiMessages },
-      { feature: 'agents', limit: limits.agents },
-      { feature: 'workflows', limit: limits.workflows },
-      { feature: 'storage', limit: limits.storage },
-      { feature: 'api_calls', limit: limits.apiCalls },
-    ];
+    for (const feature of USAGE_FEATURES) {
+      // Map the tracked feature to its plan limit
+      const limitKey = FEATURE_LIMIT_KEY[feature];
+      const limit = limits[limitKey];
 
-    for (const { feature, limit } of features) {
-      await db.insert(usageTracking).values({
-        userId,
-        feature,
-        count: 0,
-        limit,
-        resetAt,
-      }).onConflictDoNothing();
+      // Insert a usage row for each feature, ignoring duplicates
+      await db
+        .insert(usageTracking)
+        .values({
+          userId,
+          feature,
+          count: 0,
+          limit,
+          resetAt,
+        })
+        .onConflictDoNothing();
     }
   }
 
@@ -90,58 +111,122 @@ export class SubscriptionService {
   /**
    * Check if user can use a feature (within limits)
    */
-  static async canUseFeature(userId: string, feature: string): Promise<{ allowed: boolean; current: number; limit: number }> {
-    const usage = await db.query.usageTracking.findFirst({
-      where: and(
-        eq(usageTracking.userId, userId),
-        eq(usageTracking.feature, feature)
-      ),
-    });
-
-    if (!usage) {
-      return { allowed: true, current: 0, limit: 999999 };
+  static async canUseFeature(userId: string, feature: string): Promise<boolean> {
+    if (!isUsageFeature(feature)) {
+      console.warn(`[SubscriptionService] Unknown feature requested: ${feature}`);
+      return false;
     }
 
-    // Check if usage needs to be reset
+    // Load the user's subscription to determine eligibility
+    const subscription = await this.getUserSubscription(userId);
+
+    if (!subscription) {
+      return false;
+    }
+
+    // Only active or trialing subscriptions may access gated features
+    if (subscription.status !== 'active' && subscription.status !== 'trial') {
+      return false;
+    }
+
+    // Block trial users whose trial window has ended
+    if (
+      subscription.plan === 'trial' &&
+      subscription.trialEndsAt &&
+      new Date() > subscription.trialEndsAt
+    ) {
+      return false;
+    }
+
+    // Ensure there is a usage record for the requested feature
+    const usage = await this.getOrCreateUsageRecord(
+      userId,
+      feature,
+      (subscription.plan as SubscriptionPlan) ?? 'trial'
+    );
+
+    // Reset usage automatically when the period has expired
     if (new Date() > usage.resetAt) {
       await this.resetUsage(userId, feature);
-      return { allowed: true, current: 0, limit: usage.limit };
+      return true;
     }
 
-    return {
-      allowed: usage.count < usage.limit,
-      current: usage.count,
-      limit: usage.limit,
-    };
+    // Allow unlimited features by treating non-positive limits as unlimited
+    if (usage.limit <= 0) {
+      return true;
+    }
+
+    return usage.count < usage.limit;
   }
 
   /**
    * Increment usage for a feature
    */
-  static async incrementUsage(userId: string, feature: string, amount: number = 1) {
-    const usage = await db.query.usageTracking.findFirst({
-      where: and(
-        eq(usageTracking.userId, userId),
-        eq(usageTracking.feature, feature)
-      ),
-    });
-
-    if (!usage) {
+  static async trackUsage(
+    userId: string,
+    feature: string,
+    amount: number = 1,
+    options?: { mode?: 'increment' | 'set' }
+  ) {
+    if (!isUsageFeature(feature)) {
+      console.warn(`[SubscriptionService] Attempted to track unknown feature: ${feature}`);
       return;
     }
 
-    await db.update(usageTracking)
-      .set({ 
-        count: usage.count + amount,
+    // Resolve plan to keep usage aligned with the subscriber's tier
+    const subscription = await this.getUserSubscription(userId);
+    const plan = (subscription?.plan as SubscriptionPlan) ?? 'trial';
+
+    // Create or load the usage row before mutating
+    let usage = await this.getOrCreateUsageRecord(userId, feature, plan);
+
+    // Refresh usage windows automatically if the period has elapsed
+    if (new Date() > usage.resetAt) {
+      await this.resetUsage(userId, feature);
+      usage = await this.getOrCreateUsageRecord(userId, feature, plan);
+    }
+
+    // Default to incrementing but allow absolute set mode (e.g., storage sync)
+    const mode = options?.mode ?? 'increment';
+
+    if (mode === 'increment' && amount < 0) {
+      throw new Error('Amount must be positive when incrementing usage.');
+    }
+
+    // Round amounts so we store integer counts in the database
+    const sanitizedAmount = Math.round(amount);
+    const nextCount =
+      mode === 'set'
+        ? Math.max(0, sanitizedAmount)
+        : usage.count + sanitizedAmount;
+
+    // Fail fast when the update would exceed the subscriber's limit
+    if (usage.limit > 0 && nextCount > usage.limit) {
+      throw new Error(
+        `Usage limit reached for ${feature}. ` +
+          `Current: ${usage.count}, Attempted: ${nextCount}, Limit: ${usage.limit}`
+      );
+    }
+
+    // Persist the new usage count
+    await db
+      .update(usageTracking)
+      .set({
+        count: nextCount,
         updatedAt: new Date(),
       })
       .where(eq(usageTracking.id, usage.id));
+
+    return {
+      current: nextCount,
+      limit: usage.limit,
+    };
   }
 
   /**
    * Reset usage for a feature
    */
-  static async resetUsage(userId: string, feature: string) {
+  static async resetUsage(userId: string, feature: UsageFeature) {
     await db.update(usageTracking)
       .set({
         count: 0,
@@ -252,13 +337,75 @@ export class SubscriptionService {
       where: eq(usageTracking.userId, userId),
     });
 
-    return usageRecords.map(record => ({
-      feature: record.feature,
-      current: record.count,
-      limit: record.limit,
-      percentage: (record.count / record.limit) * 100,
-      resetAt: record.resetAt,
-    }));
+    return usageRecords.map((record) => {
+      const percentage =
+        record.limit > 0 ? (record.count / record.limit) * 100 : 0;
+
+      return {
+        feature: record.feature,
+        current: record.count,
+        limit: record.limit,
+        percentage,
+        resetAt: record.resetAt,
+      };
+    });
+  }
+
+  /**
+   * Get usage limits for a user in plan-specific units
+   */
+  static async getUsageLimits(userId: string) {
+    const subscription = await this.getUserSubscription(userId);
+    const plan = (subscription?.plan as SubscriptionPlan) ?? 'trial';
+    const limits = PLAN_LIMITS[plan];
+
+    // Return limits using feature keys that match the usage table
+    return {
+      agi_messages: limits.agiMessages,
+      agents: limits.agents,
+      workflows: limits.workflows,
+      storage: limits.storage,
+      api_calls: limits.apiCalls,
+      team_members: limits.teamMembers,
+    };
+  }
+
+  /**
+   * Ensure usage record exists for a feature
+   */
+  private static async getOrCreateUsageRecord(
+    userId: string,
+    feature: UsageFeature,
+    plan: SubscriptionPlan
+  ) {
+    const existing = await db.query.usageTracking.findFirst({
+      where: and(
+        eq(usageTracking.userId, userId),
+        eq(usageTracking.feature, feature)
+      ),
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    // Create a default usage row when none exists yet
+    const limitKey = FEATURE_LIMIT_KEY[feature];
+    const limit = PLAN_LIMITS[plan][limitKey];
+    const resetAt = this.getNextResetDate();
+
+    const [record] = await db
+      .insert(usageTracking)
+      .values({
+        userId,
+        feature,
+        count: 0,
+        limit,
+        resetAt,
+      })
+      .returning();
+
+    return record;
   }
 }
 
