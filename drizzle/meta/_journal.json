@@ -8,6 +8,13 @@
       "when": 1761351138628,
       "tag": "0000_magical_maverick",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1762684529826,
+      "tag": "0001_damp_lionheart",
+      "breakpoints": true
     }
   ]
 }
