@@ -21,7 +21,8 @@
     "health:check": "tsx tests/debug/system-health.ts",
     "analyze:bundle": "next build && next analyze",
     "test:production": "tsx scripts/production-test-suite.ts",
-    "security:audit": "tsx scripts/security-audit.ts"
+    "security:audit": "tsx scripts/security-audit.ts",
+    "debugger:setup": "tsx scripts/setup-debugger.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.56",
