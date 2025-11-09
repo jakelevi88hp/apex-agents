@@ -76,7 +76,8 @@ export class EnhancedAGICore {
       ...config,
     };
 
-    this.sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    // Generate a proper UUID for session ID
+    this.sessionId = crypto.randomUUID();
     this.reasoningEngine = new AdvancedReasoningEngine(this.config.userId);
     this.emotionalIntelligence = new EmotionalIntelligence(this.config.userId);
     this.creativityEngine = new CreativityEngine(this.config.userId);
