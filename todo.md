@@ -740,3 +740,15 @@ Moving to Option C: Business Features...
 - [ ] Collect user feedback
 - [ ] Iterate based on feedback
 
+
+## AI Admin Conversational Improvements (Current - HIGH PRIORITY)
+- [ ] Analyze current AI Admin system prompt causing excessive clarification
+- [ ] Remove over-cautious clarification logic
+- [ ] Rewrite system prompt to be action-oriented (like Manus agent)
+- [ ] Add confidence threshold for when to ask vs. when to act
+- [ ] Implement "just do it" mode for clear requests
+- [ ] Test with "search for placeholder data" example
+- [ ] Test with other straightforward requests
+- [ ] Ensure AI Admin works like natural conversation
+- [ ] Document prompt improvements
+- [ ] Deploy and verify in production
