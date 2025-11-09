@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
+import { trpc } from '@/lib/trpc';
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -43,6 +44,9 @@ export function WorkflowBuilder({
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+  // Load agents from API
+  const { data: agentsData, isLoading: agentsLoading } = trpc.agents.list.useQuery();
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -168,9 +172,16 @@ export function WorkflowBuilder({
                     value={selectedNode.data.agentId || ''}
                     onChange={(e) => updateNodeData(selectedNode.id, { agentId: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    disabled={agentsLoading}
                   >
-                    <option value="">Select an agent...</option>
-                    {/* TODO: Load agents from API */}
+                    <option value="">
+                      {agentsLoading ? 'Loading agents...' : 'Select an agent...'}
+                    </option>
+                    {agentsData?.map((agent) => (
+                      <option key={agent.id} value={agent.id}>
+                        {agent.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               )}
