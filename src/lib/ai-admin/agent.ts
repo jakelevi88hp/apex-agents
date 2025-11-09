@@ -18,6 +18,7 @@ import { promisify } from 'util';
 import { createGitHubIntegration, GitHubIntegration } from './github';
 import { GitHubService, CommitFileChange } from './github-service';
 import { getSystemPrompt } from './system-prompt';
+import { getSystemPromptV2 } from './system-prompt-v2';
 import { patchStorage } from './patch-storage';
 import { ContextBuilder } from './context-builder';
 import { ContextGatherer } from './context-gatherer';
@@ -281,17 +282,26 @@ ${f.content}
       await this.log(`Context gathered: ${context.files.length} files`);
 
       // Build conversation messages
+      // Use V2 system prompt (action-oriented, natural conversation)
+      const systemPrompt = getSystemPromptV2(analysis);
+      
       const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
         {
           role: 'system',
-          content: `You are an expert AI software engineer helping with the Apex Agents platform.
+          content: `${systemPrompt}
+
+# CURRENT MODE: CHAT
+
+You are in CHAT MODE. Focus on:
+- Answering questions clearly and directly
+- Providing helpful explanations
+- Making reasonable assumptions
+- Taking action when appropriate (searching, analyzing, etc.)
+- Only asking clarifying questions when truly necessary (confidence < 70%)
 
 # PROJECT CONTEXT
 
 ${context.summary}
-
-**Frameworks:** ${analysis.frameworks.join(', ')}
-**Patterns:** ${analysis.patterns.join(', ')}
 
 # AVAILABLE COMPONENTS
 - Components: ${context.componentInventory.components.join(', ')}
@@ -306,19 +316,9 @@ ${context.files.length > 0 ? context.files.map(f => `## ${f.path}
 ${f.content}
 \`\`\``).join('\n\n') : 'No specific files loaded for this query.'}
 
-${fileContextText ? `\n${fileContextText}\n` : ''}
-# YOUR ROLE
+${fileContextText ? `\n# UPLOADED FILES CONTEXT\n\n${fileContextText}\n` : ''}
 
-You are in CHAT MODE. Your job is to:
-- Answer questions about the codebase
-- Explain how things work
-- Provide recommendations and best practices
-- Discuss potential changes and their implications
-- Help understand the architecture and patterns
-
-You should NOT generate code patches in this mode. If the user wants to make changes, suggest they switch to Patch Mode.
-
-Be helpful, concise, and technical. Provide code examples when relevant.`,
+Remember: Be action-oriented, make reasonable assumptions, and only ask questions when truly necessary.`,
         },
       ];
 
@@ -402,7 +402,8 @@ Be helpful, concise, and technical. Provide code examples when relevant.`,
       }
 
       // Generate patch using LLM with comprehensive knowledge base
-      const systemPrompt = getSystemPrompt(analysis);
+      // Use V2 system prompt (action-oriented, natural conversation)
+      const systemPrompt = getSystemPromptV2(analysis);
 
       // Try up to 3 times to get a valid patch
       let patchData: any = null;
