@@ -5,10 +5,19 @@ import { db } from '@/lib/db';
 import { agents, executions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || '',
-});
+// Lazy initialization to avoid build-time errors
+let openaiInstance: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+  if (!openaiInstance) {
+    const apiKey = process.env.OPENAI_API_KEY || '';
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY environment variable is required');
+    }
+    openaiInstance = new OpenAI({ apiKey });
+  }
+  return openaiInstance;
+}
 
 export interface ExecutionConfig {
   agentId: string;
@@ -59,6 +68,7 @@ export async function executeAgent(config: ExecutionConfig): Promise<ExecutionRe
     }).returning();
 
     // Call OpenAI API
+    const openai = getOpenAI();
     const completion = await openai.chat.completions.create({
       model,
       messages: [
@@ -152,6 +162,7 @@ export async function* executeAgentStream(config: ExecutionConfig): AsyncGenerat
     }).returning();
 
     // Stream from OpenAI
+    const openai = getOpenAI();
     const stream = await openai.chat.completions.create({
       model,
       messages: [

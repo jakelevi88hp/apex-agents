@@ -1,6 +1,22 @@
-import pdf from 'pdf-parse';
 import mammoth from 'mammoth';
 import { readFile } from 'fs/promises';
+
+// Lazy import for pdf-parse to avoid build-time issues
+let pdfParse: any = null;
+
+async function getPdfParse() {
+  if (!pdfParse) {
+    try {
+      // Dynamic import to avoid build-time errors
+      const pdfModule = await import('pdf-parse');
+      pdfParse = pdfModule.default || pdfModule;
+    } catch (error) {
+      console.error('Failed to load pdf-parse:', error);
+      throw new Error('PDF processing is not available');
+    }
+  }
+  return pdfParse;
+}
 
 export interface ProcessedDocument {
   text: string;
@@ -34,6 +50,7 @@ export class DocumentProcessor {
    * Process PDF file
    */
   private static async processPDF(filePath: string): Promise<ProcessedDocument> {
+    const pdf = await getPdfParse();
     const dataBuffer = await readFile(filePath);
     const data = await pdf(dataBuffer);
 
