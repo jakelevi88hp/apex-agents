@@ -172,7 +172,7 @@ export class EnhancedAGICore {
         const creativityTechnique = this.config.creativityTechnique;
         const creativeOutput = await this.creativityEngine.generateIdeas(input, 3, creativityTechnique);
         
-        creativity = creativeOutput.ideas.map(idea => ({
+        creativity = creativeOutput.ideas.map((idea: any) => ({
           description: idea.description,
           novelty: idea.novelty,
           feasibility: idea.feasibility,
