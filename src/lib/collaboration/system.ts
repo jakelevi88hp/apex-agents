@@ -9,9 +9,19 @@ import { agents, executions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialization to avoid build-time errors
+let openaiInstance: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+  if (!openaiInstance) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY environment variable is required');
+    }
+    openaiInstance = new OpenAI({ apiKey });
+  }
+  return openaiInstance;
+}
 
 export interface CollaborationTask {
   id: string;
@@ -75,6 +85,7 @@ Analyze the task and create a plan that delegates subtasks to the appropriate ag
   ]
 }`;
 
+    const openai = getOpenAI();
     const coordinatorResponse = await openai.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [{ role: 'user', content: coordinatorPrompt }],
@@ -111,6 +122,7 @@ ${context ? `Context from other agents:\n${context}` : ''}
 
 Complete your subtask and return the result.`;
 
+      const openai = getOpenAI();
       const agentResponse = await openai.chat.completions.create({
         model: 'gpt-4-turbo-preview',
         messages: [{ role: 'user', content: agentPrompt }],
@@ -144,6 +156,7 @@ ${results.map(r => `${r.agentName} (${r.subtask}):\n${r.result}`).join('\n\n---\
 
 Provide a comprehensive final result that combines all agent outputs.`;
 
+    const openai = getOpenAI();
     const finalResponse = await openai.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [{ role: 'user', content: synthesisPrompt }],

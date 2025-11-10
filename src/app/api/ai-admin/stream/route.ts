@@ -9,9 +9,19 @@ import OpenAI from 'openai';
 import * as conversationManager from '@/lib/ai-admin/conversation-manager';
 import { getAIAdminAgent } from '@/lib/ai-admin/agent';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialization to avoid build-time errors
+let openaiInstance: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+  if (!openaiInstance) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY environment variable is required');
+    }
+    openaiInstance = new OpenAI({ apiKey });
+  }
+  return openaiInstance;
+}
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -115,6 +125,7 @@ export async function POST(request: NextRequest) {
           ];
 
           // Stream OpenAI response
+          const openai = getOpenAI();
           const completion = await openai.chat.completions.create({
             model: 'gpt-4-turbo',
             messages,
