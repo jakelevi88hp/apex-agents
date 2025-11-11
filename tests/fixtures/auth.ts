@@ -1,11 +1,11 @@
-import { test as base } from '@playwright/test';
+import { test as base, Page } from '@playwright/test';
 
 type AuthFixtures = {
-  authenticatedPage: any;
+  authenticatedPage: Page;
 };
 
 export const test = base.extend<AuthFixtures>({
-  authenticatedPage: async ({ page }, use) => {
+  authenticatedPage: async ({ page }, provide) => {
     // Navigate to login page
     await page.goto('/auth/login');
     
@@ -20,7 +20,7 @@ export const test = base.extend<AuthFixtures>({
     await page.waitForURL('**/dashboard');
     
     // Use the authenticated page
-    await use(page);
+    await provide(page);
   },
 });
 

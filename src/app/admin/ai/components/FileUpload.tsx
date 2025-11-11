@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Upload, X, File, Image, FileText, Loader2 } from 'lucide-react';
+import { Upload, X, File, Image as ImageIcon, FileText, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 
 interface VisionAnalysisResult {
@@ -42,7 +42,7 @@ export default function FileUpload({
   const [isDragging, setIsDragging] = useState(false);
 
   const getFileIcon = (type: string) => {
-    if (type.startsWith('image/')) return <Image className="w-5 h-5" />;
+    if (type.startsWith('image/')) return <ImageIcon className="w-5 h-5" />;
     if (type.includes('pdf')) return <FileText className="w-5 h-5" />;
     return <File className="w-5 h-5" />;
   };
@@ -53,7 +53,7 @@ export default function FileUpload({
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  const validateFile = (file: globalThis.File): string | null => {
+  const validateFile = useCallback((file: globalThis.File): string | null => {
     const maxBytes = maxSizeMB * 1024 * 1024;
     if (file.size > maxBytes) {
       return `File size exceeds ${maxSizeMB}MB limit`;
@@ -78,12 +78,12 @@ export default function FileUpload({
     }
 
     return null;
-  };
+  }, [maxSizeMB]);
 
   const uploadFileMutation = trpc.aiAdmin.uploadFile.useMutation();
   const analyzeImageMutation = trpc.aiAdmin.analyzeImage.useMutation();
 
-  const uploadFile = async (file: globalThis.File): Promise<UploadedFile> => {
+  const uploadFile = useCallback(async (file: globalThis.File): Promise<UploadedFile> => {
     const uploadedFile: UploadedFile = {
       id: Math.random().toString(36).substring(7),
       name: file.name,
@@ -132,13 +132,14 @@ export default function FileUpload({
       
       return uploadedFile;
     } catch (error) {
+      console.error('[FileUpload] Upload failed:', error);
       uploadedFile.uploading = false;
       uploadedFile.error = 'Upload failed';
       return uploadedFile;
     }
-  };
+  }, [analyzeImageMutation, uploadFileMutation]);
 
-  const handleFiles = async (fileList: FileList) => {
+  const handleFiles = useCallback(async (fileList: FileList) => {
     const newFiles = Array.from(fileList);
     
     if (files.length + newFiles.length > maxFiles) {
@@ -168,7 +169,7 @@ export default function FileUpload({
     const updatedFiles = [...files, ...validatedFiles];
     setFiles(updatedFiles);
     onFilesUploaded(updatedFiles.filter(f => !f.error && !f.uploading));
-  };
+  }, [files, maxFiles, onFilesUploaded, uploadFile, validateFile]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -177,7 +178,7 @@ export default function FileUpload({
     if (e.dataTransfer.files) {
       handleFiles(e.dataTransfer.files);
     }
-  }, [files]);
+  }, [handleFiles]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
