@@ -77,10 +77,10 @@ export default function AIAdminPage() {
         setMessages((prev) => [...prev, assistantMessage]);
         refetchHistory();
       }
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage: Message = {
         role: "assistant",
-        content: `Error: ${error.message || "Failed to generate patch"}`,
+        content: `Error: ${error instanceof Error ? error.message : "Failed to generate patch"}`,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -103,10 +103,10 @@ export default function AIAdminPage() {
         setMessages((prev) => [...prev, successMessage]);
         refetchHistory();
       }
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage: Message = {
         role: "system",
-        content: `Failed to apply patch: ${error.message}`,
+        content: `Failed to apply patch: ${error instanceof Error ? error.message : "Unknown error"}`,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -123,14 +123,14 @@ export default function AIAdminPage() {
       if (result.success) {
         refetchHistory();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Rollback failed:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: Patch["status"]): JSX.Element | null => {
     switch (status) {
       case "applied":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
