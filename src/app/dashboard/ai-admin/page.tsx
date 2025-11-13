@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc/client";
 import { Loader2, Send, Code, History, CheckCircle, XCircle, AlertCircle, RefreshCw } from "lucide-react";
 
@@ -36,6 +36,8 @@ export default function AIAdminPage() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+  const isInitialScrollRef = useRef(true);
   const [activeTab, setActiveTab] = useState<"chat" | "patches" | "analysis">("chat");
 
   // tRPC mutations and queries
@@ -141,6 +143,26 @@ export default function AIAdminPage() {
     }
   };
 
+  useEffect(() => {
+    // Ensure the scroll container is available before attempting to scroll
+    const container = messagesContainerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    const scrollBehavior: ScrollBehavior = isInitialScrollRef.current ? "auto" : "smooth";
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: scrollBehavior,
+    });
+
+    if (isInitialScrollRef.current) {
+      isInitialScrollRef.current = false;
+    }
+  }, [messages, isLoading]);
+
   return (
     <div className="container mx-auto py-8 space-y-6 max-w-7xl">
       {/* Header */}
@@ -206,7 +228,7 @@ export default function AIAdminPage() {
             </p>
 
             {/* Messages */}
-            <div className="h-[500px] overflow-y-auto mb-4 space-y-4 pr-4">
+            <div ref={messagesContainerRef} className="h-[500px] overflow-y-auto mb-4 space-y-4 pr-4">
               {messages.map((message, index) => (
                 <div
                   key={index}
