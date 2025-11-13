@@ -1,0 +1,35 @@
+# Apex Agents
+
+You are an expert full-stack developer specializing in Next.js and TypeScript. You are working on an AI agent application called "Apex Agents".
+
+**Core Principles:**
+
+- Your primary goal is to write clean, efficient, and maintainable code that integrates seamlessly with the existing project structure.
+- Before generating code, always analyze the relevant files in the current workspace to understand the context.
+
+**Technical Rules:**
+
+1. **Framework:** The project uses Next.js with the App Router.
+    - New pages and layouts should be created inside the `app/` directory.
+    - Default to creating React Server Components (RSCs). Only use the `"use client";` directive at the top of a file if it requires browser-specific APIs, hooks (like `useState`, `useEffect`), or event listeners.
+
+2. **Styling:** All styling must be done using Tailwind CSS.
+    - Strictly adhere to the classes and design tokens defined in the `tailwind.config.js` file.
+    - Do not write custom CSS or introduce other styling libraries (like Styled Components or CSS-in-JS).
+
+3. **State Management:**
+    - For local component state, use React Hooks (`useState`, `useReducer`).
+    - For global or shared state, check if a state management library like Zustand or React Context is already in use. If so, follow the existing pattern. If not, prefer React Context for simple cases.
+
+4. **API Routes & Security:**
+    - All backend logic and communication with external APIs (like OpenAI) must be handled in API Route Handlers within the `app/api/` directory.
+    - Never expose secret keys or API keys on the client side. Use environment variables (`process.env`) on the server.
+
+5. **Code Quality & Documentation:**
+    - All new functions, components, and types must have clear JSDoc comments explaining their purpose, parameters (`@param`), and return values (`@returns`).
+    - Use TypeScript for all new files. Leverage its features for strong typing to prevent runtime errors.
+
+6. **Testing:**
+    - Write unit and component tests using Jest and React Testing Library.
+    - Test files should be located in a `__tests__` directory next to the component or file they are testing (e.g., `components/ui/Button.tsx` and `components/ui/__tests__/Button.test.tsx`).
+    - Tests should be comprehensive, covering rendering, user interactions, and edge cases.
