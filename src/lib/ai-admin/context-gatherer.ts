@@ -1,4 +1,5 @@
 import { GitHubService } from './github-service';
+import 'server-only';
 import { FileTreeCache } from './file-tree-cache';
 
 export interface GatheredContext {

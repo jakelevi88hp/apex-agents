@@ -1,3 +1,11 @@
+import 'server-only';
+/**
+ * File Context Gatherer
+ * 
+ * Retrieves uploaded files and their Vision API analysis results
+ * to provide context for AI chat and patch generation
+ */
+
 // Import necessary libraries
 import fs from 'fs';
 import path from 'path';

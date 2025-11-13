@@ -1,3 +1,4 @@
+import 'server-only';
 import { GitHubService } from './github-service';
 
 export interface FileTreeNode {

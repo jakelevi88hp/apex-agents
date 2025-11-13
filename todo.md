@@ -13,3 +13,12 @@
 - [x] Fix validation issue in patch generation (added UUID validation to adminProcedure)
 - [ ] Test the fix with "search for placeholder data" request
 - [ ] Deploy the fix to production
+
+
+## GitHub Service Initialization Error (Current)
+- [x] Investigate GitHubService.getOctokit error
+- [x] Check GitHub token environment variables
+- [x] Fix GitHub service initialization (added getOctokit method)
+- [x] Fix AI Admin blank page (added server-only directives to prevent client bundling)
+- [ ] Test AI Admin patch generation with fixed GitHub access
+- [ ] Deploy the fix to production

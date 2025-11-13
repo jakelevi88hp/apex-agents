@@ -1,3 +1,4 @@
+import 'server-only';
 /**
  * Plain Language Patch Generation
  * 

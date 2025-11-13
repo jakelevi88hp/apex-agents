@@ -37,6 +37,13 @@ export class GitHubService {
   }
 
   /**
+   * Get the Octokit instance for direct API access
+   */
+  getOctokit(): Octokit {
+    return this.octokit;
+  }
+
+  /**
    * Create a new branch from the default branch
    */
   async createBranch(branchName: string): Promise<string> {

@@ -1,3 +1,4 @@
+import 'server-only';
 /**
  * AI Patch Storage Service
  * 
