@@ -22,3 +22,9 @@
 - [x] Fix AI Admin blank page (added server-only directives to prevent client bundling)
 - [ ] Test AI Admin patch generation with fixed GitHub access
 - [ ] Deploy the fix to production
+
+
+## Vercel Build Failure (Current - URGENT)
+- [x] Investigate import chain: file-context-gatherer → vision-analyzer → admin/ai/page
+- [x] Remove server-only from file-context-gatherer (imported by client code)
+- [ ] Fix build and deploy
