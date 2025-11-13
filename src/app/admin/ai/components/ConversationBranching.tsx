@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { GitBranch, Plus, Trash2, Eye, GitMerge } from 'lucide-react';
+import { GitBranch, Plus, Trash2, Eye } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 
 interface Branch {
   id: string;
-  title: string;
+  title: string | null;
   branchFromId: string | null;
   branchAtMessageId: string | null;
-  messageCount: number;
+  messageCount?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,18 +17,15 @@ interface Branch {
 interface ConversationBranchingProps {
   conversationId: string;
   onSelectBranch: (branchId: string) => void;
-  onCreateBranch: (atMessageId: string) => void;
 }
 
 export default function ConversationBranching({
   conversationId,
   onSelectBranch,
-  onCreateBranch,
 }: ConversationBranchingProps) {
   const [showBranchModal, setShowBranchModal] = useState(false);
-  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
 
-  const { data: branches, refetch } = trpc.aiAdmin.getConversationBranches.useQuery(
+  const { data: branchesData, refetch } = trpc.aiAdmin.getConversationBranches.useQuery(
     { conversationId },
     { enabled: !!conversationId }
   );
@@ -76,7 +73,8 @@ export default function ConversationBranching({
     return roots;
   };
 
-  const tree = branches?.data ? buildBranchTree(branches.data) : [];
+  const branches = branchesData?.data ?? [];
+  const tree = buildBranchTree(branches);
 
   return (
     <div className="flex flex-col h-full bg-gray-900">
@@ -163,7 +161,7 @@ function BranchTreeNode({
         className={`flex items-center gap-2 p-3 rounded-lg transition-colors ${
           isActive
             ? 'bg-purple-600/20 border-2 border-purple-500'
-            : 'bg-gray-800 hover:bg-gray-750 border-2 border-transparent'
+            : 'bg-gray-800 hover:bg-gray-700 border-2 border-transparent'
         }`}
         style={{ marginLeft: `${level * 24}px` }}
       >
@@ -188,7 +186,7 @@ function BranchTreeNode({
             )}
           </div>
           <div className="flex items-center gap-3 text-xs text-gray-400">
-            <span>{node.messageCount} messages</span>
+            <span>{node.messageCount ?? 0} messages</span>
             <span>{new Date(node.updatedAt).toLocaleDateString()}</span>
           </div>
         </div>
@@ -311,7 +309,7 @@ function CreateBranchModal({
             </button>
             <button
               type="submit"
-              disabled={!title.trim() || createBranchMutation.isLoading}
+              disabled={!title.trim() || createBranchMutation.isPending}
               className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <GitBranch className="w-4 h-4" />

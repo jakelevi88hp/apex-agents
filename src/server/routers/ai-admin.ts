@@ -833,34 +833,6 @@ export const aiAdminRouter = router({
     }),
 
   /**
-   * Get conversation branches
-   */
-  getConversationBranches: adminProcedure
-    .input(
-      z.object({
-        conversationId: z.string().uuid(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      try {
-        const branches = await conversationManager.getConversationBranches(
-          input.conversationId,
-          ctx.userId
-        );
-
-        return {
-          success: true,
-          data: branches,
-        };
-      } catch (error) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: `Failed to get conversation branches: ${error}`,
-        });
-      }
-    }),
-
-  /**
    * Search conversations
    */
   searchConversations: adminProcedure

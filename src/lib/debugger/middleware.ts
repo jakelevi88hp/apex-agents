@@ -23,6 +23,28 @@ export function withErrorMonitoring<T>(
   handler: (request: NextRequest, context?: any) => Promise<NextResponse | Response>,
   routeName: string
 ) {
+  /**
+   * Determine the appropriate monitoring category for a thrown error.
+   *
+   * @param error - The error encountered during request handling.
+   * @returns The category label to record in the monitoring system.
+   */
+  function categorizeError(error: unknown): string {
+    if (!error) return 'unknown';
+
+    const message = error instanceof Error ? error.message : String(error);
+
+    if (/database/i.test(message)) return 'database';
+    if (/auth/i.test(message)) return 'authentication';
+    if (/openai/i.test(message)) return 'external_api';
+    if (/stripe/i.test(message)) return 'payment';
+    if (/uuid/i.test(message)) return 'validation';
+    if (/rate.*limit/i.test(message)) return 'rate_limiting';
+    if (/timeout/i.test(message)) return 'timeout';
+
+    return 'application';
+  }
+
   return async (request: NextRequest, context?: any): Promise<NextResponse | Response> => {
     const requestId = crypto.randomUUID();
     const startTime = Date.now();
@@ -84,7 +106,7 @@ export function withErrorMonitoring<T>(
       // Log the error
       await appMonitor.logError({
         level: 'error',
-        category: this.categorizeError(error),
+        category: categorizeError(error),
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
         endpoint: routeName,
@@ -103,21 +125,6 @@ export function withErrorMonitoring<T>(
     }
   };
 
-  categorizeError(error: unknown): string {
-    if (!error) return 'unknown';
-    
-    const message = error instanceof Error ? error.message : String(error);
-    
-    if (/database/i.test(message)) return 'database';
-    if (/auth/i.test(message)) return 'authentication';
-    if (/openai/i.test(message)) return 'external_api';
-    if (/stripe/i.test(message)) return 'payment';
-    if (/uuid/i.test(message)) return 'validation';
-    if (/rate.*limit/i.test(message)) return 'rate_limiting';
-    if (/timeout/i.test(message)) return 'timeout';
-    
-    return 'application';
-  }
 }
 
 /**

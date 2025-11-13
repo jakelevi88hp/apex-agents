@@ -146,7 +146,13 @@ export default function AIAdminPage() {
     }
   };
 
-  const getStatusIcon = (status: Patch["status"]): JSX.Element | null => {
+  /**
+   * Returns a status icon component based on the patch status.
+   *
+   * @param status - The status of the patch.
+   * @returns The corresponding status icon element or null.
+   */
+  const getStatusIcon = (status: Patch["status"]): React.ReactElement | null => {
     switch (status) {
       case "applied":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
