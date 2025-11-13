@@ -24,7 +24,13 @@
 - [ ] Deploy the fix to production
 
 
-## Vercel Build Failure (Current - URGENT)
+## Vercel Build Failure (RESOLVED)
 - [x] Investigate import chain: file-context-gatherer → vision-analyzer → admin/ai/page
 - [x] Remove server-only from file-context-gatherer (imported by client code)
-- [ ] Fix build and deploy
+- [x] Fix build and deploy (commit 628ef79)
+
+
+## Still Blank Page - Delete Unused Admin/AI (Current - URGENT)
+- [ ] Delete src/app/admin/ai directory (uses Node.js fs in browser)
+- [ ] Delete vision-analyzer.ts and file-context-gatherer.ts (not needed)
+- [ ] Deploy and verify fix
