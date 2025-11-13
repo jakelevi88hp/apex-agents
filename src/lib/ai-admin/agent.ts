@@ -11,8 +11,8 @@ import 'server-only';
  */
 
 import { OpenAI } from 'openai';
-import path from 'path';
 import fs from 'fs/promises';
+import path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { createGitHubIntegration, GitHubIntegration } from './github';
@@ -589,36 +589,12 @@ Remember: Be action-oriented, make reasonable assumptions, and only ask question
     try {
       const patchData = JSON.parse(patchRecord.patch);
 
-      // Validate patch structure
-      if (!patchData.files || !Array.isArray(patchData.files)) {
-        throw new Error('Invalid patch: missing files array');
-      }
-
-      if (patchData.files.length === 0) {
-        throw new Error('Invalid patch: no files to modify');
-      }
-
-      // Validate each file
-      for (const file of patchData.files) {
-        if (!file.path) {
-          throw new Error('Invalid file: missing path');
-        }
-        if (!file.action || !['create', 'modify', 'delete'].includes(file.action)) {
-          throw new Error(`Invalid file action: ${file.action}`);
-        }
-        if ((file.action === 'create' || file.action === 'modify') && !file.content) {
-          throw new Error(`Missing content for ${file.action} action on ${file.path}`);
-        }
-      }
-
-      // In production, skip filesystem checks (read-only environment)
+      // Skip filesystem validation in production (read-only filesystem)
       if (this.isProduction) {
-        await this.log('Skipping filesystem checks in production (read-only environment)');
-        await this.log(`Patch validation successful: ${patchRecord.id}`);
+        await this.log('Skipping filesystem validation in production (read-only environment)');
         return true;
       }
-
-      // In development, check if files exist and are writable
+      // Check if files exist and are writable (development only)g
       for (const file of patchData.files) {
         const filePath = path.join(this.projectRoot, file.path);
         const fileDir = path.dirname(filePath);
@@ -635,7 +611,7 @@ Remember: Be action-oriented, make reasonable assumptions, and only ask question
         }
       }
 
-      // Run TypeScript type checking (only in development)
+      // Run TypeScript type checking (only in development with ts available)
       try {
         await execAsync('npx tsc --noEmit', { cwd: this.projectRoot });
         await this.log('TypeScript validation passed');
@@ -795,6 +771,12 @@ Remember: Be action-oriented, make reasonable assumptions, and only ask question
   private async applyPatchLocally(patchRecord: PatchRecord, patchData: any): Promise<boolean> {
     await this.log('Applying patch locally...');
 
+    // Production check - should not reach here, but safety guard
+    if (this.isProduction) {
+      await this.log('Cannot apply patches locally in production (read-only filesystem)', 'error');
+      throw new Error('Local patch application is not supported in production. Use GitHub API integration.');
+    }
+
     try {
       // Validate first
       const isValid = await this.validatePatch(patchRecord);
@@ -854,22 +836,35 @@ Remember: Be action-oriented, make reasonable assumptions, and only ask question
    * Create backup of files before modification
    */
   private async createBackup(files: string[]): Promise<void> {
-    const backupDir = path.join(this.projectRoot, '.ai-admin-backups', Date.now().toString());
-    await fs.mkdir(backupDir, { recursive: true });
-
-    for (const file of files) {
-      const sourcePath = path.join(this.projectRoot, file);
-      const backupPath = path.join(backupDir, file);
-
-      try {
-        await fs.mkdir(path.dirname(backupPath), { recursive: true });
-        await fs.copyFile(sourcePath, backupPath);
-      } catch (error) {
-        // File might not exist yet (new file)
-      }
+    // Skip backups in production (read-only filesystem)
+    if (this.isProduction) {
+      await this.log('Skipping backup creation in production (read-only filesystem)');
+      return;
     }
 
-    await this.log(`Backup created: ${backupDir}`);
+    const backupDir = path.join(this.projectRoot, '.ai-admin-backups', Date.now().toString());
+    
+    try {
+      await fs.mkdir(backupDir, { recursive: true });
+
+      for (const file of files) {
+        const sourcePath = path.join(this.projectRoot, file);
+        const backupPath = path.join(backupDir, file);
+
+        try {
+          await fs.mkdir(path.dirname(backupPath), { recursive: true });
+          await fs.copyFile(sourcePath, backupPath);
+        } catch (error) {
+          // File might not exist yet (new file)
+          await this.log(`Skipping backup for ${file} (file may not exist yet)`, 'warning');
+        }
+      }
+
+      await this.log(`Backup created: ${backupDir}`);
+    } catch (error) {
+      await this.log(`Backup creation failed: ${error}`, 'warning');
+      // Don't fail the entire operation if backup fails
+    }
   }
 
   /**
@@ -877,6 +872,12 @@ Remember: Be action-oriented, make reasonable assumptions, and only ask question
    */
   async rollbackPatch(patchId: string): Promise<boolean> {
     await this.log(`Rolling back patch: ${patchId}`);
+
+    // Rollback not supported in production (would need PR revert)
+    if (this.isProduction) {
+      await this.log('Rollback not supported in production. Please revert the PR manually.', 'error');
+      throw new Error('Rollback is not supported in production. Please revert the pull request manually on GitHub.');
+    }
 
     try {
       const patchRecord = this.patchHistory.find(p => p.id === patchId);
@@ -886,32 +887,38 @@ Remember: Be action-oriented, make reasonable assumptions, and only ask question
 
       // Find the most recent backup
       const backupsDir = path.join(this.projectRoot, '.ai-admin-backups');
-      const backups = await fs.readdir(backupsDir);
-      backups.sort().reverse();
+      
+      try {
+        const backups = await fs.readdir(backupsDir);
+        backups.sort().reverse();
 
-      if (backups.length === 0) {
-        throw new Error('No backups available');
-      }
-
-      const latestBackup = path.join(backupsDir, backups[0]);
-
-      // Restore files from backup
-      for (const file of patchRecord.files) {
-        const backupPath = path.join(latestBackup, file);
-        const targetPath = path.join(this.projectRoot, file);
-
-        try {
-          await fs.copyFile(backupPath, targetPath);
-          await this.log(`Restored: ${file}`);
-        } catch (error) {
-          // File might not have existed in backup
+        if (backups.length === 0) {
+          throw new Error('No backups available');
         }
+
+        const latestBackup = path.join(backupsDir, backups[0]);
+
+        // Restore files from backup
+        for (const file of patchRecord.files) {
+          const backupPath = path.join(latestBackup, file);
+          const targetPath = path.join(this.projectRoot, file);
+
+          try {
+            await fs.copyFile(backupPath, targetPath);
+            await this.log(`Restored: ${file}`);
+          } catch (error) {
+            // File might not have existed in backup
+            await this.log(`Could not restore ${file}: ${error}`, 'warning');
+          }
+        }
+
+        patchRecord.status = 'rolled_back';
+        await this.log(`Patch rolled back successfully: ${patchId}`);
+
+        return true;
+      } catch (error) {
+        throw new Error(`Rollback failed: ${error}`);
       }
-
-      patchRecord.status = 'rolled_back';
-      await this.log(`Patch rolled back successfully: ${patchId}`);
-
-      return true;
     } catch (error) {
       await this.log(`Rollback failed: ${error}`, 'error');
       return false;

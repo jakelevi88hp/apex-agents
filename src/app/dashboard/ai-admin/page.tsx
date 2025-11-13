@@ -25,6 +25,17 @@ interface Patch {
   error?: string;
 }
 
+// Type for patch history records from the API
+interface PatchRecord {
+  id: string;
+  timestamp: Date | string;
+  request: string;
+  patch: string;
+  files: string[];
+  status: "pending" | "applied" | "failed" | "rolled_back";
+  error?: string;
+}
+
 // Force rebuild - using generatePatch endpoint
 export default function AIAdminPage() {
   const [messages, setMessages] = useState<Message[]>([
@@ -67,11 +78,16 @@ export default function AIAdminPage() {
       });
 
       if (result.success && result.data) {
+        const files = Array.isArray(result.data.files) ? result.data.files : [];
+        const filesCount = files.length;
+        const description = typeof result.data.description === "string" ? result.data.description : "N/A";
+        const patchId = typeof result.data.id === "string" ? result.data.id : "";
+
         const assistantMessage: Message = {
           role: "assistant",
-          content: `Patch generated successfully!\n\n**Description:** ${result.data.description}\n\n**Files to be modified:** ${result.data.files.length}\n\nWould you like me to apply this patch?`,
+          content: `Patch generated successfully!\n\n**Description:** ${description}\n\n**Files to be modified:** ${filesCount}\n\nWould you like me to apply this patch?`,
           timestamp: new Date(),
-          patchId: result.data.id,
+          patchId,
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
@@ -230,7 +246,7 @@ export default function AIAdminPage() {
           <div className="p-6">
             <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">AI Admin Chat</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Describe what you want to change, and I'll generate a patch for you
+              Describe what you want to change, and I&apos;ll generate a patch for you
             </p>
 
             {/* Messages */}
@@ -322,96 +338,98 @@ export default function AIAdminPage() {
 
           <div className="space-y-4">
             {patchHistory?.data && patchHistory.data.length > 0 ? (
-              patchHistory.data.map((patch: Patch) => (
-                <div
-                  key={patch.id}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(patch.status)}
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {patch.description}
-                        </h3>
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Created: {new Date(patch.createdAt).toLocaleString()}
-                        {patch.appliedAt && (
-                          <> • Applied: {new Date(patch.appliedAt).toLocaleString()}</>
-                        )}
-                      </p>
-                    </div>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded ${
-                        patch.status === "applied"
-                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                          : patch.status === "failed"
-                          ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                          : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                      }`}
-                    >
-                      {patch.status}
-                    </span>
-                  </div>
+              patchHistory.data.map((patchRecord: PatchRecord) => {
+                // Convert PatchRecord to display format
+                const timestamp = typeof patchRecord.timestamp === "string" 
+                  ? new Date(patchRecord.timestamp) 
+                  : patchRecord.timestamp;
+                const description = patchRecord.request || "No description";
+                const files = patchRecord.files || [];
 
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">
-                        Files Modified:
-                      </h4>
+                return (
+                  <div
+                    key={patchRecord.id}
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+                  >
+                    <div className="flex items-start justify-between mb-4">
                       <div className="space-y-1">
-                        {patch.files.map((file, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
-                          >
-                            <span
-                              className={`px-2 py-0.5 text-xs rounded ${
-                                file.action === "create"
-                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                  : file.action === "delete"
-                                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                                  : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                              }`}
-                            >
-                              {file.action}
-                            </span>
-                            <code className="text-xs">{file.path}</code>
-                          </div>
-                        ))}
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(patchRecord.status as Patch["status"])}
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {description}
+                          </h3>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Created: {timestamp instanceof Date ? timestamp.toLocaleString() : new Date(timestamp).toLocaleString()}
+                        </p>
                       </div>
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded ${
+                          patchRecord.status === "applied"
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                            : patchRecord.status === "failed"
+                            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                        }`}
+                      >
+                        {patchRecord.status}
+                      </span>
                     </div>
 
-                    {patch.error && (
-                      <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-3 rounded-md text-sm">
-                        <strong>Error:</strong> {patch.error}
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">
+                          Files Modified:
+                        </h4>
+                        <div className="space-y-1">
+                          {files.length > 0 ? (
+                            files.map((filePath, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
+                              >
+                                <span className="px-2 py-0.5 text-xs rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                                  update
+                                </span>
+                                <code className="text-xs">{filePath}</code>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">No files listed</p>
+                          )}
+                        </div>
                       </div>
-                    )}
 
-                    <div className="flex gap-2">
-                      {patch.status === "pending" && (
-                        <button
-                          onClick={() => handleApplyPatch(patch.id)}
-                          disabled={isLoading}
-                          className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Apply Patch
-                        </button>
+                      {patchRecord.error && (
+                        <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-3 rounded-md text-sm">
+                          <strong>Error:</strong> {patchRecord.error}
+                        </div>
                       )}
-                      {patch.status === "applied" && (
-                        <button
-                          onClick={() => handleRollbackPatch(patch.id)}
-                          disabled={isLoading}
-                          className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Rollback
-                        </button>
-                      )}
+
+                      <div className="flex gap-2">
+                        {patchRecord.status === "pending" && (
+                          <button
+                            onClick={() => handleApplyPatch(patchRecord.id)}
+                            disabled={isLoading}
+                            className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Apply Patch
+                          </button>
+                        )}
+                        {(patchRecord.status === "applied" || patchRecord.status === "rolled_back") && (
+                          <button
+                            onClick={() => handleRollbackPatch(patchRecord.id)}
+                            disabled={isLoading}
+                            className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Rollback
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center text-gray-600 dark:text-gray-400">
                 No patches yet. Start a conversation in the Chat tab to generate patches.
