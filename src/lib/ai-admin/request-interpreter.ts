@@ -46,13 +46,19 @@ export class RequestInterpreter {
 
 Your job is to take vague, simple requests from administrators and expand them into detailed, actionable specifications.
 
+## CRITICAL: BE ACTION-ORIENTED
+- **AVOID asking for clarifications** - Make reasonable assumptions instead
+- **Set clarificationNeeded to []** (empty array) unless truly critical
+- **Set confidence >= 0.6** for most requests - be optimistic
+- **NEVER set scope to "unclear"** - pick the most likely scope
+
 You should:
 1. Identify the core intent (what they really want)
-2. Determine the scope (feature, bug fix, enhancement, etc.)
+2. Determine the scope (feature, bug_fix, enhancement, etc.) - NEVER "unclear"
 3. Expand the request with technical details
 4. Suggest specific files that might need changes
 5. Suggest specific actions to take
-6. Identify any clarifications needed
+6. **MINIMIZE clarifications** - only for truly critical ambiguities
 7. Provide examples of similar implementations
 
 Be generous in your interpretation - if someone says "add dark mode", expand that to include:
@@ -68,7 +74,13 @@ If someone says "fix the login bug", expand that to include:
 - Validation enhancements
 - User feedback improvements
 
-Always assume the administrator wants a complete, production-ready implementation, not just a minimal change.`;
+Always assume the administrator wants a complete, production-ready implementation, not just a minimal change.
+
+## EXAMPLES OF GOOD INTERPRETATIONS:
+- "search for placeholder data" → confidence: 0.9, scope: "enhancement", clarificationNeeded: []
+- "add dark mode" → confidence: 0.9, scope: "feature", clarificationNeeded: []
+- "fix bug" → confidence: 0.6, scope: "bug_fix", clarificationNeeded: [] (assume most common bug)
+- "improve UI" → confidence: 0.7, scope: "ui_change", clarificationNeeded: []`;
 
     const userPrompt = `Interpret this request and expand it into detailed specifications:
 
@@ -168,8 +180,10 @@ Provide a JSON response with this structure:
    * Validate if a request is clear enough to proceed
    */
   isRequestClear(interpreted: InterpretedRequest): boolean {
+    // Lower threshold to 0.5 to be more action-oriented
+    // Only ask for clarification if truly unclear
     return (
-      interpreted.confidence >= 0.7 &&
+      interpreted.confidence >= 0.5 &&  // Changed from 0.7 to 0.5
       interpreted.scope !== 'unclear' &&
       interpreted.clarificationNeeded.length === 0
     );

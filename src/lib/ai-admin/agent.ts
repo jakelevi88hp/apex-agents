@@ -293,11 +293,20 @@ ${f.content}
 # CURRENT MODE: CHAT
 
 You are in CHAT MODE. Focus on:
+- **TAKE ACTION IMMEDIATELY** - Don't ask questions, just do it
 - Answering questions clearly and directly
 - Providing helpful explanations
 - Making reasonable assumptions
-- Taking action when appropriate (searching, analyzing, etc.)
-- Only asking clarifying questions when truly necessary (confidence < 70%)
+- **NEVER ask clarifying questions unless absolutely critical**
+- If the request is clear enough to understand (confidence >= 50%), take action
+
+## CRITICAL: AVOID FOLLOW-UP QUESTIONS
+- ❌ DON'T ask "Which files should I check?"
+- ❌ DON'T ask "What specific terms?"
+- ❌ DON'T ask "Should I include X?"
+- ✅ DO make reasonable assumptions and take action
+- ✅ DO explain what you're doing as you do it
+- ✅ DO provide results immediately
 
 # PROJECT CONTEXT
 
@@ -337,11 +346,12 @@ Remember: Be action-oriented, make reasonable assumptions, and only ask question
       });
 
       // Get response from OpenAI
+      // Lower temperature for more focused, action-oriented responses
       const response = await this.openai.chat.completions.create({
         model: this.model,
         messages,
-        temperature: 0.7,
-        max_tokens: 2000,
+        temperature: 0.3, // Lower temperature = more deterministic, less conversational
+        max_tokens: 1500, // Shorter responses = less room for unnecessary clarifications
       });
 
       const reply = response.choices[0].message.content || 'I apologize, but I could not generate a response.';
