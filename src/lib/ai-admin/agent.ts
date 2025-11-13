@@ -27,7 +27,7 @@ import { RequestInterpreter, InterpretedRequest } from './request-interpreter';
 
 const execAsync = promisify(exec);
 
-interface PatchRecord {
+export interface PatchRecord {
   id: string;
   timestamp: Date;
   request: string;

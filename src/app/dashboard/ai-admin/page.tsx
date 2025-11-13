@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc/client";
 import { Loader2, Send, Code, History, CheckCircle, XCircle, AlertCircle, RefreshCw } from "lucide-react";
 
@@ -36,6 +36,8 @@ export default function AIAdminPage() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+  const isInitialScrollRef = useRef(true);
   const [activeTab, setActiveTab] = useState<"chat" | "patches" | "analysis">("chat");
 
   // tRPC mutations and queries
@@ -75,10 +77,10 @@ export default function AIAdminPage() {
         setMessages((prev) => [...prev, assistantMessage]);
         refetchHistory();
       }
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage: Message = {
         role: "assistant",
-        content: `Error: ${error.message || "Failed to generate patch"}`,
+        content: `Error: ${error instanceof Error ? error.message : "Failed to generate patch"}`,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -101,10 +103,10 @@ export default function AIAdminPage() {
         setMessages((prev) => [...prev, successMessage]);
         refetchHistory();
       }
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage: Message = {
         role: "system",
-        content: `Failed to apply patch: ${error.message}`,
+        content: `Failed to apply patch: ${error instanceof Error ? error.message : "Unknown error"}`,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -121,14 +123,20 @@ export default function AIAdminPage() {
       if (result.success) {
         refetchHistory();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Rollback failed:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  /**
+   * Returns a status icon component based on the patch status.
+   *
+   * @param status - The status of the patch.
+   * @returns The corresponding status icon element or null.
+   */
+  const getStatusIcon = (status: Patch["status"]): React.ReactElement | null => {
     switch (status) {
       case "applied":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
@@ -141,6 +149,26 @@ export default function AIAdminPage() {
     }
   };
 
+  useEffect(() => {
+    // Ensure the scroll container is available before attempting to scroll
+    const container = messagesContainerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    const scrollBehavior: ScrollBehavior = isInitialScrollRef.current ? "auto" : "smooth";
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: scrollBehavior,
+    });
+
+    if (isInitialScrollRef.current) {
+      isInitialScrollRef.current = false;
+    }
+  }, [messages, isLoading]);
+
   return (
     <div className="container mx-auto py-8 space-y-6 max-w-7xl">
       {/* Header */}
@@ -152,8 +180,8 @@ export default function AIAdminPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm font-medium">
-          <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-          Admin Access
+          <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+          <span>Admin Access</span>
         </div>
       </div>
 
@@ -206,7 +234,7 @@ export default function AIAdminPage() {
             </p>
 
             {/* Messages */}
-            <div className="h-[500px] overflow-y-auto mb-4 space-y-4 pr-4">
+            <div ref={messagesContainerRef} className="h-[500px] overflow-y-auto mb-4 space-y-4 pr-4">
               {messages.map((message, index) => (
                 <div
                   key={index}
