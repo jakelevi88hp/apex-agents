@@ -174,8 +174,8 @@ export default function AIAdminPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm font-medium">
-          <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-          Admin Access
+          <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+          <span>Admin Access</span>
         </div>
       </div>
 
