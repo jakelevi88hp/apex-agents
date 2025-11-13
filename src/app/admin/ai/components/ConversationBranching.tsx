@@ -6,10 +6,10 @@ import { trpc } from '@/lib/trpc/client';
 
 interface Branch {
   id: string;
-  title: string;
+  title: string | null;
   branchFromId: string | null;
   branchAtMessageId: string | null;
-  messageCount: number;
+  messageCount?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,16 +17,13 @@ interface Branch {
 interface ConversationBranchingProps {
   conversationId: string;
   onSelectBranch: (branchId: string) => void;
-  onCreateBranch: (atMessageId: string) => void;
 }
 
 export default function ConversationBranching({
   conversationId,
   onSelectBranch,
-  onCreateBranch,
 }: ConversationBranchingProps) {
   const [showBranchModal, setShowBranchModal] = useState(false);
-  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
 
   const { data: branches, refetch } = trpc.aiAdmin.getConversationBranches.useQuery(
     { conversationId },
@@ -127,9 +124,9 @@ export default function ConversationBranching({
           conversationId={conversationId}
           onClose={() => setShowBranchModal(false)}
           onCreated={(branchId) => {
-            setShowBranchModal(false);
-            onSelectBranch(branchId);
-            refetch();
+      setShowBranchModal(false);
+      onSelectBranch(branchId);
+      refetch();
           }}
         />
       )}
@@ -187,8 +184,8 @@ function BranchTreeNode({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3 text-xs text-gray-400">
-            <span>{node.messageCount} messages</span>
+            <div className="flex items-center gap-3 text-xs text-gray-400">
+              <span>{node.messageCount ?? 0} messages</span>
             <span>{new Date(node.updatedAt).toLocaleDateString()}</span>
           </div>
         </div>
@@ -265,60 +262,60 @@ function CreateBranchModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="bg-gray-900 rounded-lg shadow-2xl border border-gray-700 w-full max-w-md">
-        <div className="p-6 border-b border-gray-700">
-          <h3 className="text-xl font-semibold text-white">Create New Branch</h3>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Branch Title
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter branch title"
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
-              required
-            />
+        <div className="bg-gray-900 rounded-lg shadow-2xl border border-gray-700 w-full max-w-md">
+          <div className="p-6 border-b border-gray-700">
+            <h3 className="text-xl font-semibold text-white">Create New Branch</h3>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Branch From Message (Optional)
-            </label>
-            <input
-              type="text"
-              value={atMessageId}
-              onChange={(e) => setAtMessageId(e.target.value)}
-              placeholder="Message ID to branch from"
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Leave empty to branch from the latest message
-            </p>
-          </div>
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Branch Title
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter branch title"
+                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+                required
+              />
+            </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!title.trim() || createBranchMutation.isLoading}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              <GitBranch className="w-4 h-4" />
-              Create Branch
-            </button>
-          </div>
-        </form>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Branch From Message (Optional)
+              </label>
+              <input
+                type="text"
+                value={atMessageId}
+                onChange={(e) => setAtMessageId(e.target.value)}
+                placeholder="Message ID to branch from"
+                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Leave empty to branch from the latest message
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!title.trim() || createBranchMutation.isPending}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <GitBranch className="w-4 h-4" />
+                Create Branch
+              </button>
+            </div>
+          </form>
       </div>
     </div>
   );

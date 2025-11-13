@@ -24,6 +24,30 @@ interface Message {
   status?: 'pending' | 'applied' | 'failed';
 }
 
+/**
+ * Describes a single file entry within a generated patch.
+ */
+interface PatchFileData {
+  path: string;
+  action: string;
+  explanation?: string;
+  content?: string;
+}
+
+/**
+ * Represents the structured data returned from an AI-generated patch request.
+ */
+interface PatchResponseData {
+  id: string;
+  summary?: string;
+  description?: string;
+  files?: PatchFileData[];
+  testingSteps?: string[];
+  risks?: string[];
+  generatedAt?: string;
+  status?: string;
+}
+
 export default function AIAdminPage() {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([
@@ -117,6 +141,9 @@ export default function AIAdminPage() {
 
   // tRPC queries
   const { data: patchHistory, error: patchHistoryError } = trpc.aiAdmin.getPatchHistory.useQuery();
+  const patchHistoryItems = Array.isArray((patchHistory as any)?.data)
+    ? ((patchHistory as any).data as any[])
+    : [];
   
   // Check for auth error in query
   useEffect(() => {
@@ -249,86 +276,85 @@ export default function AIAdminPage() {
         return;
       }
 
-      // Patch mode - use plain-language patch generation if simple mode is enabled
-      if (useSimpleMode) {
-        // Step 1: Get interpretation and confirmation
-        const result = await generatePlainLanguagePatch.mutateAsync({
-          request: input,
-          skipConfirmation: false,
-        });
+        // Patch mode - use plain-language patch generation if simple mode is enabled
+        if (useSimpleMode) {
+          const result = await generatePlainLanguagePatch.mutateAsync({
+            request: input,
+            skipConfirmation: false,
+          });
 
-        if (result.clarificationNeeded) {
-          // Show clarification message
-          const assistantMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            role: 'assistant',
-            content: result.clarificationNeeded,
-            timestamp: new Date(),
-          };
-          setMessages((prev) => [...prev, assistantMessage]);
-          setIsProcessing(false);
-          return;
+          if (result.clarificationNeeded) {
+            const assistantMessage: Message = {
+              id: (Date.now() + 1).toString(),
+              role: 'assistant',
+              content: result.clarificationNeeded,
+              timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, assistantMessage]);
+            setIsProcessing(false);
+            return;
+          }
+
+          if (result.confirmationMessage && result.interpreted) {
+            setPendingRequest(input);
+            setInterpretedRequest(result.interpreted);
+            setShowConfirmation(true);
+            setIsProcessing(false);
+            return;
+          }
+
+          if (result.success && result.patch) {
+            const patchData = result.patch as unknown as PatchResponseData;
+
+            let messageContent = '**Patch Generated Successfully** (Plain-Language Mode)\n\n';
+
+            if (patchData.summary) {
+              messageContent += `${patchData.summary}\n\n`;
+            }
+
+            if (patchData.description) {
+              messageContent += `${patchData.description}\n\n`;
+            }
+
+            if (patchData.files && patchData.files.length > 0) {
+              messageContent += `**Files to be modified:** ${patchData.files.length}\n`;
+              messageContent += patchData.files
+                .map((file) => `• ${file.path} (${file.action})`)
+                .join('\n');
+              messageContent += '\n\n';
+            }
+
+            if (patchData.testingSteps && patchData.testingSteps.length > 0) {
+              messageContent += '**Testing Steps:**\n';
+              messageContent += patchData.testingSteps
+                .map((step, index) => `${index + 1}. ${step}`)
+                .join('\n');
+              messageContent += '\n\n';
+            }
+
+            if (patchData.risks && patchData.risks.length > 0) {
+              messageContent += '**Risks:**\n';
+              messageContent += patchData.risks.map((risk) => `⚠️ ${risk}`).join('\n');
+              messageContent += '\n\n';
+            }
+
+            messageContent += `**Patch ID:** ${patchData.id}\n\n`;
+            messageContent += 'Use the "Apply Patch" button to apply these changes.';
+
+            const assistantMessage: Message = {
+              id: (Date.now() + 1).toString(),
+              role: 'assistant',
+              content: messageContent,
+              timestamp: new Date(),
+              patchId: patchData.id,
+              status: 'pending',
+            };
+            setMessages((prev) => [...prev, assistantMessage]);
+            setSelectedPatchId(patchData.id);
+            setIsProcessing(false);
+            return;
+          }
         }
-
-        if (result.confirmationMessage && result.interpreted) {
-          // Show confirmation dialog
-          setPendingRequest(input);
-          setInterpretedRequest(result.interpreted);
-          setShowConfirmation(true);
-          setIsProcessing(false);
-          return;
-        }
-
-        // If patch was generated directly (skipConfirmation was true)
-        if (result.success && result.patch) {
-          const patchData = result.patch;
-          
-          // Build detailed message content
-          let messageContent = '**Patch Generated Successfully** (Plain-Language Mode)\n\n';
-          
-          if (patchData.summary) {
-            messageContent += `${patchData.summary}\n\n`;
-          }
-          
-          if (patchData.description) {
-            messageContent += `${patchData.description}\n\n`;
-          }
-          
-          if (patchData.files && patchData.files.length > 0) {
-            messageContent += '**Files to be modified:** ' + patchData.files.length + '\n';
-            messageContent += patchData.files.map((f: any) => `• ${f.path} (${f.action})`).join('\n');
-            messageContent += '\n\n';
-          }
-          
-          if (patchData.testingSteps && patchData.testingSteps.length > 0) {
-            messageContent += '**Testing Steps:**\n';
-            messageContent += patchData.testingSteps.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n');
-            messageContent += '\n\n';
-          }
-          
-          if (patchData.risks && patchData.risks.length > 0) {
-            messageContent += '**Risks:**\n';
-            messageContent += patchData.risks.map((r: string) => `⚠️ ${r}`).join('\n');
-            messageContent += '\n\n';
-          }
-          
-          messageContent += `**Patch ID:** ${patchData.id}\n\n`;
-          messageContent += 'Use the "Apply Patch" button to apply these changes.';
-
-          const assistantMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            role: 'assistant',
-            content: messageContent,
-            timestamp: new Date(),
-            patchId: patchData.id,
-            status: 'pending',
-          };
-          setMessages((prev) => [...prev, assistantMessage]);
-          setSelectedPatchId(patchData.id);
-          setIsProcessing(false);
-          return;
-        }
-      }
 
       // Standard patch mode - generate and store patches
       // Log file context status
@@ -341,9 +367,8 @@ export default function AIAdminPage() {
         conversationId: activeConversationId || undefined,
       });
 
-      if (result.success && result.data) {
-        // Data is already in the correct format from generatePatch
-        const patchData = result.data;
+          if (result.success && result.data) {
+            const patchData = result.data as unknown as PatchResponseData;
         
         // Build detailed message content
         let messageContent = '**Patch Generated Successfully**\n\n';
@@ -356,23 +381,27 @@ export default function AIAdminPage() {
           messageContent += `${patchData.description}\n\n`;
         }
         
-        if (patchData.files && patchData.files.length > 0) {
-          messageContent += '**Files to be modified:** ' + patchData.files.length + '\n';
-          messageContent += patchData.files.map((f: any) => `• ${f.path} (${f.action})`).join('\n');
-          messageContent += '\n\n';
-        }
-        
-        if (patchData.testingSteps && patchData.testingSteps.length > 0) {
-          messageContent += '**Testing Steps:**\n';
-          messageContent += patchData.testingSteps.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n');
-          messageContent += '\n\n';
-        }
-        
-        if (patchData.risks && patchData.risks.length > 0) {
-          messageContent += '**⚠️ Potential Risks:**\n';
-          messageContent += patchData.risks.map((r: string) => `• ${r}`).join('\n');
-          messageContent += '\n\n';
-        }
+          if (patchData.files && patchData.files.length > 0) {
+            messageContent += `**Files to be modified:** ${patchData.files.length}\n`;
+            messageContent += patchData.files
+              .map((file) => `• ${file.path} (${file.action})`)
+              .join('\n');
+            messageContent += '\n\n';
+          }
+          
+          if (patchData.testingSteps && patchData.testingSteps.length > 0) {
+            messageContent += '**Testing Steps:**\n';
+            messageContent += patchData.testingSteps
+              .map((step, index) => `${index + 1}. ${step}`)
+              .join('\n');
+            messageContent += '\n\n';
+          }
+          
+          if (patchData.risks && patchData.risks.length > 0) {
+            messageContent += '**⚠️ Potential Risks:**\n';
+            messageContent += patchData.risks.map((risk) => `• ${risk}`).join('\n');
+            messageContent += '\n\n';
+          }
         
         messageContent += 'Click "Apply Patch" to implement these changes or "View Details" to see the full code diff.';
         
@@ -453,7 +482,7 @@ export default function AIAdminPage() {
       } else {
         // Handle failure when success is false
         console.error('[handleApplyPatch] Patch application failed:', result);
-        const errorContent = result.data?.error || result.data?.message || 'Unknown error occurred';
+          const errorContent = (result.data as any)?.error || 'Unknown error occurred';
         const errorMessage: Message = {
           id: Date.now().toString(),
           role: 'system',
@@ -677,22 +706,20 @@ export default function AIAdminPage() {
         {/* Messages or Search */}
         {mode === 'search' ? (
           <div className="flex-1 overflow-hidden">
-            <RepositorySearch
-              onSelectFile={(file) => {
-                // Add selected file to context
-                setMessages(prev => [
-                  ...prev,
-                  {
-                    id: Date.now().toString(),
-                    role: 'system',
-                    content: `Selected file: ${file.path}\n\n${file.content}`,
-                    timestamp: new Date(),
-                  },
-                ]);
-                // Switch back to chat mode
-                setMode('chat');
-              }}
-            />
+              <RepositorySearch
+                onFileSelect={(path, content) => {
+                  setMessages((prev) => [
+                    ...prev,
+                    {
+                      id: Date.now().toString(),
+                      role: 'system',
+                      content: `Selected file: ${path}\n\n${content ?? ''}`,
+                      timestamp: new Date(),
+                    },
+                  ]);
+                  setMode('chat');
+                }}
+              />
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -879,9 +906,9 @@ export default function AIAdminPage() {
               <h2 className="text-lg font-bold text-white">Patch History</h2>
             </div>
 
-        <div className="space-y-3">
-          {patchHistory?.data && patchHistory.data.length > 0 ? (
-            patchHistory.data.map((patch: any) => (
+          <div className="space-y-3">
+            {patchHistoryItems.length > 0 ? (
+              patchHistoryItems.map((patch: any) => (
               <div
                 key={patch.id}
                 className="bg-gray-900 border border-gray-700 rounded-lg p-4 hover:border-purple-500 transition"
@@ -999,8 +1026,8 @@ export default function AIAdminPage() {
               skipConfirmation: true,
             });
 
-            if (result.success && result.patch) {
-              const patchData = result.patch;
+              if (result.success && result.patch) {
+                const patchData = result.patch as unknown as PatchResponseData;
               
               // Build detailed message content
               let messageContent = '**Patch Generated Successfully** (Plain-Language Mode)\n\n';
@@ -1013,23 +1040,27 @@ export default function AIAdminPage() {
                 messageContent += `${patchData.description}\n\n`;
               }
               
-              if (patchData.files && patchData.files.length > 0) {
-                messageContent += '**Files to be modified:** ' + patchData.files.length + '\n';
-                messageContent += patchData.files.map((f: any) => `• ${f.path} (${f.action})`).join('\n');
-                messageContent += '\n\n';
-              }
-              
-              if (patchData.testingSteps && patchData.testingSteps.length > 0) {
-                messageContent += '**Testing Steps:**\n';
-                messageContent += patchData.testingSteps.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n');
-                messageContent += '\n\n';
-              }
-              
-              if (patchData.risks && patchData.risks.length > 0) {
-                messageContent += '**Risks:**\n';
-                messageContent += patchData.risks.map((r: string) => `⚠️ ${r}`).join('\n');
-                messageContent += '\n\n';
-              }
+                if (patchData.files && patchData.files.length > 0) {
+                  messageContent += `**Files to be modified:** ${patchData.files.length}\n`;
+                  messageContent += patchData.files
+                    .map((file) => `• ${file.path} (${file.action})`)
+                    .join('\n');
+                  messageContent += '\n\n';
+                }
+                
+                if (patchData.testingSteps && patchData.testingSteps.length > 0) {
+                  messageContent += '**Testing Steps:**\n';
+                  messageContent += patchData.testingSteps
+                    .map((step, index) => `${index + 1}. ${step}`)
+                    .join('\n');
+                  messageContent += '\n\n';
+                }
+                
+                if (patchData.risks && patchData.risks.length > 0) {
+                  messageContent += '**Risks:**\n';
+                  messageContent += patchData.risks.map((risk) => `⚠️ ${risk}`).join('\n');
+                  messageContent += '\n\n';
+                }
               
               messageContent += `**Patch ID:** ${patchData.id}\n\n`;
               messageContent += 'Use the "Apply Patch" button to apply these changes.';
@@ -1075,7 +1106,7 @@ export default function AIAdminPage() {
           setInterpretedRequest(null);
           setPendingRequest('');
         }}
-        isGenerating={generatePlainLanguagePatch.isLoading}
+          isGenerating={generatePlainLanguagePatch.isPending}
       />
     </div>
   );
