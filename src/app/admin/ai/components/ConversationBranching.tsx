@@ -24,7 +24,6 @@ export default function ConversationBranching({
   onSelectBranch,
 }: ConversationBranchingProps) {
   const [showBranchModal, setShowBranchModal] = useState(false);
-  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
 
   const { data: branches, refetch } = trpc.aiAdmin.getConversationBranches.useQuery(
     { conversationId },
