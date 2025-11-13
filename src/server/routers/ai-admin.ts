@@ -20,33 +20,56 @@ const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   // Check if user is admin by querying the database
   console.log('[AI Admin] Checking admin access for userId:', ctx.userId);
   
+  // Validate userId is a valid UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!ctx.userId || !uuidRegex.test(ctx.userId)) {
+    console.error('[AI Admin] Invalid userId format:', ctx.userId);
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'Invalid authentication token. Please log out and log in again.',
+    });
+  }
+  
   const { db } = await import('@/lib/db');
   const { users } = await import('@/lib/db/schema');
   const { eq } = await import('drizzle-orm');
   
-  const user = await db
-    .select({ role: users.role, email: users.email })
-    .from(users)
-    .where(eq(users.id, ctx.userId))
-    .limit(1);
+  try {
+    const user = await db
+      .select({ role: users.role, email: users.email })
+      .from(users)
+      .where(eq(users.id, ctx.userId))
+      .limit(1);
 
-  console.log('[AI Admin] User query result:', user);
-  const isAdmin = user[0]?.role === 'admin' || user[0]?.role === 'owner';
-  console.log('[AI Admin] isAdmin:', isAdmin, 'role:', user[0]?.role);
+    console.log('[AI Admin] User query result:', user);
+    const isAdmin = user[0]?.role === 'admin' || user[0]?.role === 'owner';
+    console.log('[AI Admin] isAdmin:', isAdmin, 'role:', user[0]?.role);
 
-  if (!isAdmin) {
+    if (!isAdmin) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Admin access required. Please contact your administrator.',
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        isAdmin: true,
+      },
+    });
+  } catch (error) {
+    console.error('[AI Admin] Database query error:', error);
+    // If it's already a TRPCError, rethrow it
+    if (error instanceof TRPCError) {
+      throw error;
+    }
+    // Otherwise, wrap it
     throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Admin access required. Please contact your administrator.',
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Failed to verify admin access. Please try again.',
     });
   }
-
-  return next({
-    ctx: {
-      ...ctx,
-      isAdmin: true,
-    },
-  });
 });
 
 export const aiAdminRouter = router({
@@ -578,7 +601,7 @@ export const aiAdminRouter = router({
   getConversation: adminProcedure
     .input(
       z.object({
-        conversationId: z.string().uuid(),
+        conversationId: z.string().uuid('Invalid conversation ID format'),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -614,7 +637,7 @@ export const aiAdminRouter = router({
   getConversationHistory: adminProcedure
     .input(
       z.object({
-        conversationId: z.string().uuid(),
+        conversationId: z.string().uuid('Invalid conversation ID format'),
         limit: z.number().optional(),
       })
     )
@@ -657,7 +680,7 @@ export const aiAdminRouter = router({
   sendMessage: adminProcedure
     .input(
       z.object({
-        conversationId: z.string().uuid(),
+        conversationId: z.string().uuid('Invalid conversation ID format'),
         message: z.string().min(1),
         files: z.array(
           z.object({
@@ -750,7 +773,7 @@ export const aiAdminRouter = router({
   updateConversationTitle: adminProcedure
     .input(
       z.object({
-        conversationId: z.string().uuid(),
+        conversationId: z.string().uuid('Invalid conversation ID format'),
         title: z.string(),
       })
     )
@@ -779,7 +802,7 @@ export const aiAdminRouter = router({
   deleteConversation: adminProcedure
     .input(
       z.object({
-        conversationId: z.string().uuid(),
+        conversationId: z.string().uuid('Invalid conversation ID format'),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -806,8 +829,8 @@ export const aiAdminRouter = router({
   branchConversation: adminProcedure
     .input(
       z.object({
-        sourceConversationId: z.string().uuid(),
-        branchAtMessageId: z.string().uuid(),
+        sourceConversationId: z.string().uuid('Invalid conversation ID format'),
+        branchAtMessageId: z.string().uuid('Invalid message ID format'),
         newTitle: z.string().optional(),
       })
     )
