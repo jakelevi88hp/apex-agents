@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       try {
         let fullResponse = '';
 
-        if (mode === 'patch') {
+          if (mode === 'patch') {
           // Patch mode: Generate patch with streaming
           const agent = getAIAdminAgent();
           
@@ -76,12 +76,21 @@ export async function POST(request: NextRequest) {
             encoder.encode(`data: ${JSON.stringify({ type: 'status', content: 'Analyzing codebase...' })}\n\n`)
           );
 
-          const result = await agent.generatePatch(message);
-          
-          // Stream the patch description
-          const description = result.description || 'Patch generated successfully';
-          for (let i = 0; i < description.length; i += 10) {
-            const chunk = description.slice(i, i + 10);
+            const patchRecord = await agent.generatePatch(message);
+            let parsedPatch: { summary?: string; description?: string; files?: Array<{ path: string; action: string }> } = {};
+
+            try {
+              parsedPatch = JSON.parse(patchRecord.patch || '{}');
+            } catch (parseError) {
+              console.warn('[Stream] Failed to parse patch JSON:', parseError);
+            }
+
+            const summaryText = parsedPatch.summary || 'Patch generated successfully';
+            const descriptionText = parsedPatch.description || summaryText;
+            const files = Array.isArray(parsedPatch.files) ? parsedPatch.files : [];
+
+            for (let i = 0; i < descriptionText.length; i += 10) {
+              const chunk = descriptionText.slice(i, i + 10);
             fullResponse += chunk;
             await writer.write(
               encoder.encode(`data: ${JSON.stringify({ type: 'chunk', content: chunk })}\n\n`)
@@ -93,9 +102,9 @@ export async function POST(request: NextRequest) {
           await writer.write(
             encoder.encode(`data: ${JSON.stringify({ 
               type: 'patch', 
-              patchId: result.patchId,
-              summary: result.summary,
-              files: result.files 
+                patchId: patchRecord.id,
+                summary: summaryText,
+                files 
             })}\n\n`)
           );
 
