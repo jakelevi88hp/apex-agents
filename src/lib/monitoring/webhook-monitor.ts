@@ -17,6 +17,30 @@ export interface WebhookLog {
 }
 
 export class WebhookMonitor {
+  private static tableInitialized = false;
+
+  /**
+   * Ensure the webhook_logs table exists before executing queries.
+   */
+  private static async ensureTable(): Promise<void> {
+    if (this.tableInitialized) {
+      return; // Skip when the table has already been checked in this runtime.
+    }
+
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS webhook_logs (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        event TEXT NOT NULL,
+        status TEXT NOT NULL,
+        error TEXT,
+        processing_time INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `); // Create the logs table on-demand so analytics never fail.
+
+    this.tableInitialized = true; // Mark initialization so future calls are no-ops.
+  }
+
   /**
    * Log webhook event
    */
@@ -27,18 +51,7 @@ export class WebhookMonitor {
     error?: string
   ): Promise<void> {
     try {
-      // Create webhook_logs table if it doesn't exist
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS webhook_logs (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          event TEXT NOT NULL,
-          status TEXT NOT NULL,
-          error TEXT,
-          processing_time INTEGER NOT NULL,
-          created_at TIMESTAMP DEFAULT NOW()
-        )
-      `);
-      
+      await this.ensureTable(); // Guarantee the table exists before inserting a log.
       // Insert log
       await db.execute(sql`
         INSERT INTO webhook_logs (event, status, error, processing_time)
@@ -62,6 +75,7 @@ export class WebhookMonitor {
     eventBreakdown: Record<string, number>;
   }> {
     try {
+      await this.ensureTable(); // Ensure the table exists before aggregating stats.
       // Get overall stats
       const [stats] = await db.execute(sql`
         SELECT 
@@ -115,10 +129,34 @@ export class WebhookMonitor {
   }
   
   /**
+   * Count occurrences of a specific webhook event within a time window.
+   */
+  static async countEvents(
+    event: string,
+    hours: number = 24
+  ): Promise<number> {
+    try {
+      await this.ensureTable(); // Ensure the logs table exists before counting events.
+      const [result] = await db.execute(sql`
+        SELECT COUNT(*) as count
+        FROM webhook_logs
+        WHERE event = ${event}
+          AND created_at > NOW() - INTERVAL '${hours} hours'
+      `); // Count occurrences for the requested event and time window.
+
+      return parseInt(result.rows[0]?.count || '0', 10); // Normalize to a number even when null.
+    } catch (error) {
+      console.error('Failed to count webhook events:', error);
+      return 0;
+    }
+  }
+
+  /**
    * Get recent webhook failures
    */
   static async getRecentFailures(limit: number = 10): Promise<WebhookLog[]> {
     try {
+      await this.ensureTable(); // Ensure table availability before querying failures.
       const [results] = await db.execute(sql`
         SELECT id, event, status, error, processing_time, created_at as timestamp
         FROM webhook_logs

@@ -7,6 +7,7 @@
 import { db } from '@/server/db';
 import { subscriptions, usageTracking } from '@/lib/db/schema';
 import { sql, eq, and, gte, lte } from 'drizzle-orm';
+import { WebhookMonitor } from '@/lib/monitoring/webhook-monitor';
 
 export interface SubscriptionMetrics {
   // Subscription counts
@@ -85,14 +86,16 @@ export class SubscriptionMonitor {
       FROM usage_tracking
     `);
     
-    const usage = usageMetrics.rows[0] as any;
-    
-    // Get users near limits (>80% usage)
-    const [nearLimit] = await db.execute(sql`
-      SELECT COUNT(DISTINCT user_id) as count
-      FROM usage_tracking
-      WHERE (count::float / "limit"::float) > 0.8
-    `);
+      const usage = usageMetrics.rows[0] as any;
+      
+      // Get users near limits (>80% usage)
+      const [nearLimit] = await db.execute(sql`
+        SELECT COUNT(DISTINCT user_id) as count
+        FROM usage_tracking
+        WHERE (count::float / "limit"::float) > 0.8
+      `);
+      const webhookStats = await WebhookMonitor.getStats(24); // Capture webhook success/failure counts for the last 24 hours.
+      const paymentFailureCount = await WebhookMonitor.countEvents('invoice.payment_failed', 24); // Count Stripe payment failure events over the same window.
     
     return {
       totalSubscriptions: parseInt(counts.total),
@@ -115,8 +118,8 @@ export class SubscriptionMonitor {
       avgStoragePerUser: Math.round(parseFloat(usage.avg_storage) * 100) / 100,
       
       usersNearLimit: parseInt(nearLimit.rows[0]?.count || '0'),
-      webhookFailures: 0, // TODO: Track webhook failures
-      paymentFailures: 0, // TODO: Track payment failures
+      webhookFailures: webhookStats.failedEvents, // Surface operational webhook failures so alerts can be triggered.
+      paymentFailures: paymentFailureCount, // Highlight how many invoices failed to pay in the last day.
     };
   }
   
