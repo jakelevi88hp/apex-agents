@@ -81,7 +81,7 @@ export default function Sidebar() {
 
   const specializedItems = [
     { href: '/dashboard/agi', icon: Brain, label: 'AGI' },
-    ...(isAdmin ? [{ href: '/admin/ai', icon: Wrench, label: 'AI Admin' }] : []),
+    ...(isAdmin ? [{ href: '/dashboard/ai-admin', icon: Wrench, label: 'AI Admin' }] : []),
   ];
 
   const isActive = (href: string) => pathname === href;

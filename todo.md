@@ -30,7 +30,13 @@
 - [x] Fix build and deploy (commit 628ef79)
 
 
-## Still Blank Page - Delete Unused Admin/AI (Current - URGENT)
-- [ ] Delete src/app/admin/ai directory (uses Node.js fs in browser)
-- [ ] Delete vision-analyzer.ts and file-context-gatherer.ts (not needed)
-- [ ] Deploy and verify fix
+## Still Blank Page - Delete Unused Admin/AI (RESOLVED)
+- [x] Delete src/app/admin/ai directory (uses Node.js fs in browser)
+- [x] Restore proper vision-analyzer.ts and file-context-gatherer.ts (server-only)
+- [x] Deploy fix (commit 235f22b)
+
+
+## AI Admin Sidebar Link Wrong URL (Current - URGENT)
+- [x] Find sidebar navigation component (Sidebar.tsx line 84)
+- [x] Fix AI Admin link from /admin/ai to /dashboard/ai-admin
+- [ ] Deploy and verify
