@@ -175,7 +175,7 @@ export async function* executeAgentStream(config: ExecutionConfig): AsyncGenerat
     });
 
     let fullOutput = '';
-    let tokensUsed = 0;
+    const tokensUsed = 0;
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || '';

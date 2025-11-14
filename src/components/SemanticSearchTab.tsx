@@ -143,9 +143,9 @@ export default function SemanticSearchTab() {
         <div className="bg-gray-800 border border-gray-700 rounded-lg p-12 text-center">
           <FileText className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-white mb-2">No Results Found</h3>
-          <p className="text-gray-400 mb-4">
-            We couldn't find any documents matching your query.
-          </p>
+            <p className="text-gray-400 mb-4">
+              We couldn&rsquo;t find any documents matching your query.
+            </p>
           <p className="text-sm text-gray-500">
             Try different keywords or check if your data sources are connected.
           </p>
@@ -212,10 +212,10 @@ export default function SemanticSearchTab() {
         <div className="bg-gray-800 border border-gray-700 rounded-lg p-12 text-center">
           <Sparkles className="w-16 h-16 text-purple-500 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-white mb-2">Semantic Search Powered by AI</h3>
-          <p className="text-gray-400 mb-6 max-w-2xl mx-auto">
-            Search your knowledge base using natural language. Our AI understands the meaning behind your queries
-            and finds the most relevant documents, even if they don't contain the exact keywords.
-          </p>
+            <p className="text-gray-400 mb-6 max-w-2xl mx-auto">
+              Search your knowledge base using natural language. Our AI understands the meaning behind your queries
+              and finds the most relevant documents, even if they don&rsquo;t contain the exact keywords.
+            </p>
           <div className="grid md:grid-cols-3 gap-4 max-w-3xl mx-auto text-left">
             <div className="bg-gray-700 p-4 rounded-lg">
               <div className="text-purple-400 font-semibold mb-2">🎯 Contextual Understanding</div>

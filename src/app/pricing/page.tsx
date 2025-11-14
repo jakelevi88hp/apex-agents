@@ -180,9 +180,9 @@ export default function PricingPage() {
               <h3 className="text-xl font-semibold text-white mb-2">
                 What happens after my trial ends?
               </h3>
-              <p className="text-gray-300">
-                You'll be prompted to upgrade to a paid plan. Your data is safe and you can upgrade anytime.
-              </p>
+                <p className="text-gray-300">
+                  You&rsquo;ll be prompted to upgrade to a paid plan. Your data is safe and you can upgrade anytime.
+                </p>
             </div>
             <div className="bg-gray-800 p-6 rounded-lg">
               <h3 className="text-xl font-semibold text-white mb-2">
