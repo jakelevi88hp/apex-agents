@@ -16,9 +16,7 @@ export const authRouter = router({
     }))
     .mutation(async ({ input }) => {
       // Check if user exists
-      const existingUser = await db.query.users.findFirst({
-        where: eq(users.email, input.email),
-      });
+      const [existingUser] = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
 
       if (existingUser) {
         throw new Error('User already exists');
@@ -72,9 +70,7 @@ export const authRouter = router({
       password: z.string(),
     }))
     .mutation(async ({ input }) => {
-      const user = await db.query.users.findFirst({
-        where: eq(users.email, input.email),
-      });
+      const [user] = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
 
       if (!user || !user.passwordHash) {
         throw new Error('Invalid credentials');
@@ -128,9 +124,7 @@ export const authRouter = router({
 
   me: protectedProcedure
     .query(async ({ ctx }) => {
-      const user = await db.query.users.findFirst({
-        where: eq(users.id, ctx.userId!),
-      });
+      const [user] = await db.select().from(users).where(eq(users.id, ctx.userId!)).limit(1);
 
       if (!user) {
         return null;
@@ -150,9 +144,7 @@ export const authRouter = router({
       email: z.string().email(),
     }))
     .mutation(async ({ input }) => {
-      const user = await db.query.users.findFirst({
-        where: eq(users.email, input.email),
-      });
+      const [user] = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
 
       // Always return success to prevent email enumeration
       if (!user) {
@@ -191,9 +183,7 @@ export const authRouter = router({
       newPassword: z.string().min(8),
     }))
     .mutation(async ({ input }) => {
-      const user = await db.query.users.findFirst({
-        where: eq(users.resetToken, input.token),
-      });
+      const [user] = await db.select().from(users).where(eq(users.resetToken, input.token)).limit(1);
 
       if (!user || !user.resetTokenExpiry) {
         throw new Error('Invalid or expired reset token');

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { useTheme } from '@/contexts/ThemeContext';
+import type { agents, executions } from '@/lib/db/schema';
 import {
   ArrowLeft,
   Play,
@@ -35,11 +36,12 @@ export default function AgentDetailPage() {
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isEditing, setIsEditing] = useState(false);
-  const [editedConfig, setEditedConfig] = useState<any>(null);
+  type AgentConfig = typeof agents.$inferSelect['config'];
+  const [editedConfig, setEditedConfig] = useState<AgentConfig | null>(null);
 
   // Fetch agent data
   const { data: agent, isLoading, refetch } = trpc.agents.get.useQuery({ id: agentId });
-  const { data: executions } = trpc.executions.getByAgent.useQuery({ agentId }, { enabled: !!agentId });
+  const { data: executions } = trpc.execution.getByAgent.useQuery({ agentId }, { enabled: !!agentId });
   const { data: analytics } = trpc.analytics.getAgentAnalytics.useQuery({ agentId }, { enabled: !!agentId });
 
   // Mutations
@@ -274,7 +276,7 @@ export default function AgentDetailPage() {
                   <Clock className="w-4 h-4 text-blue-500" />
                 </div>
                 <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  {analytics?.avgDuration ? `${(analytics.avgDuration / 1000).toFixed(1)}s` : '0s'}
+                  {analytics?.avgDurationMs ? `${(analytics.avgDurationMs / 1000).toFixed(1)}s` : '0s'}
                 </div>
               </div>
 
@@ -290,7 +292,7 @@ export default function AgentDetailPage() {
                   <DollarSign className="w-4 h-4 text-cyan-500" />
                 </div>
                 <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  ${analytics?.totalCost?.toFixed(2) || '0.00'}
+                  ${analytics?.totalCostUsd?.toFixed(2) || '0.00'}
                 </div>
               </div>
             </div>
@@ -520,7 +522,7 @@ export default function AgentDetailPage() {
             </h3>
             {executions && executions.length > 0 ? (
               <div className="space-y-3">
-                {executions.map((execution: any) => (
+                {executions.map((execution: typeof executions.$inferSelect) => (
                   <div
                     key={execution.id}
                     className={`p-4 rounded-lg border ${
@@ -603,7 +605,7 @@ export default function AgentDetailPage() {
                 <div className="text-center py-8">
                   <DollarSign className="w-12 h-12 mx-auto mb-2 text-cyan-500" />
                   <p className="text-3xl font-bold text-cyan-500">
-                    ${analytics?.totalCost?.toFixed(2) || '0.00'}
+                    ${analytics?.totalCostUsd?.toFixed(2) || '0.00'}
                   </p>
                   <p className={`text-sm mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     Total cost to date

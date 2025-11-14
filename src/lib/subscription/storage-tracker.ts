@@ -4,8 +4,8 @@
  * Tracks file storage usage for subscription limits
  */
 
-import { db } from '@/server/db';
-import { documents } from '@/server/db/schema';
+import { db } from '@/lib/db';
+import { documents } from '@/lib/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { SubscriptionService } from './service';
 
@@ -16,7 +16,7 @@ export class StorageTracker {
   static async getUserStorageUsage(userId: string): Promise<number> {
     const result = await db
       .select({
-        totalSize: sql<number>`COALESCE(SUM(${documents.fileSize}), 0)`,
+        totalSize: sql<number>`COALESCE(SUM(${documents.size}), 0)`,
       })
       .from(documents)
       .where(eq(documents.userId, userId));

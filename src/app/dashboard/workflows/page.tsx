@@ -291,7 +291,7 @@ export default function WorkflowsPage() {
                   <div className="flex gap-2 text-xs text-gray-500">
                     <span>{Array.isArray(workflow.steps) ? workflow.steps.length : 0} steps</span>
                     <span>•</span>
-                    <span>{workflow.trigger?.type || 'Manual'} trigger</span>
+                    <span>{((workflow.trigger as { type?: string })?.type) || 'Manual'} trigger</span>
                   </div>
                 </div>
               ))}
@@ -481,7 +481,7 @@ export default function WorkflowsPage() {
                 </span>
                 <span>
                   <span className="font-semibold text-white">Trigger:</span>{' '}
-                  {selectedWorkflow.trigger?.type || 'Manual'}
+                  {((selectedWorkflow.trigger as { type?: string })?.type) || 'Manual'}
                 </span>
               </div>
 

@@ -6,22 +6,34 @@ const JWT_EXPIRES_IN = '7d'; // 7 days
 export interface JWTPayload {
   userId: string;
   email: string;
-  role: string;
+  role?: string;
+  iat?: number;
+  exp?: number;
 }
 
-export function signToken(payload: JWTPayload): string {
+/**
+ * Sign a JWT token with user payload
+ */
+export function signToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 }
 
+/**
+ * Verify and decode a JWT token
+ */
 export function verifyToken(token: string): JWTPayload | null {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
     return decoded;
   } catch (error) {
+    console.error('Token verification failed:', error);
     return null;
   }
 }
 
+/**
+ * Extract JWT token from request (Authorization header or cookie)
+ */
 export function extractTokenFromRequest(req: Request): string | null {
   // Check Authorization header
   const authHeader = req.headers.get('authorization');

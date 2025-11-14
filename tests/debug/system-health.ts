@@ -295,5 +295,6 @@ if (require.main === module) {
   runHealthCheck().catch(console.error);
 }
 
-export { SystemHealthChecker, HealthCheckResult };
+export { SystemHealthChecker };
+export type { HealthCheckResult };
 

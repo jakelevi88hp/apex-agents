@@ -2,7 +2,7 @@ import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { agents, executions } from '@/lib/db/schema';
 import { eq, desc, inArray } from 'drizzle-orm';
-import { AgentFactory } from '@/lib/ai/agents';
+import { AgentFactory, type AgentType } from '@/lib/ai/agents';
 import { checkUsageLimit } from '../middleware/subscription';
 
 export const agentsRouter = router({
@@ -23,9 +23,9 @@ export const agentsRouter = router({
       name: z.string(),
       description: z.string().optional(),
       type: z.enum(['research', 'analysis', 'writing', 'code', 'decision', 'communication', 'monitoring', 'orchestrator', 'custom']),
-      config: z.record(z.string(), z.any()),
+      config: z.record(z.string(), z.unknown()),
       capabilities: z.record(z.string(), z.boolean()).or(z.array(z.string())),
-      constraints: z.record(z.string(), z.any()).optional(),
+      constraints: z.record(z.string(), z.unknown()).optional(),
       promptTemplate: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
@@ -71,13 +71,15 @@ export const agentsRouter = router({
       
       if (!agent) throw new Error('Agent not found');
 
+      const agentConfig = agent.config as { model?: string; tools?: string[] } | null;
+      const capabilities = agent.capabilities as string[] | null;
       const agentInstance = AgentFactory.createAgent({
         id: agent.id,
         name: agent.name,
-        type: agent.type as any,
-        model: (agent.config as any).model || 'gpt-4-turbo',
-        tools: (agent.config as any).tools || [],
-        capabilities: (agent.capabilities as any) || [],
+        type: agent.type as AgentType,
+        model: agentConfig?.model || 'gpt-4-turbo',
+        tools: agentConfig?.tools || [],
+        capabilities: capabilities || [],
       });
 
       const [execution] = await ctx.db.insert(executions).values({
@@ -173,6 +175,48 @@ export const agentsRouter = router({
 
       const successCount = results.filter(r => r !== null).length;
       return { success: true, count: successCount, failed: input.ids.length - successCount };
+    }),
+
+  toggleStatus: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [agent] = await ctx.db.select().from(agents).where(eq(agents.id, input.id)).limit(1);
+      
+      if (!agent) {
+        throw new Error('Agent not found');
+      }
+
+      const newStatus = agent.status === 'active' ? 'inactive' : 'active';
+      const [updated] = await ctx.db
+        .update(agents)
+        .set({ status: newStatus, updatedAt: new Date() })
+        .where(eq(agents.id, input.id))
+        .returning();
+
+      return updated;
+    }),
+
+  duplicate: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [originalAgent] = await ctx.db.select().from(agents).where(eq(agents.id, input.id)).limit(1);
+      
+      if (!originalAgent) {
+        throw new Error('Agent not found');
+      }
+
+      const [duplicatedAgent] = await ctx.db.insert(agents).values({
+        userId: ctx.userId!,
+        name: `${originalAgent.name} (Copy)`,
+        description: originalAgent.description,
+        type: originalAgent.type,
+        config: originalAgent.config,
+        status: 'inactive',
+        capabilities: originalAgent.capabilities,
+        constraints: originalAgent.constraints,
+      }).returning();
+
+      return duplicatedAgent;
     }),
 });
 

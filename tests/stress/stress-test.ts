@@ -291,5 +291,6 @@ if (require.main === module) {
   runAllStressTests().catch(console.error);
 }
 
-export { StressTestRunner, StressTestResult, StressTestConfig };
+export { StressTestRunner };
+export type { StressTestResult, StressTestConfig };
 

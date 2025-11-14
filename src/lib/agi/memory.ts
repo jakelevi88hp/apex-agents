@@ -26,14 +26,14 @@ export interface EpisodicMemory {
   timestamp: Date;
   eventType: string;
   description: string;
-  context?: any;
+  context?: unknown;
   emotionalValence?: number; // -1.0 to 1.0
   emotionalArousal?: number; // 0.0 to 1.0
   importanceScore?: number; // 0.0 to 1.0
-  participants?: any;
+  participants?: unknown;
   location?: string;
   outcome?: string;
-  learnedLessons?: any;
+  learnedLessons?: unknown;
 }
 
 export interface SemanticMemory {
@@ -42,9 +42,9 @@ export interface SemanticMemory {
   concept: string;
   definition?: string;
   category?: string;
-  properties?: any;
-  relationships?: any;
-  examples?: any;
+  properties?: unknown;
+  relationships?: unknown;
+  examples?: unknown;
   confidence?: number; // 0.0 to 1.0
   source?: string;
   verificationStatus?: string;
@@ -58,7 +58,7 @@ export interface WorkingMemoryItem {
   content: string;
   priority?: number; // 0.0 to 1.0
   activationLevel?: number; // 0.0 to 1.0
-  metadata?: any;
+  metadata?: unknown;
   expiresAt?: Date;
 }
 
@@ -68,9 +68,9 @@ export interface ProceduralMemory {
   skillName: string;
   description?: string;
   category?: string;
-  steps: any;
-  prerequisites?: any;
-  successCriteria?: any;
+  steps: unknown;
+  prerequisites?: unknown;
+  successCriteria?: unknown;
   proficiencyLevel?: number; // 0.0 to 1.0
   practiceCount?: number;
   successRate?: number; // 0.0 to 1.0
@@ -87,7 +87,7 @@ export interface EmotionalMemory {
   arousal: number; // 0.0 to 1.0
   trigger?: string;
   response?: string;
-  regulation?: any;
+  regulation?: unknown;
   outcome?: string;
 }
 
@@ -96,10 +96,10 @@ export interface ConsciousnessState {
   userId?: string;
   sessionId: string;
   consciousnessLevel: number; // 0.0 to 1.0
-  attentionFocus?: any;
-  currentGoals?: any;
-  metacognitiveState?: any;
-  emotionalState?: any;
+  attentionFocus?: unknown;
+  currentGoals?: unknown;
+  metacognitiveState?: unknown;
+  emotionalState?: unknown;
   creativityLevel?: number; // 0.0 to 1.0
   reasoningMode?: string;
   timestamp: Date;

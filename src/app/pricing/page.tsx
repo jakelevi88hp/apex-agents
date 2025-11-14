@@ -2,10 +2,8 @@
 import { useState } from 'react';
 import { Check, Zap, Crown, Rocket } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
-import { useRouter } from 'next/navigation';
 
 export default function PricingPage() {
-  const router = useRouter();
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const { data: plans } = trpc.subscription.getPlans.useQuery();
   const { data: currentSub } = trpc.subscription.getCurrent.useQuery();
@@ -181,7 +179,7 @@ export default function PricingPage() {
                 What happens after my trial ends?
               </h3>
               <p className="text-gray-300">
-                You'll be prompted to upgrade to a paid plan. Your data is safe and you can upgrade anytime.
+                You&apos;ll be prompted to upgrade to a paid plan. Your data is safe and you can upgrade anytime.
               </p>
             </div>
             <div className="bg-gray-800 p-6 rounded-lg">

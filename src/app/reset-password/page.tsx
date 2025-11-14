@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
@@ -14,14 +14,9 @@ export default function ResetPasswordPage() {
     newPassword: '',
     confirmPassword: '',
   });
-  const [error, setError] = useState('');
+  // Immediately surface messaging when the token is missing to avoid hydration-time state changes.
+  const [error, setError] = useState<string>(() => (token ? '' : 'Invalid reset link. Please request a new password reset.'));
   const [success, setSuccess] = useState(false);
-
-  useEffect(() => {
-    if (!token) {
-      setError('Invalid reset link. Please request a new password reset.');
-    }
-  }, [token]);
 
   const resetMutation = trpc.auth.resetPassword.useMutation({
     onSuccess: () => {

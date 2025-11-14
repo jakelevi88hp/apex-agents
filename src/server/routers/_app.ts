@@ -7,8 +7,7 @@ import { analyticsRouter } from './analytics';
 import { executionRouter } from './execution';
 import { settingsRouter } from './settings';
 import { subscriptionRouter } from './subscription';
-import { suggestionsRouter } from './suggestions';
-// import { searchRouter } from './search'; // TODO: Disabled until documents/embeddings tables are created
+import { searchRouter } from './search';
 
 export const appRouter = router({
   auth: authRouter,
@@ -19,8 +18,7 @@ export const appRouter = router({
   execution: executionRouter,
   settings: settingsRouter,
   subscription: subscriptionRouter,
-  suggestions: suggestionsRouter,
-  // search: searchRouter, // TODO: Disabled until documents/embeddings tables are created
+  search: searchRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -345,7 +345,7 @@ export class ContextGatherer {
 
     for (const path of paths) {
       try {
-        const content = await this.githubService.getFileContent(this.owner, this.repo, path);
+        const content = await this.githubService.getFileContent(path);
         
         if (content.length <= maxSize) {
           files.push({

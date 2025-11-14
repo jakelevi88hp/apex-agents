@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/server/db';
-import { documents } from '@/server/db/schema/documents';
+import { db, documents } from '@/lib/db';
 import { eq, and, isNull, desc } from 'drizzle-orm';
 import { verifyToken } from '@/lib/auth/jwt';
 
@@ -28,7 +27,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
 
     // Build query
-    let query = db
+    const query = db
       .select()
       .from(documents)
       .where(

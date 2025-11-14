@@ -10,8 +10,8 @@ export const subscriptionRouter = router({
    * Get current user's subscription
    */
   getCurrent: protectedProcedure.query(async ({ ctx }) => {
-    const subscription = await SubscriptionService.getUserSubscription(ctx.user.id);
-    const isExpired = await SubscriptionService.isTrialExpired(ctx.user.id);
+    const subscription = await SubscriptionService.getUserSubscription(ctx.userId!);
+    const isExpired = await SubscriptionService.isTrialExpired(ctx.userId!);
     
     return {
       subscription,
@@ -26,7 +26,7 @@ export const subscriptionRouter = router({
    * Get usage statistics
    */
   getUsage: protectedProcedure.query(async ({ ctx }) => {
-    return await SubscriptionService.getUsageStats(ctx.user.id);
+    return await SubscriptionService.getUsageStats(ctx.userId!);
   }),
 
   /**
@@ -37,7 +37,7 @@ export const subscriptionRouter = router({
       feature: z.string(),
     }))
     .query(async ({ ctx, input }) => {
-      return await SubscriptionService.canUseFeature(ctx.user.id, input.feature);
+      return await SubscriptionService.canUseFeature(ctx.userId!, input.feature);
     }),
 
   /**
@@ -75,7 +75,19 @@ export const subscriptionRouter = router({
       billingPeriod: z.enum(['monthly', 'yearly']),
     }))
     .mutation(async ({ ctx, input }) => {
-      const user = ctx.user;
+      // Fetch user data from database
+      const { db } = await import('@/lib/db');
+      const { users } = await import('@/lib/db/schema');
+      const { eq } = await import('drizzle-orm');
+      
+      const [user] = await db.select().from(users).where(eq(users.id, ctx.userId!)).limit(1);
+      
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
       
       // Ensure Stripe products exist
       const priceIds = await ensureStripeProducts();
@@ -108,7 +120,7 @@ export const subscriptionRouter = router({
    * Cancel subscription
    */
   cancelSubscription: protectedProcedure.mutation(async ({ ctx }) => {
-    await SubscriptionService.cancelSubscription(ctx.user.id);
+    await SubscriptionService.cancelSubscription(ctx.userId!);
     return { success: true };
   }),
 
@@ -116,7 +128,7 @@ export const subscriptionRouter = router({
    * Get Stripe customer portal URL
    */
   getCustomerPortal: protectedProcedure.query(async ({ ctx }) => {
-    const subscription = await SubscriptionService.getUserSubscription(ctx.user.id);
+    const subscription = await SubscriptionService.getUserSubscription(ctx.userId!);
     
     if (!subscription?.stripeCustomerId) {
       throw new TRPCError({
