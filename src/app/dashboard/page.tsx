@@ -1,8 +1,12 @@
 'use client';
-import { useEffect, useState } from 'react';
 import { Bot, Workflow, Zap, TrendingUp, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { trpc } from '@/lib/trpc/client';
+<<<<<<< Current (Your changes)
+import AnimatedCounter from '@/components/AnimatedCounter';
+=======
+import VoiceCommandPanel from '@/components/VoiceCommandPanel';
+import { UserSuggestionsPanel } from '@/components/dashboard/UserSuggestions';
 
 // Animated counter component
 function AnimatedCounter({ value, duration = 1000 }: { value: number; duration?: number }) {
@@ -15,7 +19,7 @@ function AnimatedCounter({ value, duration = 1000 }: { value: number; duration?:
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const progress = Math.min((timestamp - startTime) / duration, 1);
-      
+
       setCount(Math.floor(progress * value));
 
       if (progress < 1) {
@@ -29,14 +33,26 @@ function AnimatedCounter({ value, duration = 1000 }: { value: number; duration?:
 
   return <span>{count}</span>;
 }
+>>>>>>> Incoming (Background Agent changes)
 
 export default function DashboardPage() {
+<<<<<<< Current (Your changes)
+=======
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    // Schedule the state change after paint to prevent hydration warnings.
+    const frameId = requestAnimationFrame(() => {
+      setMounted(true);
+    });
+
+    return () => {
+      // Ensure the queued frame does not run if the component unmounts early.
+      cancelAnimationFrame(frameId);
+    };
   }, []);
 
+>>>>>>> Incoming (Background Agent changes)
   // Fetch real metrics from database
   const { data: metrics, isLoading: metricsLoading } = trpc.analytics.getDashboardMetrics.useQuery();
   const { data: agentsSparkline } = trpc.analytics.getSparklineData.useQuery({ metric: 'agents' });
@@ -90,7 +106,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="text-4xl font-bold text-white mb-2">
-              {mounted && metrics ? <AnimatedCounter value={metrics.activeAgents} /> : metrics?.activeAgents || 0}
+                {metrics ? <AnimatedCounter value={metrics.activeAgents} /> : 0}
             </div>
             
             {/* Sparkline Chart */}
@@ -137,7 +153,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="text-4xl font-bold text-white mb-2">
-              {mounted && metrics ? <AnimatedCounter value={metrics.workflows} /> : metrics?.workflows || 0}
+                {metrics ? <AnimatedCounter value={metrics.workflows} /> : 0}
             </div>
             
             {/* Sparkline Chart */}
@@ -184,7 +200,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="text-4xl font-bold text-white mb-2">
-              {mounted && metrics ? <AnimatedCounter value={metrics.executionsToday} /> : metrics?.executionsToday || 0}
+                {metrics ? <AnimatedCounter value={metrics.executionsToday} /> : 0}
             </div>
             
             {/* Sparkline Chart */}

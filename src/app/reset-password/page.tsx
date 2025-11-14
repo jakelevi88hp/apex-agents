@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
@@ -14,14 +14,15 @@ export default function ResetPasswordPage() {
     newPassword: '',
     confirmPassword: '',
   });
-  const [error, setError] = useState('');
+  // Immediately surface messaging when the token is missing to avoid hydration-time state changes.
+  const [error, setError] = useState<string>(() => (token ? '' : 'Invalid reset link. Please request a new password reset.'));
   const [success, setSuccess] = useState(false);
-
-  useEffect(() => {
-    if (!token) {
-      setError('Invalid reset link. Please request a new password reset.');
-    }
-  }, [token]);
+<<<<<<< Current (Your changes)
+=======
+  const invalidLinkMessage = 'Invalid reset link. Please request a new password reset.';
+  // Surface token issues without needing an immediate state change inside an effect.
+  const derivedError = !token ? invalidLinkMessage : error;
+>>>>>>> Incoming (Background Agent changes)
 
   const resetMutation = trpc.auth.resetPassword.useMutation({
     onSuccess: () => {
@@ -76,9 +77,9 @@ export default function ResetPasswordPage() {
           </div>
         )}
 
-        {error && (
+        {derivedError && (
           <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200">
-            {error}
+            {derivedError}
           </div>
         )}
 

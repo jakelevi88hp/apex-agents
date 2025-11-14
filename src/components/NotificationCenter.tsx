@@ -1,24 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Bell, Check, X, CheckCheck, Trash2, ExternalLink } from 'lucide-react';
 import { notificationSystem, type Notification } from '@/lib/notifications/system';
 import { useRouter } from 'next/navigation';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export default function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const notifications = useNotifications();
   const router = useRouter();
 
   useEffect(() => {
-    // Load initial notifications
-    setNotifications(notificationSystem.getAll());
-
-    // Subscribe to new notifications
+    // Subscribe to new notifications to trigger browser-level alerts without touching React state.
     const unsubscribe = notificationSystem.subscribe((notification) => {
-      setNotifications(notificationSystem.getAll());
-      
-      // Show browser notification if permission granted
       if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
         new Notification(notification.title, {
           body: notification.message,
@@ -34,17 +29,14 @@ export default function NotificationCenter() {
 
   const handleMarkAsRead = (id: string) => {
     notificationSystem.markAsRead(id);
-    setNotifications(notificationSystem.getAll());
   };
 
   const handleMarkAllAsRead = () => {
     notificationSystem.markAllAsRead();
-    setNotifications(notificationSystem.getAll());
   };
 
   const handleClearAll = () => {
     notificationSystem.clearAll();
-    setNotifications([]);
   };
 
   const handleNotificationClick = (notification: Notification) => {
@@ -154,9 +146,13 @@ export default function NotificationCenter() {
                 <div className="p-8 text-center">
                   <Bell className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                   <p className="text-gray-400">No notifications</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    You're all caught up!
-                  </p>
+                    <p className="text-sm text-gray-500 mt-1">
+<<<<<<< Current (Your changes)
+                      You&apos;re all caught up!
+=======
+                      You&rsquo;re all caught up!
+>>>>>>> Incoming (Background Agent changes)
+                    </p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-700">

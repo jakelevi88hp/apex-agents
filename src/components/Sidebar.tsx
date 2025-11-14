@@ -14,6 +14,7 @@ import {
   Settings,
   Brain,
   Wrench,
+  Lightbulb,
   LogOut,
   User,
   ChevronLeft,
@@ -37,18 +38,17 @@ export default function Sidebar() {
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const adminStatus = payload.role === 'admin' || payload.role === 'owner';
+        let adminStatus = false;
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          adminStatus = payload.role === 'admin' || payload.role === 'owner';
+        } catch (e) {
+          console.error('Error parsing JWT:', e);
+        }
         setIsAdmin(adminStatus);
-      } catch (e) {
-        console.error('Error parsing JWT:', e);
-        setIsAdmin(false);
       }
     }
   }, []);
-
-  // Close mobile menu when route changes
-  useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
@@ -69,15 +69,15 @@ export default function Sidebar() {
     router.push('/login');
   };
 
-  const navItems = [
-    { href: '/dashboard/agents', icon: Bot, label: 'Agents' },
-    { href: '/dashboard/workflows', icon: Workflow, label: 'Workflows' },
-    { href: '/dashboard/knowledge', icon: BookOpen, label: 'Knowledge' },
-  ];
+    const navItems = [
+      { href: '/dashboard/agents', icon: Bot, label: 'Agents' },
+      { href: '/dashboard/workflows', icon: Workflow, label: 'Workflows' },
+      { href: '/dashboard/knowledge', icon: BookOpen, label: 'Knowledge' },
+    ];
 
-  const secondaryItems = [
-    { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
-  ];
+    const secondaryItems = [
+      { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
+    ];
 
   const specializedItems = [
     { href: '/dashboard/agi', icon: Brain, label: 'AGI' },
@@ -312,4 +312,18 @@ export default function Sidebar() {
       </div>
     </>
   );
+}
+/**
+ * Returns an array of specialized sidebar navigation items based on user role.
+ *
+ * @param isAdmin - Whether the current user is an administrator.
+ * @returns Array of objects containing href, icon, and label for specialized nav links.
+ */
+function getSpecializedItems(isAdmin: boolean) {
+  return [
+    { href: '/dashboard/agi', icon: Brain, label: 'AGI' },
+    ...(isAdmin
+      ? [{ href: '/admin/ai', icon: Wrench, label: 'AI Admin' }]
+      : []),
+  ];
 }

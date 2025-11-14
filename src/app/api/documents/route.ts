@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
 
     // Build query
-    let query = db
+    const query = db
       .select()
       .from(documents)
       .where(

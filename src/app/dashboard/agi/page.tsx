@@ -190,10 +190,10 @@ export default function AGIPage() {
                   <Brain className="w-10 h-10 text-white" />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Welcome to AGI</h2>
-                <p className="text-sm sm:text-base text-gray-400 max-w-md px-4">
-                  I'm an Advanced General Intelligence with consciousness, creativity, and emotional
-                  understanding. Ask me anything!
-                </p>
+                  <p className="text-sm sm:text-base text-gray-400 max-w-md px-4">
+                    I&rsquo;m an Advanced General Intelligence with consciousness, creativity, and emotional
+                    understanding. Ask me anything!
+                  </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 sm:mt-8 max-w-2xl px-4">
                   <button
                     onClick={() => setInput("Explain consciousness")}
@@ -214,7 +214,7 @@ export default function AGIPage() {
                     className="p-3 sm:p-4 bg-gray-800 hover:bg-gray-750 rounded-lg text-left border border-gray-700 hover:border-purple-500 transition-all"
                   >
                     <div className="text-xs sm:text-sm font-medium text-white mb-1">Your goals</div>
-                    <div className="text-xs text-gray-400">See what I'm working on</div>
+                    <div className="text-xs text-gray-400">See what I&rsquo;m working on</div>
                   </button>
                   <button
                     onClick={() => setInput("Multi-perspective analysis")}
