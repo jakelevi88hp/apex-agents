@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { db } from '@/server/db';
-import { documents } from '@/server/db/schema/documents';
+import { db, documents } from '@/lib/db';
 import { eq, and } from 'drizzle-orm';
 import { verifyToken } from '@/lib/auth/jwt';
 

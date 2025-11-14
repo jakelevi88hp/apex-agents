@@ -14,6 +14,9 @@ export * from './schema/ai-conversations';
 // Export AGI memory tables
 export * from './schema/agi-memory';
 
+// Export documents tables
+export * from './schema/documents';
+
 // ============================================================================
 // USERS & AUTHENTICATION
 // ============================================================================
@@ -176,41 +179,7 @@ export const knowledgeBase = pgTable('knowledge_base', {
   embeddingIdx: index('knowledge_embedding_idx').on(table.embeddingId),
 }));
 
-export const documents = pgTable('documents', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  organizationId: uuid('organization_id').references(() => organizations.id),
-  name: text('name').notNull(),
-  mimeType: varchar('mime_type', { length: 100 }).notNull(),
-  size: integer('size').notNull(), // in bytes
-  source: text('source').notNull(), // S3 URL or file path
-  status: varchar('status', { length: 20 }).default('processing').notNull(), // processing, ready, failed
-  summary: text('summary'),
-  tags: jsonb('tags'),
-  folder: varchar('folder', { length: 255 }),
-  metadata: jsonb('metadata'),
-  embeddingStatus: varchar('embedding_status', { length: 20 }).default('pending'), // pending, processing, completed, failed
-  chunkCount: integer('chunk_count').default(0),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-}, (table) => ({
-  userIdx: index('documents_user_idx').on(table.userId),
-  statusIdx: index('documents_status_idx').on(table.status),
-  folderIdx: index('documents_folder_idx').on(table.folder),
-}));
-
-export const documentChunks = pgTable('document_chunks', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  documentId: uuid('document_id').references(() => documents.id, { onDelete: 'cascade' }).notNull(),
-  chunkIndex: integer('chunk_index').notNull(),
-  text: text('text').notNull(),
-  embedding: text('embedding'), // JSON string of vector embedding
-  metadata: jsonb('metadata'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => ({
-  documentIdx: index('document_chunks_document_idx').on(table.documentId),
-  chunkIdx: index('document_chunks_chunk_idx').on(table.documentId, table.chunkIndex),
-}));
+// Documents schema moved to ./schema/documents.ts
 
 export const dataConnectors = pgTable('data_connectors', {
   id: uuid('id').primaryKey().defaultRandom(),

@@ -4,7 +4,7 @@
  * Tracks file storage usage for subscription limits
  */
 
-import { db } from '@/server/db';
+import { db } from '@/lib/db';
 import { documents } from '@/lib/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { SubscriptionService } from './service';

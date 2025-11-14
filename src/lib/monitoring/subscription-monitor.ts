@@ -4,7 +4,7 @@
  * Tracks key subscription metrics and sends alerts
  */
 
-import { db } from '@/server/db';
+import { db } from '@/lib/db';
 import { subscriptions, usageTracking } from '@/lib/db/schema';
 import { sql, eq, and, gte, lte } from 'drizzle-orm';
 
