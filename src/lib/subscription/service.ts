@@ -2,6 +2,7 @@ import { db } from '../db';
 import { subscriptions, usageTracking, users } from '../db/schema';
 import { eq, and, lt } from 'drizzle-orm';
 import { PLAN_LIMITS, TRIAL_DURATION_DAYS, type SubscriptionPlan } from './config';
+import { getCachedSubscription, setCachedSubscription, invalidateSubscriptionCache } from '../cache/subscription-cache';
 
 export class SubscriptionService {
   /**
@@ -11,7 +12,7 @@ export class SubscriptionService {
     const trialEndsAt = new Date();
     trialEndsAt.setDate(trialEndsAt.getDate() + TRIAL_DURATION_DAYS);
 
-    const subscription = await db.insert(subscriptions).values({
+    const [subscription] = await db.insert(subscriptions).values({
       userId,
       plan: 'trial',
       status: 'active',
@@ -19,10 +20,15 @@ export class SubscriptionService {
       trialEndsAt,
     }).returning();
 
+    // Cache the new subscription
+    if (subscription) {
+      setCachedSubscription(userId, subscription);
+    }
+
     // Initialize usage tracking for trial
     await this.initializeUsageTracking(userId, 'trial');
 
-    return subscription[0];
+    return subscription;
   }
 
   /**
@@ -60,10 +66,10 @@ export class SubscriptionService {
   }
 
   /**
-   * Check if a user's trial has expired
+   * Check if a user's trial has expired (uses cache)
    */
   static async isTrialExpired(userId: string): Promise<boolean> {
-    const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).limit(1);
+    const subscription = await this.getUserSubscription(userId);
 
     if (!subscription || subscription.plan !== 'trial') {
       return false;
@@ -77,11 +83,22 @@ export class SubscriptionService {
   }
 
   /**
-   * Get user's current subscription
+   * Get user's current subscription (with caching)
    */
   static async getUserSubscription(userId: string) {
+    // Check cache first
+    const cached = getCachedSubscription(userId);
+    if (cached !== undefined) {
+      return cached;
+    }
+    
+    // Fetch from database
     const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).limit(1);
-    return subscription;
+    
+    // Cache result (even if null)
+    setCachedSubscription(userId, subscription || null);
+    
+    return subscription || null;
   }
 
   /**
@@ -159,7 +176,7 @@ export class SubscriptionService {
   }
 
   /**
-   * Upgrade user to a paid plan
+   * Upgrade user to a paid plan (uses cache)
    */
   static async upgradePlan(
     userId: string,
@@ -168,13 +185,13 @@ export class SubscriptionService {
     stripePriceId: string,
     currentPeriodEnd: Date
   ) {
-    const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).limit(1);
+    const subscription = await this.getUserSubscription(userId);
 
     if (!subscription) {
       throw new Error('No subscription found for user');
     }
 
-    await db.update(subscriptions)
+    const [updated] = await db.update(subscriptions)
       .set({
         plan,
         status: 'active',
@@ -184,52 +201,51 @@ export class SubscriptionService {
         currentPeriodEnd,
         updatedAt: new Date(),
       })
-      .where(eq(subscriptions.id, subscription.id));
+      .where(eq(subscriptions.id, subscription.id))
+      .returning();
+
+    // Update cache with new subscription
+    if (updated) {
+      setCachedSubscription(userId, updated);
+    }
 
     // Update usage limits
     await this.updateUsageLimits(userId, plan);
   }
 
   /**
-   * Update usage limits when plan changes
+   * Update usage limits when plan changes (optimized batch update)
    */
   static async updateUsageLimits(userId: string, plan: SubscriptionPlan) {
     const limits = PLAN_LIMITS[plan];
 
-    await db.update(usageTracking)
-      .set({ limit: limits.agiMessages })
-      .where(and(
-        eq(usageTracking.userId, userId),
-        eq(usageTracking.feature, 'agi_messages')
-      ));
+    // Batch update all features in a single transaction
+    const features = [
+      { feature: 'agi_messages', limit: limits.agiMessages },
+      { feature: 'agents', limit: limits.agents },
+      { feature: 'workflows', limit: limits.workflows },
+      { feature: 'storage', limit: limits.storage },
+      { feature: 'api_calls', limit: limits.apiCalls },
+    ];
 
-    await db.update(usageTracking)
-      .set({ limit: limits.agents })
-      .where(and(
-        eq(usageTracking.userId, userId),
-        eq(usageTracking.feature, 'agents')
-      ));
-
-    await db.update(usageTracking)
-      .set({ limit: limits.workflows })
-      .where(and(
-        eq(usageTracking.userId, userId),
-        eq(usageTracking.feature, 'workflows')
-      ));
-
-    await db.update(usageTracking)
-      .set({ limit: limits.storage })
-      .where(and(
-        eq(usageTracking.userId, userId),
-        eq(usageTracking.feature, 'storage')
-      ));
+    // Update all features in parallel
+    await Promise.all(
+      features.map(({ feature, limit }) =>
+        db.update(usageTracking)
+          .set({ limit, updatedAt: new Date() })
+          .where(and(
+            eq(usageTracking.userId, userId),
+            eq(usageTracking.feature, feature)
+          ))
+      )
+    );
   }
 
   /**
    * Cancel subscription at period end
    */
   static async cancelSubscription(userId: string) {
-    const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).limit(1);
+    const subscription = await this.getUserSubscription(userId);
 
     if (!subscription) {
       throw new Error('No subscription found');
@@ -242,6 +258,9 @@ export class SubscriptionService {
         updatedAt: new Date(),
       })
       .where(eq(subscriptions.id, subscription.id));
+    
+    // Invalidate cache
+    invalidateSubscriptionCache(userId);
   }
 
   /**

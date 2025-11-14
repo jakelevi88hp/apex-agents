@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import NotificationCenter from '@/components/NotificationCenter';
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import { isAdmin as checkAdmin } from '@/lib/utils/jwt';
 import {
   Bot,
   Workflow,
@@ -32,20 +33,11 @@ export default function Sidebar() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Check if user is admin
+  // Check if user is admin (memoized to avoid recalculation)
+  const adminStatus = useMemo(() => checkAdmin(), []);
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const adminStatus = payload.role === 'admin' || payload.role === 'owner';
-        setIsAdmin(adminStatus);
-      } catch (e) {
-        console.error('Error parsing JWT:', e);
-        setIsAdmin(false);
-      }
-    }
-  }, []);
+    setIsAdmin(adminStatus);
+  }, [adminStatus]);
 
   // Close mobile menu when route changes
   useEffect(() => {

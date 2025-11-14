@@ -4,6 +4,8 @@
  * Handles real-time notifications for workflow completion and other events
  */
 
+import { getStorageJSON, setStorageJSON } from '@/lib/utils/storage';
+
 export type NotificationType = 'success' | 'error' | 'info' | 'warning';
 
 export interface Notification {
@@ -106,9 +108,8 @@ class NotificationSystem {
   loadFromStorage() {
     if (typeof window !== 'undefined') {
       try {
-        const stored = localStorage.getItem('notifications');
-        if (stored) {
-          const parsed = JSON.parse(stored) as StoredNotification[];
+        const parsed = getStorageJSON<StoredNotification[]>('notifications');
+        if (parsed) {
           this.notifications = parsed.map((notification) => ({
             ...notification,
             timestamp: new Date(notification.timestamp),
@@ -116,7 +117,7 @@ class NotificationSystem {
           this.emitStoreChange();
         }
       } catch (e) {
-        console.error('Failed to load notifications:', e);
+        // Silently fail - notifications are not critical
       }
     }
   }
@@ -128,9 +129,9 @@ class NotificationSystem {
   private persistNotifications() {
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem('notifications', JSON.stringify(this.notifications.slice(0, 50)));
+        setStorageJSON('notifications', this.notifications.slice(0, 50));
       } catch (e) {
-        console.error('Failed to store notifications:', e);
+        // Silently fail - notifications are not critical
       }
     }
   }

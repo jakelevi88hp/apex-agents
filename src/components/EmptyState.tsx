@@ -1,5 +1,6 @@
 'use client';
 
+import React, { memo } from 'react';
 import { LucideIcon } from 'lucide-react';
 
 interface EmptyStateProps {
@@ -10,7 +11,12 @@ interface EmptyStateProps {
   onAction?: () => void;
 }
 
-export default function EmptyState({
+/**
+ * Empty State Component
+ * 
+ * Memoized to prevent unnecessary re-renders.
+ */
+const EmptyState = memo(function EmptyState({
   icon: Icon,
   title,
   description,
@@ -49,5 +55,9 @@ export default function EmptyState({
       </div>
     </div>
   );
-}
+});
+
+EmptyState.displayName = 'EmptyState';
+
+export default EmptyState;
 
