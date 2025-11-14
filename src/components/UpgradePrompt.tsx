@@ -33,11 +33,11 @@ export function UpgradePrompt({ feature, requiredPlan, currentUsage, limit }: Up
         Unlock {feature}
       </h3>
 
-      {currentUsage !== undefined && limit !== undefined && (
-        <p className="text-gray-600 dark:text-gray-300 mb-4">
-          You've reached your limit ({currentUsage}/{limit})
-        </p>
-      )}
+        {currentUsage !== undefined && limit !== undefined && (
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            You&rsquo;ve reached your limit ({currentUsage}/{limit})
+          </p>
+        )}
 
       <p className="text-gray-600 dark:text-gray-300 mb-6">
         Upgrade to <span className="font-semibold text-purple-600 dark:text-purple-400">{planNames[requiredPlan]}</span> to access this feature and unlock your full potential.

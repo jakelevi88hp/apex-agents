@@ -5,6 +5,7 @@ import { Bot, Workflow, Zap, TrendingUp, CheckCircle, Clock, Loader2 } from 'luc
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { trpc } from '@/lib/trpc/client';
 import VoiceCommandPanel from '@/components/VoiceCommandPanel';
+import { UserSuggestionsPanel } from '@/components/dashboard/UserSuggestions';
 
 // Animated counter component
 function AnimatedCounter({ value, duration = 1000 }: { value: number; duration?: number }) {

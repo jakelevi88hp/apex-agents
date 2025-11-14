@@ -147,9 +147,9 @@ export default function ConfigurationForm({ template, onComplete, onBack }: Conf
               max="8000"
               step="100"
             />
-            <p className="text-xs text-gray-400 mt-1">
-              Maximum length of the agent's response (100-8000)
-            </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Maximum length of the agent&rsquo;s response (100-8000)
+              </p>
           </div>
         </div>
       </section>
@@ -185,9 +185,9 @@ export default function ConfigurationForm({ template, onComplete, onBack }: Conf
           className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm h-48 resize-none"
           placeholder="Enter the system prompt for your agent..."
         />
-        <p className="text-xs text-gray-400 mt-2">
-          Use {'{task}'} as a placeholder for the user's input
-        </p>
+          <p className="text-xs text-gray-400 mt-2">
+            Use {'{task}'} as a placeholder for the user&rsquo;s input
+          </p>
       </section>
 
       {/* Actions */}

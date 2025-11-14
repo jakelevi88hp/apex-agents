@@ -154,9 +154,9 @@ export default function NotificationCenter() {
                 <div className="p-8 text-center">
                   <Bell className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                   <p className="text-gray-400">No notifications</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    You're all caught up!
-                  </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      You&rsquo;re all caught up!
+                    </p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-700">
