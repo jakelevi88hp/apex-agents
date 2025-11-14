@@ -4,6 +4,7 @@ import { router, protectedProcedure } from '../trpc';
 import { SuggestionService } from '../services/suggestions';
 
 const suggestionStatusSchema = z.enum(['new', 'acknowledged', 'dismissed', 'archived']);
+const suggestionUpdateStatusSchema = z.enum(['acknowledged', 'dismissed', 'archived']);
 
 export const suggestionsRouter = router({
   /**
@@ -49,7 +50,7 @@ export const suggestionsRouter = router({
     .input(
       z.object({
         id: z.string().uuid(),
-        status: suggestionStatusSchema,
+        status: suggestionUpdateStatusSchema,
       }),
     )
     .mutation(async ({ ctx, input }) => {

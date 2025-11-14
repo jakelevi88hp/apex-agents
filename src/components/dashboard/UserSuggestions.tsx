@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactElement } from 'react';
 import { useEffect } from 'react';
 import { Sparkles, RefreshCcw, Check, X, Lightbulb } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
@@ -11,7 +12,7 @@ import { trpc } from '@/lib/trpc/client';
  * fetching, mutations, and user-driven actions such as refreshing or dismissing
  * suggestions.
  */
-export function UserSuggestionsPanel(): JSX.Element {
+export function UserSuggestionsPanel(): ReactElement {
   // Access shared trpc utilities for cache invalidation.
   const utils = trpc.useUtils();
 

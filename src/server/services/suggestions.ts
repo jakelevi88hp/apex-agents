@@ -1,5 +1,4 @@
 import { and, desc, eq, gte, sql } from 'drizzle-orm';
-import type { SQLWrapper } from 'drizzle-orm';
 import { type NewUserSuggestion, type UserSuggestion, agents, executions, userSuggestions, workflows } from '@/lib/db/schema';
 import type { db as database } from '@/lib/db';
 
@@ -78,18 +77,16 @@ export class SuggestionService {
     filters: { status?: string; limit?: number } = {},
   ): Promise<UserSuggestion[]> {
     try {
-      const conditions: SQLWrapper[] = [eq(userSuggestions.userId, userId)];
-
-      if (filters.status) {
-        conditions.push(eq(userSuggestions.status, filters.status));
-      }
-
       const limit = filters.limit ?? 12;
 
-      const whereCondition =
-        conditions.length === 1 ? conditions[0] : and(...conditions);
+      const whereCondition = filters.status
+        ? and(
+            eq(userSuggestions.userId, userId),
+            eq(userSuggestions.status, filters.status),
+          )
+        : eq(userSuggestions.userId, userId);
 
-      return await db
+      return db
         .select()
         .from(userSuggestions)
         // Apply composed filter conditions.
