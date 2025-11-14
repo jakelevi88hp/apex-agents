@@ -1,40 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Apex Agents Platform
 
-## Getting Started
+Apex Agents is an AI operations console built on **Next.js 14 (App Router)**, **TypeScript**, **tRPC 11**, **Drizzle ORM**, and **Pinecone**. It lets operators design autonomous agents, orchestrate workflows, ingest knowledge, interact with an AGI surface, and monitor subscriptions—all inside a single UI.
 
-First, run the development server:
+Think of it as an airport control tower for AI: agents (planes) need routes, fuel (data), and clearances (subscriptions). This repo contains the entire stack needed to run that tower.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Feature Highlights
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Enhanced AGI**: Stateful conversational core (`lib/agi`) with memory, emotional cues, and creativity controls exposed via `/api/agi/*`.
+- **AI Admin**: Autonomous maintainer that analyzes the repo, drafts patches, and can apply them locally or through GitHub via SSE streaming.
+- **Workflow Builder**: Drag-and-drop orchestration backed by `workflow-engine` and `executions` telemetry.
+- **Knowledge Hub**: Document uploads (PDF/DOCX/TXT/MD), text extraction, Pinecone embedding, and semantic search.
+- **Voice Commands**: Whisper transcription + GPT command parsing routed through `/api/voice`.
+- **Subscription Guardrails**: Stripe billing, quota tracking, and monitoring dashboards.
+- **Observability**: Sentry + custom debugger APIs + `/api/health/*` endpoints.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Architecture (Snapshot)
 
-To learn more about Next.js, take a look at the following resources:
+| Layer | Tech | Notes |
+| --- | --- | --- |
+| UI | Next.js App Router, Tailwind, React Server Components | Client-only islands for dashboards, workflow canvas, voice widget. |
+| API | App Router handlers + tRPC routers | REST for external integrations, tRPC for strongly typed app calls. |
+| Services | `lib/agi`, `lib/ai-admin`, `workflow-engine`, `DocumentProcessor`, `SubscriptionService` | Encapsulate reasoning, GitOps, execution, ingestion, billing. |
+| Persistence | Neon Postgres (Drizzle ORM), Pinecone vectors, S3/Uploads | Schema definitions in `src/lib/db/schema.ts`. |
+| Integrations | OpenAI (chat/embeddings/Whisper), Stripe, Resend, GitHub | Keys configured via `.env.local` / Vercel dashboard. |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+For diagrams and detailed flows, see `docs/ARCHITECTURE.md`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Quick Start
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **Install prerequisites**
+   - Node.js 18 (`nvm install 18 && nvm use 18`)
+   - npm ≥10 (ships with Node 18)
+   - Optional: Stripe CLI, Vercel CLI
+2. **Clone + install**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   git clone git@github.com:YOUR_ORG/apex-agents.git
+   cd apex-agents
+   npm install
+   ```
 
-## Project Overview
+3. **Configure environment**
+   - Copy `.env.example` (or follow `docs/ENVIRONMENT-VARIABLES.md`) to `.env.local`.
+   - Set `DATABASE_URL`, `JWT_SECRET`, `OPENAI_API_KEY`, `PINECONE_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `ADMIN_UPGRADE_SECRET`, etc.
+   - Apply schema: `npm run db:push`
+4. **Run dev server**
 
-This project is an AI Agent Management System called Apex Agents Platform. It is built using Next.js 14 with the App Router, TypeScript, tRPC, PostgreSQL (Neon), and Pinecone. The platform includes various features such as agent management, AGI chat interface, analytics dashboard, workflow builder, settings management, and knowledge management with Pinecone.
+   ```bash
+   npm run dev
+   ```
+
+   Visit `http://localhost:3000`. Create an account at `/signup`; the first account or owner email becomes admin automatically.
+
+---
+
+## Common Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Next.js dev server with live reload. |
+| `npm run lint` | ESLint (flat config, TypeScript aware). |
+| `npm run build` | Production build (Next). |
+| `npm run test` | Playwright smoke tests. |
+| `npm run health:check` | TSX script probing DB/OpenAI/Pinecone health. |
+| `npm run db:generate` / `npm run db:push` | Drizzle migration tooling. |
+| `npm run stress:test` | Agent stress harness (`tests/stress`). |
+
+---
+
+## Testing & Verification
+
+1. **Unit/E2E** – `npm run test` (ensure Playwright browsers installed).
+2. **AGI smoke** – `curl -H "Authorization: Bearer <token>" http://localhost:3000/api/agi/status`.
+3. **AI Admin SSE** – Use `/dashboard/ai-admin`, watch dev tools for `text/event-stream`.
+4. **Document ingestion** – Upload a PDF in the Knowledge tab; confirm status transitions to `completed`.
+5. **Voice command** – Use the Voice Command panel, speak “Show me today’s metrics,” verify JSON output.
+6. **Stripe webhooks** – `stripe listen --forward-to http://localhost:3000/api/webhooks/stripe` then `stripe trigger checkout.session.completed`.
+
+---
+
+## Documentation Index
+
+| File | Description |
+| --- | --- |
+| `docs/TECHNICAL-SPEC.md` | High-level goals, stack, and non-functional requirements. |
+| `docs/ARCHITECTURE.md` | System diagrams (Mermaid) + pipelines + failure modes. |
+| `docs/API-REFERENCE.md` | HTTP + tRPC contracts, rate limits, examples. |
+| `docs/CODE-MODULES.md` | Directory-to-responsibility map. |
+| `docs/ONBOARDING-GUIDE.md` | Step-by-step ramp plan for new contributors. |
+| `docs/ENVIRONMENT-VARIABLES.md` | Secrets checklist and verification tips. |
+
+---
+
+## Contributing
+
+1. Create a feature branch from `main`.
+2. Write code + tests, and update any docs affected (API reference, onboarding, etc.).
+3. Run `npm run lint && npm run test`.
+4. Submit a PR with screenshots or cURL snippets for UI/API changes.
+
+Need help? Open an issue or post in `#apex-engineering`. We aim for the runway lights to stay on—if something is unclear, surface it and we’ll document the fix.
