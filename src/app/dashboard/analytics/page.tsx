@@ -31,13 +31,19 @@ function AnimatedCounter({ value, duration = 1000 }: { value: number; duration?:
   return <span>{count}</span>;
 }
 
+type StatusLabelProps = {
+  name: string;
+  percent: number;
+};
+
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
   const [mounted, setMounted] = useState(false);
   const { isDarkMode } = useTheme();
 
   useEffect(() => {
-    setMounted(true);
+    const timer = window.setTimeout(() => setMounted(true), 0);
+    return () => window.clearTimeout(timer);
   }, []);
   
   // Fetch dashboard metrics
@@ -426,12 +432,12 @@ export default function AnalyticsPage() {
           <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Status Distribution</h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
-              <Pie
-                data={statusData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                <Pie
+                  data={statusData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }: StatusLabelProps) => `${name} ${(percent * 100).toFixed(0)}%`}
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"

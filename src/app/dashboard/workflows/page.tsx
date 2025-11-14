@@ -22,7 +22,6 @@ export default function WorkflowsPage() {
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'visual'>('list');
-  const [showVisualBuilder, setShowVisualBuilder] = useState(false);
 
   // Fetch workflows from database
   const { data: workflows, isLoading, refetch } = trpc.workflows.list.useQuery();
@@ -30,6 +29,9 @@ export default function WorkflowsPage() {
     { id: selectedWorkflowId! },
     { enabled: !!selectedWorkflowId }
   );
+  const selectedWorkflowSteps: WorkflowStep[] = Array.isArray(selectedWorkflow?.steps)
+    ? (selectedWorkflow.steps as WorkflowStep[])
+    : [];
 
   // Mutations
   const createWorkflow = trpc.workflows.create.useMutation({
@@ -210,11 +212,11 @@ export default function WorkflowsPage() {
               </div>
             ))}
 
-            {steps.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                No steps added yet. Click "Add Step" to begin.
-              </div>
-            )}
+              {steps.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  No steps added yet. Click &quot;Add Step&quot; to begin.
+                </div>
+              )}
           </div>
 
           <button
@@ -488,8 +490,8 @@ export default function WorkflowsPage() {
               <div className="bg-gray-900 p-4 rounded-lg">
                 <h3 className="font-semibold text-white mb-3">Workflow Steps:</h3>
                 <div className="space-y-2">
-                  {Array.isArray(selectedWorkflow.steps) && selectedWorkflow.steps.length > 0 ? (
-                    selectedWorkflow.steps.map((step: any, i: number) => (
+                    {selectedWorkflowSteps.length > 0 ? (
+                      selectedWorkflowSteps.map((step, i) => (
                       <div key={i} className="flex items-center gap-3 text-sm text-gray-300">
                         <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
                           {i + 1}

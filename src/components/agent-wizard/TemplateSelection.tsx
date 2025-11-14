@@ -2,6 +2,7 @@
 
 import { AGENT_TEMPLATES, AgentTemplate } from '@/lib/agent-templates';
 import * as Icons from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface TemplateSelectionProps {
   onSelect: (template: AgentTemplate) => void;
@@ -18,8 +19,9 @@ export default function TemplateSelection({ onSelect }: TemplateSelectionProps) 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {AGENT_TEMPLATES.map((template) => {
-          const IconComponent = (Icons as any)[template.icon] || Icons.Bot;
+          {AGENT_TEMPLATES.map((template) => {
+            const IconComponent =
+              ((Icons as Record<string, LucideIcon>)[template.icon] as LucideIcon | undefined) || Icons.Bot;
           
           return (
             <button

@@ -14,16 +14,20 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      const darkMode = savedTheme === 'dark';
-      setIsDarkMode(darkMode);
-      // Apply dark class to html element
-      if (darkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+    if (!savedTheme) {
+      return;
     }
+
+    const darkMode = savedTheme === 'dark';
+    const frameId = window.requestAnimationFrame(() => setIsDarkMode(darkMode));
+
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
+    return () => window.cancelAnimationFrame(frameId);
   }, []);
 
   const toggleDarkMode = () => {

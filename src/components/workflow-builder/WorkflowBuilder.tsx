@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useState, useEffect } from 'react';
-import { trpc } from '@/lib/trpc';
+import { useCallback, useState } from 'react';
+import { trpc } from '@/lib/trpc/client';
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -22,6 +22,11 @@ import { ConditionNode } from './nodes/ConditionNode';
 import { NodeSidebar } from './NodeSidebar';
 import { WorkflowToolbar } from './WorkflowToolbar';
 
+type WorkflowNodeType = 'agent' | 'trigger' | 'condition';
+type WorkflowNodeData = Record<string, unknown>;
+type WorkflowNode = Node<WorkflowNodeData>;
+type WorkflowEdge = Edge;
+
 const nodeTypes = {
   agent: AgentNode,
   trigger: TriggerNode,
@@ -29,21 +34,19 @@ const nodeTypes = {
 };
 
 interface WorkflowBuilderProps {
-  workflowId?: string;
-  initialNodes?: Node[];
-  initialEdges?: Edge[];
-  onSave?: (nodes: Node[], edges: Edge[]) => void;
+  initialNodes?: WorkflowNode[];
+  initialEdges?: WorkflowEdge[];
+  onSave?: (nodes: WorkflowNode[], edges: WorkflowEdge[]) => void;
 }
 
 export function WorkflowBuilder({
-  workflowId,
   initialNodes = [],
   initialEdges = [],
   onSave,
 }: WorkflowBuilderProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [nodes, setNodes, onNodesChange] = useNodesState<WorkflowNodeData>(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<WorkflowNodeData>(initialEdges);
+  const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
 
   // Load agents from API
   const { data: agentsData, isLoading: agentsLoading } = trpc.agents.list.useQuery();
@@ -62,8 +65,8 @@ export function WorkflowBuilder({
   }, []);
 
   const addNode = useCallback(
-    (type: string, data: any) => {
-      const newNode: Node = {
+    (type: WorkflowNodeType, data: WorkflowNodeData) => {
+      const newNode: WorkflowNode = {
         id: `${type}-${Date.now()}`,
         type,
         position: { x: Math.random() * 500, y: Math.random() * 500 },
@@ -75,7 +78,7 @@ export function WorkflowBuilder({
   );
 
   const updateNodeData = useCallback(
-    (nodeId: string, newData: any) => {
+    (nodeId: string, newData: WorkflowNodeData) => {
       setNodes((nds) =>
         nds.map((node) =>
           node.id === nodeId

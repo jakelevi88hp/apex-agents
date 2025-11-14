@@ -17,8 +17,30 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { Bot, GitBranch, Repeat, Zap, Play, Save } from 'lucide-react';
 
+interface AgentNodeData {
+  label: string;
+  agentName?: string;
+  description?: string;
+}
+
+interface ConditionNodeData {
+  label: string;
+  condition?: string;
+}
+
+interface LoopNodeData {
+  label: string;
+  iterations?: number;
+}
+
+interface ParallelNodeData {
+  label: string;
+}
+
+type NodeComponentProps<T> = { data: T };
+
 // Custom Node Components
-const AgentNode = ({ data }: { data: any }) => {
+const AgentNode = ({ data }: NodeComponentProps<AgentNodeData>) => {
   return (
     <div className="px-4 py-3 shadow-lg rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 border-2 border-purple-400 min-w-[200px]">
       <div className="flex items-center gap-2 mb-2">
@@ -35,7 +57,7 @@ const AgentNode = ({ data }: { data: any }) => {
   );
 };
 
-const ConditionNode = ({ data }: { data: any }) => {
+const ConditionNode = ({ data }: NodeComponentProps<ConditionNodeData>) => {
   return (
     <div className="px-4 py-3 shadow-lg rounded-lg bg-gradient-to-br from-yellow-500 to-orange-500 border-2 border-yellow-400 min-w-[180px]">
       <div className="flex items-center gap-2 mb-2">
@@ -49,7 +71,7 @@ const ConditionNode = ({ data }: { data: any }) => {
   );
 };
 
-const LoopNode = ({ data }: { data: any }) => {
+const LoopNode = ({ data }: NodeComponentProps<LoopNodeData>) => {
   return (
     <div className="px-4 py-3 shadow-lg rounded-lg bg-gradient-to-br from-green-500 to-teal-500 border-2 border-green-400 min-w-[180px]">
       <div className="flex items-center gap-2 mb-2">
@@ -63,7 +85,7 @@ const LoopNode = ({ data }: { data: any }) => {
   );
 };
 
-const ParallelNode = ({ data }: { data: any }) => {
+const ParallelNode = ({ data }: NodeComponentProps<ParallelNodeData>) => {
   return (
     <div className="px-4 py-3 shadow-lg rounded-lg bg-gradient-to-br from-pink-500 to-rose-500 border-2 border-pink-400 min-w-[180px]">
       <div className="flex items-center gap-2 mb-2">
@@ -125,7 +147,7 @@ export default function WorkflowCanvas({
     setSelectedNode(node);
   }, []);
 
-  const addNode = (type: string) => {
+  const addNode = (type: keyof typeof nodeTypes) => {
     const newNode: Node = {
       id: `${type}-${Date.now()}`,
       type,

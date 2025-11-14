@@ -3,6 +3,16 @@
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc/client';
 
+interface ExecutionHistoryEntry {
+  id: string;
+  status: string;
+  startedAt: string | Date;
+  durationMs: number | null;
+  tokensUsed: number | null;
+  inputData: Record<string, unknown> | null;
+  outputData: Record<string, unknown> | null;
+}
+
 interface ExecutionPlaygroundProps {
   agentId: string;
   agentName: string;
@@ -28,10 +38,20 @@ export function ExecutionPlayground({ agentId, agentName }: ExecutionPlaygroundP
     },
   });
 
-  const { data: history, refetch: refetchHistory } = trpc.execution.getHistory.useQuery({
+  const { data: history } = trpc.execution.getHistory.useQuery({
     agentId,
     limit: 5,
   });
+
+  const getStringField = (data: Record<string, unknown> | null | undefined, field: string): string => {
+    if (data && typeof data === 'object' && field in data) {
+      const value = data[field];
+      if (typeof value === 'string') {
+        return value;
+      }
+    }
+    return '';
+  };
 
   const handleExecute = async () => {
     if (!input.trim()) return;
@@ -136,24 +156,24 @@ export function ExecutionPlayground({ agentId, agentName }: ExecutionPlaygroundP
       )}
 
       {/* Execution History */}
-      {history && history.length > 0 && (
+        {history && history.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Executions</h3>
           <div className="space-y-3">
-            {history.map((execution) => {
-              const inputData = execution.inputData as any;
-              const outputData = execution.outputData as any;
-              
-              return (
+              {history.map((execution: ExecutionHistoryEntry) => {
+                const inputText = getStringField(execution.inputData, 'input');
+                const outputText = getStringField(execution.outputData, 'output');
+
+                return (
                 <div
                   key={execution.id}
                   className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors cursor-pointer"
-                  onClick={() => {
-                    setInput(inputData?.input || '');
-                    setOutput(outputData?.output || '');
-                    setExecutionTime(execution.durationMs || null);
-                    setTokensUsed(execution.tokensUsed || null);
-                  }}
+                    onClick={() => {
+                      setInput(inputText);
+                      setOutput(outputText);
+                      setExecutionTime(execution.durationMs ?? null);
+                      setTokensUsed(execution.tokensUsed ?? null);
+                    }}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
@@ -167,13 +187,13 @@ export function ExecutionPlayground({ agentId, agentName }: ExecutionPlaygroundP
                       {new Date(execution.startedAt).toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-700 truncate">
-                    {inputData?.input || 'No input'}
-                  </p>
-                  {execution.durationMs && execution.tokensUsed && (
+                    <p className="text-sm text-gray-700 truncate">
+                      {inputText || 'No input'}
+                    </p>
+                    {execution.durationMs !== null && execution.tokensUsed !== null && (
                     <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                      <span>⏱️ {execution.durationMs}ms</span>
-                      <span>🎯 {execution.tokensUsed} tokens</span>
+                        <span>⏱️ {execution.durationMs}ms</span>
+                        <span>🎯 {execution.tokensUsed} tokens</span>
                     </div>
                   )}
                 </div>

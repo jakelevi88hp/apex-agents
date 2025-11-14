@@ -22,6 +22,7 @@ import {
   Menu,
   X,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export default function Sidebar() {
   const router = useRouter();
@@ -35,21 +36,36 @@ export default function Sidebar() {
   // Check if user is admin
   useEffect(() => {
     const token = localStorage.getItem('token');
+    let frameId: number | undefined;
+
+    const updateAdmin = (value: boolean) => {
+      frameId = window.requestAnimationFrame(() => setIsAdmin(value));
+    };
+
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         const adminStatus = payload.role === 'admin' || payload.role === 'owner';
-        setIsAdmin(adminStatus);
+        updateAdmin(adminStatus);
       } catch (e) {
         console.error('Error parsing JWT:', e);
-        setIsAdmin(false);
+        updateAdmin(false);
       }
+    } else {
+      updateAdmin(false);
     }
+
+    return () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
   }, []);
 
   // Close mobile menu when route changes
   useEffect(() => {
-    setIsMobileMenuOpen(false);
+    const frameId = window.requestAnimationFrame(() => setIsMobileMenuOpen(false));
+    return () => window.cancelAnimationFrame(frameId);
   }, [pathname]);
 
   // Prevent body scroll when mobile menu is open
@@ -86,7 +102,7 @@ export default function Sidebar() {
 
   const isActive = (href: string) => pathname === href;
 
-  const NavLink = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
+  const NavLink = ({ href, icon: Icon, label }: { href: string; icon: LucideIcon; label: string }) => {
     const active = isActive(href);
     return (
       <Link

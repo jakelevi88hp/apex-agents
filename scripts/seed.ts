@@ -221,15 +221,15 @@ async function main() {
     for (const userData of SEED_DATA.users) {
       const passwordHash = await bcrypt.hash(userData.password, 10);
       const user = await db.insert(schema.users)
-        .values({
-          email: userData.email,
-          passwordHash,
-          name: userData.name,
-          role: userData.role as any,
-          organizationId: orgs[0].id,
-          subscriptionTier: userData.subscriptionTier as any,
-          subscriptionStatus: userData.subscriptionStatus as any,
-        })
+          .values({
+            email: userData.email,
+            passwordHash,
+            name: userData.name,
+            role: userData.role,
+            organizationId: orgs[0].id,
+            subscriptionTier: userData.subscriptionTier,
+            subscriptionStatus: userData.subscriptionStatus,
+          })
         .returning();
       users.push(user[0]);
       console.log(`   ✓ Created user: ${userData.email}`);

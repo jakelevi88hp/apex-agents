@@ -4,7 +4,6 @@
  * Runs the AGI memory tables migration on the production database
  */
 
-import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import fs from 'fs';
 import path from 'path';

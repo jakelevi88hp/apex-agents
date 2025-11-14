@@ -31,6 +31,8 @@ function getOpenAI(): OpenAI {
 
 const INDEX_NAME = process.env.PINECONE_INDEX || 'apex-corporate-brain';
 
+type MetadataValue = string | number | boolean | null | undefined;
+
 export interface VectorMetadata {
   documentId: string;
   chunkIndex: number;
@@ -38,7 +40,7 @@ export interface VectorMetadata {
   userId: string;
   documentName: string;
   source?: string;
-  [key: string]: any;
+  [key: string]: MetadataValue;
 }
 
 export class PineconeService {

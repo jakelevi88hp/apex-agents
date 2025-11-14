@@ -1,16 +1,18 @@
 'use client';
-import { useState } from 'react';
+
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { 
   Search, BarChart3, PenTool, Code2, Target, Mail, 
   TrendingUp, Network, Plus, X, Loader2, Play, Settings, Send 
-} from 'lucide-react';
+  } from 'lucide-react';
 import AgentWizard from '@/components/agent-wizard/AgentWizard';
 import AgentCardSkeleton from '@/components/AgentCardSkeleton';
 import EmptyState from '@/components/EmptyState';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { useRef } from 'react';
+import type { inferRouterOutputs } from '@trpc/server';
+import type { AppRouter } from '@/server/routers/_app';
 
 const agentTypes = [
   { 
@@ -93,6 +95,16 @@ const defaultConfig = {
   orchestrator: { model: 'gpt-4-turbo', tools: ['task_planner', 'agent_coordinator'] },
 };
 
+const toDate = (value: Date | string | null | undefined): Date => {
+  if (value instanceof Date) return value;
+  if (typeof value === 'string') return new Date(value);
+  return new Date(0);
+};
+
+type RouterOutputs = inferRouterOutputs<AppRouter>;
+type AgentListItem = RouterOutputs['agents']['list'][number];
+type AgentExecutionResponse = RouterOutputs['agents']['execute'];
+
 export default function AgentsPage() {
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -101,18 +113,17 @@ export default function AgentsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
   const [showExecuteModal, setShowExecuteModal] = useState(false);
-  const [selectedAgent, setSelectedAgent] = useState<any>(null);
-  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<AgentListItem | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     type: 'research' as keyof typeof defaultCapabilities,
     description: '',
   });
-  const [executeData, setExecuteData] = useState({
+  const [executeData, setExecuteData] = useState<{ objective: string; context: Record<string, unknown> }>({
     objective: '',
     context: {},
   });
-  const [executionResult, setExecutionResult] = useState<any>(null);
+  const [executionResult, setExecutionResult] = useState<AgentExecutionResponse | null>(null);
   
   // Filter and search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -159,12 +170,11 @@ export default function AgentsPage() {
   });
 
   const handleCreateAgent = (typeId: string) => {
-    setSelectedType(typeId);
     setFormData({ ...formData, type: typeId as keyof typeof defaultCapabilities });
     setShowCreateModal(true);
   };
 
-  const handleExecuteAgent = (agent: any) => {
+  const handleExecuteAgent = (agent: AgentListItem) => {
     setSelectedAgent(agent);
     setExecuteData({ objective: '', context: {} });
     setExecutionResult(null);
@@ -189,6 +199,10 @@ export default function AgentsPage() {
 
   const handleExecuteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!selectedAgent) {
+      return;
+    }
     
     try {
       await executeAgentMutation.mutateAsync({
@@ -215,7 +229,7 @@ export default function AgentsPage() {
   };
 
   const selectAllFiltered = () => {
-    const allIds = new Set(filteredAgents.map((a: any) => a.id));
+    const allIds = new Set(filteredAgents.map((a) => a.id));
     setSelectedAgents(allIds);
   };
 
@@ -279,17 +293,21 @@ export default function AgentsPage() {
   ]);
 
   // Filter and sort agents
-  const filteredAgents = userAgents?.filter((agent: any) => {
-    const matchesSearch = agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         agent.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = filterType === 'all' || agent.type === filterType;
-    const matchesStatus = filterStatus === 'all' || agent.status === filterStatus;
-    return matchesSearch && matchesType && matchesStatus;
-  }).sort((a: any, b: any) => {
-    if (sortBy === 'name') return a.name.localeCompare(b.name);
-    if (sortBy === 'created') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    return 0; // executions sort would need execution count data
-  }) || [];
+  const filteredAgents: AgentListItem[] =
+    (userAgents ?? [])
+      .filter((agent) => {
+        const matchesSearch =
+          agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          agent.description?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesType = filterType === 'all' || agent.type === filterType;
+        const matchesStatus = filterStatus === 'all' || agent.status === filterStatus;
+        return matchesSearch && matchesType && matchesStatus;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'name') return a.name.localeCompare(b.name);
+        if (sortBy === 'created') return toDate(b.createdAt).getTime() - toDate(a.createdAt).getTime();
+        return 0; // executions sort would need execution count data
+      });
 
   return (
     <div>
@@ -479,7 +497,7 @@ export default function AgentsPage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAgents.map((agent: any) => {
+                {filteredAgents.map((agent) => {
               const agentType = agentTypes.find(t => t.id === agent.type);
               const IconComponent = agentType?.icon || Search;
               

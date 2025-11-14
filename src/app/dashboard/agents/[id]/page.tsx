@@ -27,6 +27,29 @@ import {
 
 type TabType = 'overview' | 'configuration' | 'history' | 'analytics';
 
+type AgentConfig = {
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+  systemPrompt?: string;
+  capabilities?: string[];
+  tools?: string[];
+  [key: string]: unknown;
+};
+
+type AgentAnalyticsSummary = {
+  successRate?: number;
+  totalCost?: number;
+};
+
+type AgentExecutionRecord = {
+  id: string;
+  status: 'completed' | 'failed' | 'running' | string;
+  startedAt: string | Date;
+  durationMs?: number | null;
+  tokensUsed?: number | null;
+};
+
 export default function AgentDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -35,7 +58,7 @@ export default function AgentDetailPage() {
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isEditing, setIsEditing] = useState(false);
-  const [editedConfig, setEditedConfig] = useState<any>(null);
+  const [editedConfig, setEditedConfig] = useState<AgentConfig | null>(null);
 
   // Fetch agent data
   const { data: agent, isLoading, refetch } = trpc.agents.get.useQuery({ id: agentId });
@@ -93,7 +116,16 @@ export default function AgentDetailPage() {
     );
   }
 
-  const agentConfig = agent.config as any;
+  const agentConfig = ((agent.config ?? {}) as AgentConfig) || {};
+  const agentAnalytics = analytics as AgentAnalyticsSummary | undefined;
+  const executionHistory: AgentExecutionRecord[] = (executions ?? []) as AgentExecutionRecord[];
+
+  const updateEditedConfig = <K extends keyof AgentConfig>(key: K, value: AgentConfig[K]) => {
+    setEditedConfig((prev) => ({
+      ...(prev ?? agentConfig),
+      [key]: value,
+    }));
+  };
 
   const handleSaveConfig = () => {
     updateAgent.mutate({
@@ -351,14 +383,15 @@ export default function AgentDetailPage() {
                   Capabilities
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {agentConfig.capabilities.map((cap: string) => (
+                  {Array.isArray(agentConfig.capabilities) &&
+                    agentConfig.capabilities.map((cap) => (
                     <span
                       key={cap}
                       className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm border border-purple-500/30"
                     >
                       {cap.replace(/_/g, ' ')}
                     </span>
-                  ))}
+                    ))}
                 </div>
               </div>
             )}
@@ -374,10 +407,10 @@ export default function AgentDetailPage() {
               </h3>
               {!isEditing ? (
                 <button
-                  onClick={() => {
-                    setIsEditing(true);
-                    setEditedConfig(agentConfig);
-                  }}
+                      onClick={() => {
+                        setIsEditing(true);
+                        setEditedConfig(agentConfig);
+                      }}
                   className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
                 >
                   <Edit2 className="w-4 h-4 inline mr-2" />
@@ -422,8 +455,8 @@ export default function AgentDetailPage() {
                   </label>
                   {isEditing ? (
                     <select
-                      value={editedConfig?.model || 'gpt-4-turbo'}
-                      onChange={(e) => setEditedConfig({ ...editedConfig, model: e.target.value })}
+                        value={editedConfig?.model ?? agentConfig.model ?? 'gpt-4-turbo'}
+                        onChange={(e) => updateEditedConfig('model', e.target.value)}
                       className={`w-full px-4 py-2 rounded-lg border ${
                         isDarkMode
                           ? 'bg-gray-700 border-gray-600 text-white'
@@ -445,7 +478,7 @@ export default function AgentDetailPage() {
 
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Temperature ({isEditing ? editedConfig?.temperature || 0.7 : agentConfig?.temperature || 0.7})
+                      Temperature ({isEditing ? editedConfig?.temperature ?? agentConfig?.temperature ?? 0.7 : agentConfig?.temperature ?? 0.7})
                   </label>
                   {isEditing ? (
                     <input
@@ -453,8 +486,8 @@ export default function AgentDetailPage() {
                       min="0"
                       max="2"
                       step="0.1"
-                      value={editedConfig?.temperature || 0.7}
-                      onChange={(e) => setEditedConfig({ ...editedConfig, temperature: parseFloat(e.target.value) })}
+                        value={editedConfig?.temperature ?? agentConfig?.temperature ?? 0.7}
+                        onChange={(e) => updateEditedConfig('temperature', parseFloat(e.target.value))}
                       className="w-full"
                     />
                   ) : (
@@ -471,8 +504,14 @@ export default function AgentDetailPage() {
                   {isEditing ? (
                     <input
                       type="number"
-                      value={editedConfig?.maxTokens || 2000}
-                      onChange={(e) => setEditedConfig({ ...editedConfig, maxTokens: parseInt(e.target.value) })}
+                        value={editedConfig?.maxTokens ?? agentConfig?.maxTokens ?? 2000}
+                        onChange={(e) => {
+                          const parsed = Number.parseInt(e.target.value, 10);
+                          updateEditedConfig(
+                            'maxTokens',
+                            Number.isNaN(parsed) ? agentConfig?.maxTokens ?? 2000 : parsed
+                          );
+                        }}
                       className={`w-full px-4 py-2 rounded-lg border ${
                         isDarkMode
                           ? 'bg-gray-700 border-gray-600 text-white'
@@ -492,8 +531,8 @@ export default function AgentDetailPage() {
                   </label>
                   {isEditing ? (
                     <textarea
-                      value={editedConfig?.systemPrompt || agent.description}
-                      onChange={(e) => setEditedConfig({ ...editedConfig, systemPrompt: e.target.value })}
+                        value={editedConfig?.systemPrompt ?? agentConfig?.systemPrompt ?? agent.description}
+                        onChange={(e) => updateEditedConfig('systemPrompt', e.target.value)}
                       rows={6}
                       className={`w-full px-4 py-2 rounded-lg border ${
                         isDarkMode
@@ -518,9 +557,9 @@ export default function AgentDetailPage() {
             <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
               Execution History
             </h3>
-            {executions && executions.length > 0 ? (
+              {executionHistory.length > 0 ? (
               <div className="space-y-3">
-                {executions.map((execution: any) => (
+                  {executionHistory.map((execution) => (
                   <div
                     key={execution.id}
                     className={`p-4 rounded-lg border ${
@@ -583,8 +622,8 @@ export default function AgentDetailPage() {
                 </h4>
                 <div className="text-center py-8">
                   <TrendingUp className="w-12 h-12 mx-auto mb-2 text-green-500" />
-                  <p className="text-3xl font-bold text-green-500">
-                    {analytics?.successRate?.toFixed(1) || 0}%
+                      <p className="text-3xl font-bold text-green-500">
+                      {agentAnalytics?.successRate?.toFixed(1) ?? 0}%
                   </p>
                   <p className={`text-sm mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     Overall success rate
@@ -602,8 +641,8 @@ export default function AgentDetailPage() {
                 </h4>
                 <div className="text-center py-8">
                   <DollarSign className="w-12 h-12 mx-auto mb-2 text-cyan-500" />
-                  <p className="text-3xl font-bold text-cyan-500">
-                    ${analytics?.totalCost?.toFixed(2) || '0.00'}
+                      <p className="text-3xl font-bold text-cyan-500">
+                      ${agentAnalytics?.totalCost?.toFixed(2) ?? '0.00'}
                   </p>
                   <p className={`text-sm mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     Total cost to date

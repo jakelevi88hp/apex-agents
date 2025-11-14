@@ -14,7 +14,11 @@ export interface Notification {
   timestamp: Date;
   read: boolean;
   actionUrl?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
+}
+
+interface StoredNotification extends Omit<Notification, 'timestamp'> {
+  timestamp: string;
 }
 
 class NotificationSystem {
@@ -96,11 +100,12 @@ class NotificationSystem {
     if (typeof window !== 'undefined') {
       try {
         const stored = localStorage.getItem('notifications');
-        if (stored) {
-          this.notifications = JSON.parse(stored).map((n: any) => ({
-            ...n,
-            timestamp: new Date(n.timestamp),
-          }));
+          if (stored) {
+            const parsed = JSON.parse(stored) as StoredNotification[];
+            this.notifications = parsed.map((n) => ({
+              ...n,
+              timestamp: new Date(n.timestamp),
+            }));
         }
       } catch (e) {
         console.error('Failed to load notifications:', e);

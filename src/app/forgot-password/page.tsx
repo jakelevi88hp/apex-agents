@@ -34,11 +34,11 @@ export default function ForgotPasswordPage() {
           <p className="text-gray-300">Enter your email to receive reset instructions</p>
         </div>
 
-        {success && (
-          <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg text-green-200">
-            Check your email for password reset instructions. If you don't see it, check your spam folder.
-          </div>
-        )}
+          {success && (
+            <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg text-green-200">
+              Check your email for password reset instructions. If you don&rsquo;t see it, check your spam folder.
+            </div>
+          )}
 
         {error && (
           <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200">
@@ -77,12 +77,12 @@ export default function ForgotPasswordPage() {
           <Link href="/login" className="block text-purple-400 hover:text-purple-300">
             Back to Login
           </Link>
-          <p className="text-gray-300">
-            Don't have an account?{' '}
-            <Link href="/signup" className="text-purple-400 hover:text-purple-300 font-semibold">
-              Sign Up
-            </Link>
-          </p>
+            <p className="text-gray-300">
+              Don&rsquo;t have an account?{' '}
+              <Link href="/signup" className="text-purple-400 hover:text-purple-300 font-semibold">
+                Sign Up
+              </Link>
+            </p>
         </div>
       </div>
     </div>

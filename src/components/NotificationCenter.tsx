@@ -11,14 +11,19 @@ export default function NotificationCenter() {
   const router = useRouter();
 
   useEffect(() => {
-    // Load initial notifications
-    setNotifications(notificationSystem.getAll());
+    let frameId: number | undefined;
 
-    // Subscribe to new notifications
+    const updateNotifications = () => {
+      frameId = window.requestAnimationFrame(() => {
+        setNotifications(notificationSystem.getAll());
+      });
+    };
+
+    updateNotifications();
+
     const unsubscribe = notificationSystem.subscribe((notification) => {
       setNotifications(notificationSystem.getAll());
-      
-      // Show browser notification if permission granted
+
       if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
         new Notification(notification.title, {
           body: notification.message,
@@ -27,7 +32,12 @@ export default function NotificationCenter() {
       }
     });
 
-    return unsubscribe;
+    return () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+      unsubscribe();
+    };
   }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -154,9 +164,9 @@ export default function NotificationCenter() {
                 <div className="p-8 text-center">
                   <Bell className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                   <p className="text-gray-400">No notifications</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    You're all caught up!
-                  </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      You&rsquo;re all caught up!
+                    </p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-700">

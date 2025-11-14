@@ -7,7 +7,7 @@ export async function GET() {
     const startTime = Date.now();
     
     // Test database connection
-    const result = await db.execute(sql`SELECT 1 as test`);
+      await db.execute(sql`SELECT 1 as test`);
     const queryTime = Date.now() - startTime;
 
     // Get database stats
@@ -18,23 +18,33 @@ export async function GET() {
       WHERE datname = current_database()
     `);
 
-    return NextResponse.json({
+      const parseCount = (value: unknown): number => {
+        if (typeof value === 'number') return value;
+        if (typeof value === 'string') {
+          const parsed = Number.parseInt(value, 10);
+          return Number.isNaN(parsed) ? 0 : parsed;
+        }
+        return 0;
+      };
+
+      return NextResponse.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
       database: {
         connected: true,
         responseTime: queryTime,
-        activeConnections: stats.rows[0]?.connection_count || 0,
+          activeConnections: parseCount(stats.rows[0]?.connection_count),
       },
     });
-  } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
       {
         status: 'unhealthy',
         timestamp: new Date().toISOString(),
         database: {
           connected: false,
-          error: error.message,
+            error: message,
         },
       },
       { status: 500 }

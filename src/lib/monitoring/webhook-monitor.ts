@@ -16,6 +16,24 @@ export interface WebhookLog {
   processingTime: number;
 }
 
+const parseInteger = (value: unknown): number => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  }
+  return 0;
+};
+
+const parseFloatValue = (value: unknown): number => {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const parsed = Number.parseFloat(value);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  }
+  return 0;
+};
+
 export class WebhookMonitor {
   /**
    * Log webhook event
@@ -53,7 +71,7 @@ export class WebhookMonitor {
   /**
    * Get webhook statistics
    */
-  static async getStats(hours: number = 24): Promise<{
+    static async getStats(hours: number = 24): Promise<{
     totalEvents: number;
     successfulEvents: number;
     failedEvents: number;
@@ -73,10 +91,11 @@ export class WebhookMonitor {
         WHERE created_at > NOW() - INTERVAL '${hours} hours'
       `);
       
-      const totalEvents = parseInt(stats.rows[0]?.total || '0');
-      const successfulEvents = parseInt(stats.rows[0]?.successful || '0');
-      const failedEvents = parseInt(stats.rows[0]?.failed || '0');
-      const avgProcessingTime = Math.round(parseFloat(stats.rows[0]?.avg_time || '0'));
+        const totalsRow = stats.rows?.[0] as Record<string, unknown> | undefined;
+        const totalEvents = parseInteger(totalsRow?.total);
+        const successfulEvents = parseInteger(totalsRow?.successful);
+        const failedEvents = parseInteger(totalsRow?.failed);
+        const avgProcessingTime = Math.round(parseFloatValue(totalsRow?.avg_time));
       const successRate = totalEvents > 0 ? (successfulEvents / totalEvents) * 100 : 0;
       
       // Get event breakdown
@@ -87,10 +106,13 @@ export class WebhookMonitor {
         GROUP BY event
       `);
       
-      const eventBreakdown: Record<string, number> = {};
-      breakdown.rows.forEach((row: any) => {
-        eventBreakdown[row.event] = parseInt(row.count);
-      });
+        const eventBreakdown: Record<string, number> = {};
+        const breakdownRows = breakdown.rows as Array<Record<string, unknown>>;
+        breakdownRows.forEach((row) => {
+          const eventName = typeof row.event === 'string' ? row.event : 'unknown';
+          const count = parseInteger(row.count);
+          eventBreakdown[eventName] = count;
+        });
       
       return {
         totalEvents,
@@ -119,7 +141,7 @@ export class WebhookMonitor {
    */
   static async getRecentFailures(limit: number = 10): Promise<WebhookLog[]> {
     try {
-      const [results] = await db.execute(sql`
+        const [results] = await db.execute(sql`
         SELECT id, event, status, error, processing_time, created_at as timestamp
         FROM webhook_logs
         WHERE status = 'failed'
@@ -127,14 +149,15 @@ export class WebhookMonitor {
         LIMIT ${limit}
       `);
       
-      return results.rows.map((row: any) => ({
-        id: row.id,
-        event: row.event,
-        status: row.status,
-        error: row.error,
-        timestamp: new Date(row.timestamp),
-        processingTime: parseInt(row.processing_time),
-      }));
+        const rows = results.rows as Array<Record<string, unknown>>;
+        return rows.map((row) => ({
+          id: String(row.id),
+          event: typeof row.event === 'string' ? row.event : 'unknown',
+          status: row.status === 'failed' ? 'failed' : 'success',
+          error: typeof row.error === 'string' ? row.error : undefined,
+          timestamp: new Date(String(row.timestamp)),
+          processingTime: parseInteger(row.processing_time),
+        }));
       
     } catch (error) {
       console.error('Failed to get recent failures:', error);

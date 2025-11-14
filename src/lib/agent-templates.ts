@@ -4,6 +4,8 @@
  * Pre-configured agent templates for quick setup
  */
 
+type ConstraintValue = string | number | boolean | string[] | number[] | Record<string, unknown> | null;
+
 export interface AgentTemplate {
   id: string;
   name: string;
@@ -17,7 +19,7 @@ export interface AgentTemplate {
     tools: string[];
   };
   capabilities: Record<string, boolean>;
-  constraints: Record<string, any>;
+  constraints: Record<string, ConstraintValue>;
   promptTemplate: string;
 }
 

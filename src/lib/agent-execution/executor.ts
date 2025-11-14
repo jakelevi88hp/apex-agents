@@ -35,6 +35,27 @@ export interface ExecutionResult {
   error?: string;
 }
 
+interface AgentRuntimeConfig {
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+  systemPrompt?: string;
+}
+
+const getAgentRuntimeConfig = (config: unknown): AgentRuntimeConfig => {
+  if (!config || typeof config !== 'object') {
+    return {};
+  }
+
+  const data = config as Record<string, unknown>;
+  return {
+    model: typeof data.model === 'string' ? data.model : undefined,
+    temperature: typeof data.temperature === 'number' ? data.temperature : undefined,
+    maxTokens: typeof data.maxTokens === 'number' ? data.maxTokens : undefined,
+    systemPrompt: typeof data.systemPrompt === 'string' ? data.systemPrompt : undefined,
+  };
+};
+
 /**
  * Execute an agent with the given input
  */
@@ -52,11 +73,11 @@ export async function executeAgent(config: ExecutionConfig): Promise<ExecutionRe
     }
 
     // Parse agent configuration
-    const agentConfig = agent.config as any;
-    const model = agentConfig.model || 'gpt-4';
-    const temperature = agentConfig.temperature || 0.7;
-    const maxTokens = agentConfig.maxTokens || 2000;
-    const systemPrompt = agentConfig.systemPrompt || agent.description;
+      const agentConfig = getAgentRuntimeConfig(agent.config);
+      const model = agentConfig.model ?? 'gpt-4';
+      const temperature = agentConfig.temperature ?? 0.7;
+      const maxTokens = agentConfig.maxTokens ?? 2000;
+      const systemPrompt = agentConfig.systemPrompt ?? agent.description;
 
     // Create execution record
     const [execution] = await db.insert(executions).values({
@@ -146,11 +167,11 @@ export async function* executeAgentStream(config: ExecutionConfig): AsyncGenerat
       throw new Error(`Agent not found: ${config.agentId}`);
     }
 
-    const agentConfig = agent.config as any;
-    const model = agentConfig.model || 'gpt-4';
-    const temperature = agentConfig.temperature || 0.7;
-    const maxTokens = agentConfig.maxTokens || 2000;
-    const systemPrompt = agentConfig.systemPrompt || agent.description;
+      const agentConfig = getAgentRuntimeConfig(agent.config);
+      const model = agentConfig.model ?? 'gpt-4';
+      const temperature = agentConfig.temperature ?? 0.7;
+      const maxTokens = agentConfig.maxTokens ?? 2000;
+      const systemPrompt = agentConfig.systemPrompt ?? agent.description;
 
     // Create execution record
     const [execution] = await db.insert(executions).values({
@@ -174,8 +195,8 @@ export async function* executeAgentStream(config: ExecutionConfig): AsyncGenerat
       stream: true,
     });
 
-    let fullOutput = '';
-    let tokensUsed = 0;
+      let fullOutput = '';
+      const tokensUsed = 0;
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || '';
