@@ -46,9 +46,14 @@ export default function Sidebar() {
           console.error('Error parsing JWT:', e);
         }
         setIsAdmin(adminStatus);
+      } catch (e) {
+        console.error('Error checking admin status:', e);
       }
     }
   }, []);
+
+  // Close mobile menu when pathname changes
+  useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
