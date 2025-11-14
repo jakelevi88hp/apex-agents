@@ -1,100 +1,58 @@
-# Apex Agents Code Module Catalog
+# Apex Agents Code Modules
 
-This catalog maps major directories and files to their responsibilities so new contributors can find the right entry point quickly.
+**Last updated:** 2025-11-14
 
-## 1. Frontend (App Router)
-
-| Path | Purpose | Notes |
+## 1. Frontend Surfaces
+| Path | Description | Key Files / Notes |
 | --- | --- | --- |
-| `src/app/layout.tsx` | Root layout, metadata, font setup | Wraps providers from `src/components/providers`. |
-| `src/app/(auth)/login`, `signup`, `forgot-password`, `reset-password` | Authentication flows | Server components that call `authRouter` mutations. |
-| `src/app/dashboard/page.tsx` | Main overview dashboard | Fetches analytics via tRPC, renders cards, charts, and suggestions. |
-| `src/app/dashboard/agents/*` | Agent management screens | Interact with `agentsRouter`; uses skeletons from `components/AgentCardSkeleton`. |
-| `src/app/dashboard/workflows/*` | Workflow builder & history | Uses `reactflow`, `workflow-builder` components, and `workflowsRouter`. |
-| `src/app/dashboard/knowledge/*` | Knowledge base UI | Upload & search forms wired to `/api/documents/*`. |
-| `src/app/api/trpc/[trpc]/route.ts` | Client ↔️ server bridge | Invokes `fetchRequestHandler` with `appRouter`; required for all tRPC hooks. |
+| `src/app` | Next.js App Router entry points (server components by default) | `app/page.tsx` (marketing), `app/dashboard/*` (authenticated layout), auth flows under `login/`, `signup/`, etc. |
+| `src/app/dashboard` | Role-based dashboard pages for agents, workflows, analytics, knowledge, settings | Each sub-route renders data via tRPC hooks (`@/lib/trpc`). Layout composes `Sidebar`, `SubscriptionBanner`, `PWAInstallPrompt`. |
+| `src/components` | Reusable UI composed with Tailwind | Agent wizard flow, workflow canvas, document uploaders, voice command panel, notifications, modals. Client components mark `"use client"`. |
+| `src/components/ui` | Primitive controls (buttons, cards, inputs) built on shadcn patterns | Shared across dashboard and marketing surfaces. |
+| `src/hooks` | Client-side hooks | `useKeyboardShortcuts` binds global actions (command palette, quick create). |
+| `src/contexts` | React Context providers | `ThemeContext` toggles dark/light and persists preference. |
 
-Support components live under `src/components`:
-
-- `agent-wizard/` – multi-step agent creation UI.
-- `workflow-builder/` + `WorkflowCanvas.tsx` – drag/drop workflow editor.
-- `DocumentUpload.tsx`, `PDFViewer.tsx`, `SemanticSearchTab.tsx` – knowledge tools.
-- `NotificationCenter.tsx`, `SubscriptionBanner.tsx`, `UpgradePrompt.tsx` – account messaging.
-- `VoiceCommandPanel.tsx` – mic control that posts to `/api/voice`.
-
-## 2. API Routes (App Router `route.ts`)
-
-| Route | File(s) | Responsibility |
+## 2. API & Server Layer
+| Path | Responsibility | Highlights |
 | --- | --- | --- |
-| `/api/agi/process` / `/api/agi/status` | `src/app/api/agi/*` | Authenticated AGI processing with usage limits + health info. |
-| `/api/ai-admin/stream` | `src/app/api/ai-admin/stream/route.ts` | SSE streaming endpoint for AI Admin chat or patch mode. |
-| `/api/documents` | `src/app/api/documents/*.ts` | CRUD, upload validation, Pinecone-backed search, secure download. |
-| `/api/voice` | `src/app/api/voice/route.ts` | Whisper transcription + GPT command interpreter + executor. |
-| `/api/monitoring/metrics` | `src/app/api/monitoring/metrics/route.ts` | Admin metrics, alerts, and plain-text reports from `SubscriptionMonitor`. |
-| `/api/debugger` | `src/app/api/debugger/route.ts` | Health/status/error feeds powered by `appMonitor`. |
-| `/api/health` + `/api/health/db` | `src/app/api/health/*` | Lightweight uptime checks (DB connectivity, env info). |
-| `/api/webhooks/stripe` | `src/app/api/webhooks/stripe/route.ts` | Handles checkout, subscription, invoice events; logs via `WebhookMonitor`. |
-| `/api/upgrade-admin` | `src/app/api/upgrade-admin/route.ts` | Secret-guarded utility to elevate a user to admin (bootstrap only). |
+| `src/server/routers` | tRPC routers orchestrating CRUD + business logic | `agents`, `workflows`, `analytics`, `settings`, `ai-admin`, `subscription`, `suggestions`; combined in `_app.ts`. |
+| `src/server/trpc.ts` | Router factory & auth middleware | Injects `db`, attaches `userId`, guards protected procedures. |
+| `src/app/api/*` | REST endpoints for integrations, uploads, monitoring, webhooks | `agi/process`, `agi/status`, `ai-admin/stream` (SSE), `documents/*`, `voice`, `monitoring/metrics`, `debugger`, `health`, `health/db`, `upgrade-admin`, `webhooks/stripe`. |
+| `src/server` | TRPC context DB + procedures for server-only utilities | Also contains `subscription-procedure.ts` and service-level routers. |
 
-Most routes share helpers:
-- `extractTokenFromRequest` + `verifyToken` (JWT).
-- `SubscriptionService.canUseFeature` + `trackUsage`.
-- `rateLimit` presets in `src/lib/rate-limit.ts`.
-
-## 3. tRPC Routers (`src/server/routers`)
-
-| Router | Key Procedures | Notes |
+## 3. Domain Libraries (`src/lib`)
+| Module | Purpose | Representative Files |
 | --- | --- | --- |
-| `authRouter` | `signup`, `login`, `me`, `requestPasswordReset`, `resetPassword` | Uses bcrypt + Resend; owner email auto-promoted to admin. |
-| `agentsRouter` | `list`, `get`, `create`, `update`, `execute`, `bulkDelete`, `bulkUpdateStatus` | Wraps `AgentFactory` + `executions` logging. |
-| `workflowsRouter` | `list`, `create`, `execute`, `getExecutionStatus`, `getExecutionHistory` | Calls `getWorkflowExecutor`; enforces usage limits. |
-| `analyticsRouter` | `getDashboardMetrics`, `getSparklineData`, `getRecentActivity`, `getExecutionStats`, `getAgentPerformance`, `getWorkflowPerformance`, `getExecutionTrend` | Heavy SQL aggregations; reused by dashboard + voice analytics command. |
-| `aiAdminRouter` | Conversation CRUD, `chat`, `generatePatch`, `applyPatch`, `rollbackPatch`, GitHub helpers, file uploads | Guards admin role; streams via subscription where needed. |
-| `executionRouter` | `execute`, `getHistory`, `getById` | Thin wrapper over `executeAgent` helpers. |
-| `settingsRouter` | User settings, API keys, model config, billing info, team management | Touches `userSettings`, `apiKeys`, `teamMembers`, and Stripe customer portal. |
-| `subscriptionRouter` | `getCurrent`, `getUsage`, `canUseFeature`, `getPlans`, `createCheckoutSession`, `cancelSubscription`, `getCustomerPortal` | Talks to Stripe helpers + `SubscriptionService`. |
-| `suggestionsRouter` | `list`, `generate`, `updateStatus` | Uses `SuggestionService` for dashboard coaching. |
+| `ai`, `ai-admin`, `agi` | Core reasoning engines, memory systems, admin assistant orchestration | `ai-admin/agent.ts`, `ai-admin/conversation-manager.ts`, `agi/enhanced-core.ts`, `agi/core.ts` |
+| `agent-execution`, `workflow-engine`, `workflow-execution` | Agent/workflow runtime pipelines | Executor orchestrates prompts, tool calls, and persistence. |
+| `auth.ts`, `auth/jwt.ts` | JWT extraction, verification, and helpers for API routes | Used by REST endpoints and middleware. |
+| `document-processor.ts`, `pinecone-service.ts` | File parsing, chunking, vector storage operations | Called by upload/search routes. |
+| `db`, `db/schema.ts` | Drizzle setup + schema definitions shared across routers | Mirrors Neon Postgres tables. |
+| `monitoring/*` | Subscription and webhook health checks | Exposes `SubscriptionMonitor` + `WebhookMonitor`. |
+| `subscription/*` | Feature gating, quota tracking, plan metadata | `SubscriptionService` consumed by AGI endpoints and dashboards. |
+| `stripe/*`, `email/*`, `notifications/*` | External integrations (Stripe, Resend, notifications) | Provide typed helpers for API routes. |
+| `ai-admin`, `debugger` | Runtime insights, streaming responses, developer tooling. |
 
-`src/server/trpc.ts` wires context (db + userId) and exports `router`, `publicProcedure`, `protectedProcedure`.
-
-## 4. Domain Services (`src/lib/**`)
-
-| Module | Highlights |
+## 4. Data & Persistence
+| Path | Description |
 | --- | --- |
-| `lib/agi/*` | `EnhancedAGICore` orchestrates emotional analysis, reasoning, creativity, and memory persistence (`agiConversationService`, `agiMemoryService`). |
-| `lib/ai-admin/*` | `AIAdminAgent` + context builders, GitHub service, patch validation/storage, request interpreter, and file context gatherer. |
-| `lib/agent-execution/executor.ts` | Executes a single agent run with telemetry, used by API and workflows. |
-| `lib/workflow-engine` | Parses workflow JSON, coordinates step execution, writes to `executions` + `execution_steps`. |
-| `lib/document-processor.ts` | Handles PDF/DOCX/TXT parsing, chunking, summary generation. |
-| `lib/pinecone-service.ts` | Handles embedding generation and vector upserts/search/deletes. |
-| `lib/subscription/*` | Plan metadata, usage tracking, health monitoring (`SubscriptionMonitor`). |
-| `lib/monitoring/*` | `appMonitor`, `WebhookMonitor`, `SubscriptionMonitor` for diagnostics. |
-| `lib/rate-limit.ts` | KV-backed (?) token bucket per preset (AGI, uploads, health). |
-| `lib/notifications`, `lib/email` | Wrap Resend + notification preferences. |
-| `lib/stripe/stripe.ts` | Stripe SDK helpers (checkout, portal, ensure products). |
-| `lib/auth/jwt.ts` | JWT sign/verify + helpers for App Router handlers. |
+| `drizzle/*.sql`, `drizzle/migrations` | Generated SQL migrations for Neon infrastructure. |
+| `src/lib/db/schema.ts` | Primary schema (users, agents, workflows, executions, knowledge base, subscriptions, analytics tables). |
+| `src/server/db/schema/documents.ts` | Specialized schema for document uploads (compat with legacy columns). |
+| `logs/agi_memory.db` | SQLite artifact for AGI memory (used in local testing). |
 
-## 5. Data & Persistence
-
-- **Drizzle schema** lives in `src/lib/db/schema.ts` plus sub-folders for AI + subscriptions. Relations defined via `relations`.
-- **Database client** exported from `src/lib/db/index.ts` and injected into tRPC context + services.
-- **Migrations** stored in `/drizzle` and executed with `drizzle-kit`.
-
-## 6. Testing & Tooling
-
-| Path | Use |
+## 5. Tooling & Tests
+| Path | Purpose |
 | --- | --- |
-| `tests/` | Stress tests (`tests/stress`), debugging suites (`tests/debug`). |
-| `scripts/` | Operational TS scripts (seed, security audit, debugger setup, production tests). |
-| `playwright.config.ts` | Playwright e2e entry. |
+| `scripts/*.ts` | Automation scripts (seed, security audit, debugger setup, production smoke tests). |
+| `tests/` | Stress and regression suites (Playwright + custom TS stress tests). |
+| `playwright.config.ts` | Browser test harness configuration. |
+| `package.json` scripts | For dev (`dev`, `build`, `lint`), database (`db:*`), QA (`test`, `test:ui`, `health:check`, `stress:test`). |
 
-## 7. Mental Model
-
-Picture the repository as a layered cake:
-1. **Presentation layer** – App Router + components.
-2. **API layer** – App Router handlers for REST, tRPC routers for RPC.
-3. **Service layer** – AGI, AI Admin, workflows, documents, subscriptions.
-4. **Integration layer** – Drizzle/Postgres, Pinecone, Stripe, OpenAI, S3, GitHub.
-
-Each slice exposes TypeScript classes or functions with strong typing and JSDoc so you can compose features without reaching across layers.
+## 6. Cross-Cutting Concerns
+- **Styling:** Tailwind + utility components; no CSS modules or styled-components.
+- **State Management:** Prefer React hooks/context; Zustand used where global but lightweight state is required.
+- **Error Handling:** Try/catch with structured responses (JSON) in API routes; `TRPCError` for tRPC procedures.
+- **Serialization:** `superjson` in tRPC context; `zod` schemas guard inputs server-side.
+- **Rate Limiting:** `src/lib/rate-limit.ts` supports presets (AGI, uploads) invoked inside API endpoints.
 

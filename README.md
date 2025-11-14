@@ -1,108 +1,82 @@
 # Apex Agents Platform
 
-Apex Agents is an AI operations console built on **Next.js 14 (App Router)**, **TypeScript**, **tRPC 11**, **Drizzle ORM**, and **Pinecone**. It lets operators design autonomous agents, orchestrate workflows, ingest knowledge, interact with an AGI surface, and monitor subscriptions—all inside a single UI.
+AI agent operations platform built with Next.js 14 (App Router), TypeScript, tRPC, Drizzle ORM, Neon Postgres, Pinecone, OpenAI, and Stripe. Apex Agents lets teams design autonomous agents, orchestrate workflows, ingest knowledge, monitor executions, and manage billing in one control plane.
 
-Think of it as an airport control tower for AI: agents (planes) need routes, fuel (data), and clearances (subscriptions). This repo contains the entire stack needed to run that tower.
+## Platform Features
+- **Agent lifecycle**: create typed agents with capabilities, constraints, and toolkits; inspect execution history.
+- **Workflow builder**: drag-and-drop orchestration with branching, retries, and monitoring.
+- **AGI console**: conversational interface backed by `EnhancedAGICore` with long-term memory.
+- **Knowledge base**: secure uploads, document parsing, embedding, and semantic search.
+- **AI Admin & debugger**: streaming co-pilot for code patches plus runtime health telemetry.
+- **Voice interface**: Whisper transcription + GPT command routing to metrics or agent runs.
+- **Subscriptions & analytics**: Stripe billing, usage quotas, dashboards, alerts.
 
----
-
-## Feature Highlights
-
-- **Enhanced AGI**: Stateful conversational core (`lib/agi`) with memory, emotional cues, and creativity controls exposed via `/api/agi/*`.
-- **AI Admin**: Autonomous maintainer that analyzes the repo, drafts patches, and can apply them locally or through GitHub via SSE streaming.
-- **Workflow Builder**: Drag-and-drop orchestration backed by `workflow-engine` and `executions` telemetry.
-- **Knowledge Hub**: Document uploads (PDF/DOCX/TXT/MD), text extraction, Pinecone embedding, and semantic search.
-- **Voice Commands**: Whisper transcription + GPT command parsing routed through `/api/voice`.
-- **Subscription Guardrails**: Stripe billing, quota tracking, and monitoring dashboards.
-- **Observability**: Sentry + custom debugger APIs + `/api/health/*` endpoints.
-
----
-
-## Architecture (Snapshot)
-
-| Layer | Tech | Notes |
-| --- | --- | --- |
-| UI | Next.js App Router, Tailwind, React Server Components | Client-only islands for dashboards, workflow canvas, voice widget. |
-| API | App Router handlers + tRPC routers | REST for external integrations, tRPC for strongly typed app calls. |
-| Services | `lib/agi`, `lib/ai-admin`, `workflow-engine`, `DocumentProcessor`, `SubscriptionService` | Encapsulate reasoning, GitOps, execution, ingestion, billing. |
-| Persistence | Neon Postgres (Drizzle ORM), Pinecone vectors, S3/Uploads | Schema definitions in `src/lib/db/schema.ts`. |
-| Integrations | OpenAI (chat/embeddings/Whisper), Stripe, Resend, GitHub | Keys configured via `.env.local` / Vercel dashboard. |
-
-For diagrams and detailed flows, see `docs/ARCHITECTURE.md`.
-
----
+## Architecture Snapshot
+- **Frontend**: Next.js App Router (React Server Components), Tailwind UI, TanStack Query, Zustand/context where needed.
+- **APIs**: Hybrid REST routes under `app/api/*` for uploads, AI calls, monitoring, webhooks; strongly-typed tRPC router at `/api/trpc` for dashboard data.
+- **Domain services**: `src/lib` modules encapsulate AGI, AI Admin, document processor, Pinecone client, subscription enforcement, monitoring, and integrations.
+- **Data layer**: Drizzle ORM models for Neon Postgres plus Pinecone vector index and optional S3/local storage for documents.
+- **Observability**: Sentry, custom monitors (`SubscriptionMonitor`, `WebhookMonitor`), `/api/debugger` health probes.
 
 ## Quick Start
-
 1. **Install prerequisites**
-   - Node.js 18 (`nvm install 18 && nvm use 18`)
-   - npm ≥10 (ships with Node 18)
-   - Optional: Stripe CLI, Vercel CLI
-2. **Clone + install**
-
+   - Node.js 20.x (`nvm use 20`)
+   - pnpm 9.x (`corepack enable`)
+2. **Install dependencies**
    ```bash
-   git clone git@github.com:YOUR_ORG/apex-agents.git
-   cd apex-agents
-   npm install
+   pnpm install
    ```
-
 3. **Configure environment**
-   - Copy `.env.example` (or follow `docs/ENVIRONMENT-VARIABLES.md`) to `.env.local`.
-   - Set `DATABASE_URL`, `JWT_SECRET`, `OPENAI_API_KEY`, `PINECONE_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `ADMIN_UPGRADE_SECRET`, etc.
-   - Apply schema: `npm run db:push`
-4. **Run dev server**
-
+   - Copy `.env.example` → `.env.local`
+   - Set `DATABASE_URL`, `JWT_SECRET`, `OPENAI_API_KEY`, `PINECONE_*`, `STRIPE_*`, `RESEND_API_KEY`, `ADMIN_UPGRADE_SECRET`, etc.
+   - See `docs/ONBOARDING-GUIDE.md` + `docs/ENVIRONMENT-VARIABLES.md`.
+4. **Database**
    ```bash
-   npm run dev
+   pnpm db:generate   # regenerate SQL if schema changed
+   pnpm db:push       # apply migrations
+   pnpm db:seed       # optional sample data
    ```
+5. **Run dev server**
+   ```bash
+   pnpm dev
+   ```
+   Visit `http://localhost:3000`.
 
-   Visit `http://localhost:3000`. Create an account at `/signup`; the first account or owner email becomes admin automatically.
-
----
-
-## Common Scripts
-
+## Scripts
 | Command | Description |
 | --- | --- |
-| `npm run dev` | Next.js dev server with live reload. |
-| `npm run lint` | ESLint (flat config, TypeScript aware). |
-| `npm run build` | Production build (Next). |
-| `npm run test` | Playwright smoke tests. |
-| `npm run health:check` | TSX script probing DB/OpenAI/Pinecone health. |
-| `npm run db:generate` / `npm run db:push` | Drizzle migration tooling. |
-| `npm run stress:test` | Agent stress harness (`tests/stress`). |
+| `pnpm dev` | Next.js development server (hot reload). |
+| `pnpm build` / `pnpm start` | Production build and serve. |
+| `pnpm lint` | ESLint (Next + TypeScript config). |
+| `pnpm test`, `pnpm test:ui` | Playwright headless/UI suites. |
+| `pnpm stress:test` | Synthetic workload against agents/workflows. |
+| `pnpm health:check` | Runs system health diagnostics. |
+| `pnpm db:generate`, `pnpm db:push`, `pnpm db:seed`, `pnpm db:reset` | Drizzle migrations + seed helpers. |
+| `pnpm security:audit` | Dependency vulnerability scan. |
 
----
+## Documentation
+All project docs live in `/docs`. Start here:
+- `docs/README.md` — index + reading order.
+- `docs/TECHNICAL-SPEC.md` — system requirements and contracts.
+- `docs/ARCHITECTURE.md` — Mermaid diagrams and ops notes.
+- `docs/API-REFERENCE.md` — REST + tRPC surface area.
+- `docs/CODE-MODULES.md` — directory responsibilities.
+- `docs/ONBOARDING-GUIDE.md` — environment setup and troubleshooting.
 
-## Testing & Verification
+## Testing & Quality Gates
+1. `pnpm lint`
+2. `pnpm test`
+3. `pnpm test:ui` (when touching UI/flows)
+4. `pnpm security:audit`
+5. `pnpm stress:test` (before major releases)
 
-1. **Unit/E2E** – `npm run test` (ensure Playwright browsers installed).
-2. **AGI smoke** – `curl -H "Authorization: Bearer <token>" http://localhost:3000/api/agi/status`.
-3. **AI Admin SSE** – Use `/dashboard/ai-admin`, watch dev tools for `text/event-stream`.
-4. **Document ingestion** – Upload a PDF in the Knowledge tab; confirm status transitions to `completed`.
-5. **Voice command** – Use the Voice Command panel, speak “Show me today’s metrics,” verify JSON output.
-6. **Stripe webhooks** – `stripe listen --forward-to http://localhost:3000/api/webhooks/stripe` then `stripe trigger checkout.session.completed`.
+## Deployment
+- Target: Vercel (App Router).  
+- Required env on Vercel: same as `.env.local` plus Stripe + Pinecone production keys.  
+- Stripe webhooks: configure endpoint `https://<prod-host>/api/webhooks/stripe`.  
+- Monitor `/api/health` and `/api/monitoring/metrics` post-deploy; alerts flow via Sentry and Subscription Monitor.
 
----
-
-## Documentation Index
-
-| File | Description |
-| --- | --- |
-| `docs/TECHNICAL-SPEC.md` | High-level goals, stack, and non-functional requirements. |
-| `docs/ARCHITECTURE.md` | System diagrams (Mermaid) + pipelines + failure modes. |
-| `docs/API-REFERENCE.md` | HTTP + tRPC contracts, rate limits, examples. |
-| `docs/CODE-MODULES.md` | Directory-to-responsibility map. |
-| `docs/ONBOARDING-GUIDE.md` | Step-by-step ramp plan for new contributors. |
-| `docs/ENVIRONMENT-VARIABLES.md` | Secrets checklist and verification tips. |
-
----
-
-## Contributing
-
-1. Create a feature branch from `main`.
-2. Write code + tests, and update any docs affected (API reference, onboarding, etc.).
-3. Run `npm run lint && npm run test`.
-4. Submit a PR with screenshots or cURL snippets for UI/API changes.
-
-Need help? Open an issue or post in `#apex-engineering`. We aim for the runway lights to stay on—if something is unclear, surface it and we’ll document the fix.
+## Contributing & Support
+- Branch from `main`, keep changes atomic, update docs when routers/schema change.
+- Run the full QA checklist above before opening a PR.
+- Production incidents: capture `/api/debugger` output + Sentry link; escalate to platform team.

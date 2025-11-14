@@ -1,422 +1,190 @@
 # Apex Agents API Reference
 
-**Last Updated:** 2025-11-14  
-**Version:** 2.0
+**Last updated:** 2025-11-14  
+**Audience:** Engineers integrating with REST or tRPC surfaces.
 
----
-
-## 1. Base URLs
-
-| Environment | App Router Base | tRPC Endpoint |
+## 1. Base URLs & Formats
+| Interface | URL | Notes |
 | --- | --- | --- |
-| Production | `https://apex-agents.vercel.app` | `https://apex-agents.vercel.app/api/trpc` |
-| Local dev | `http://localhost:3000` | `http://localhost:3000/api/trpc` |
+| REST | `https://<host>/api` | JSON everywhere except SSE (`/ai-admin/stream`) and Stripe webhooks (raw body). |
+| tRPC | `https://<host>/api/trpc` | Superjson transformer; follow procedure naming (`router.procedure`). |
 
-Unless specified, all HTTP examples use the App Router base URL. Replace with your environment as needed.
+## 2. Authentication & Headers
+- JWT tokens issued at login.  
+- REST routes expect `Authorization: Bearer <JWT>` unless marked public.  
+- Cookies are accepted for browser calls; server-to-server should pass bearer headers.  
+- SSE endpoint (`/api/ai-admin/stream`) requires JSON body containing `userId` (validated on server).  
 
----
-
-## 2. Authentication
-
-Apex Agents uses JWTs issued by the tRPC `auth.login` mutation. Clients typically call the mutation via the generated React hook, but you can also hit the tRPC endpoint manually.
-
-### Login (tRPC)
-
-```typescript
-const login = trpc.auth.login.useMutation();
-const { token } = await login.mutateAsync({ email, password });
+```http
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Content-Type: application/json
 ```
 
-Use the returned token in the `Authorization` header for HTTP endpoints and when bootstrapping custom tRPC clients:
+## 3. Rate Limits
+| Route | Limit | Enforcement |
+| --- | --- | --- |
+| `POST /api/agi/process` | 20 requests/minute per user | `RateLimitPresets.AGI` + subscription quota (`SubscriptionService`). |
+| `POST /api/documents/upload` | 10 uploads/hour per user | `RateLimitPresets.UPLOAD`. |
+| Other REST/tRPC | 100 req/min (free), 1 000 req/min (premium), unlimited (pro) | Gateway-level; see plan metadata. |
 
-```
-Authorization: Bearer <JWT>
-```
+Limit breaches respond with `429` and `Retry-After`.
 
-JWT payload includes `userId`, `email`, `role`. Admin-only endpoints check `role === 'admin' | 'owner'` via a database lookup.
+## 4. REST Endpoints
 
----
-
-## 3. HTTP Endpoints (App Router)
-
-### 3.1 AGI
-
-#### POST `/api/agi/process`
-
-- **Auth:** Required (Bearer JWT)
-- **Rate limit:** 20 requests/minute per user (see `RateLimitPresets.AGI`)
-
-Request:
+### 4.1 AGI
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/api/agi/process` | Runs `EnhancedAGICore` with conversation + memory context. Requires bearer token. |
+| `GET` | `/api/agi/status` | Returns AGI availability snapshot (public). |
 
 ```http
 POST /api/agi/process
-Authorization: Bearer <JWT>
+Authorization: Bearer <token>
 Content-Type: application/json
-
 {
-  "input": "Summarize the latest runbook."
+  "input": "Draft a launch plan for Apex Agents."
 }
 ```
-
-Response:
 
 ```json
 {
-  "thoughts": [{ "type": "analysis", "content": "Analyzing input..." }],
-  "emotionalState": "attentive",
-  "creativity": [{ "description": "Balanced solution" }],
-  "reasoning": {
-    "mode": "analytical",
-    "steps": [...],
-    "conclusion": "Here is the summary...",
-    "confidence": 0.82
-  },
-  "mode": "full_agi",
-  "conversationId": "2d97a3f2-...",
-  "messageId": "d4ab1234-..."
+  "response": "Here's a structured launch plan...",
+  "thoughts": { "reasoning": "...", "emotionalState": "focused" },
+  "memories": { "episodic": [...], "semantic": [...] }
 }
 ```
 
-#### GET `/api/agi/status`
-
-- **Auth:** Required
-
-Returns AGI component health:
-
-```json
-{
-  "available": true,
-  "mode": "full_agi",
-  "components": ["Memory System", "Conversation History", "..."],
-  "features": {
-    "memory": true,
-    "conversationHistory": true,
-    "advancedReasoning": true,
-    "emotionalIntelligence": true,
-    "creativity": true
-  },
-  "sessionId": "f588...",
-  "conversationId": "2d97a3f2-..."
-}
-```
-
-### 3.2 AI Admin Streaming
-
-#### POST `/api/ai-admin/stream`
-
-- **Auth:** Required (Bearer JWT)
-- **Admin only**
-- **Runtime:** Node.js (SSE)
-
-Body:
-
-```json
-{
-  "conversationId": "de2f...",
-  "message": "Review the new workflow builder.",
-  "userId": "<current-user-id>",
-  "mode": "chat" // or "patch"
-}
-```
-
-Response: Server-Sent Events (`Content-Type: text/event-stream`). Events include:
-
-- `status` – textual updates.
-- `chunk` – streaming text.
-- `patch` – structured patch payload (when `mode=patch`).
-- `done` – final aggregated message.
-- `error` – message string.
-
-Example SSE payload:
-
-```
-data: {"type":"chunk","content":"Investigating workflow builder..."}
-```
-
-### 3.3 Documents & Knowledge
-
-#### GET `/api/documents`
-
-Query params: `source`, `status`.
-
-Example:
-
-```
-GET /api/documents?source=upload&status=completed
-Authorization: Bearer <JWT>
-```
-
-Response:
-
-```json
-{
-  "documents": [
-    {
-      "id": "b1d4...",
-      "name": "Playbook.pdf",
-      "mimeType": "application/pdf",
-      "size": 204800,
-      "source": "upload",
-      "status": "completed",
-      "summary": "Key steps...",
-      "tags": ["runbook"],
-      "folder": null,
-      "metadata": {
-        "pageCount": 12,
-        "wordCount": 3200,
-        "chunkCount": 6
-      },
-      "createdAt": "2025-11-14T09:21:00.000Z",
-      "updatedAt": "2025-11-14T09:22:15.000Z"
-    }
-  ],
-  "total": 1
-}
-```
-
-#### POST `/api/documents/upload`
-
-- **Auth:** Required
-- **Rate limit:** 10 uploads/hour per user
-- **Content-Type:** `multipart/form-data`
-
-Fields:
-
-| Field | Type | Notes |
+### 4.2 Documents & Knowledge
+| Method | Path | Notes |
 | --- | --- | --- |
-| `file` | File | Allowed MIME types: PDF, DOCX, TXT, MD. Max 50 MB. |
+| `GET` | `/api/documents` | Lists current user documents; supports `?source` and `?status`. |
+| `POST` | `/api/documents/upload` | `multipart/form-data` with `file`. 50 MB max, allowed MIME: PDF, DOCX, TXT, MD. |
+| `GET` | `/api/documents/:id/download` | Streams stored file if user owns it. |
+| `POST` | `/api/documents/search` | `{ "query": string, "topK": number }`; returns grouped Pinecone hits. |
 
-Response:
-
+Upload example:
+```
+form-data:
+  file: <binary>
+```
+Response
 ```json
 {
   "success": true,
   "document": {
-    "id": "b1d4...",
-    "name": "Playbook.pdf",
-    "size": 204800,
-    "mimeType": "application/pdf",
-    "status": "processing",
-    "createdAt": "2025-11-14T09:21:00.000Z"
+    "id": "doc_123",
+    "name": "brief.pdf",
+    "status": "processing"
   }
 }
 ```
 
-Processing happens asynchronously; the background worker extracts text, chunks, embeds via Pinecone, and updates the `documents` row.
+### 4.3 AI Admin & Dev Tooling
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/api/ai-admin/stream` | SSE stream for chat or patch generation. Body: `{ conversationId, message, userId, mode }`. |
+| `GET` | `/api/debugger?action=health|errors|stats|unresolved|health-detailed` | Health & diagnostics; `action=health` is public, others require auth. |
+| `POST` | `/api/debugger` | Manually log error (`{ level, category, message }`). |
 
-#### POST `/api/documents/search`
+SSE events emit `{ type: "chunk" | "patch" | "status" | "done" }`.
 
-```http
-POST /api/documents/search
-Authorization: Bearer <JWT>
-Content-Type: application/json
+### 4.4 Voice Commands
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/api/voice` | Accepts `FormData` field `audio` (WebM/MP4). Pipeline: Whisper → GPT command → execute (`respond`, `get_dashboard_metrics`, `run_agent`). |
 
-{
-  "query": "incident response checklist",
-  "topK": 5
-}
-```
-
-Response groups matches by document with chunk-level scores.
-
-#### GET `/api/documents/:id/download`
-
-Streams the original file if the requesting user owns it.
-
-### 3.4 Voice Commands
-
-#### POST `/api/voice`
-
-- **Auth:** Required
-- **Body:** `multipart/form-data` with `audio` file (`webm`, `wav`, etc.)
-
-Flow: Authenticate → Whisper transcription → GPT command classification → execute action.
-
-Response:
-
+Response example:
 ```json
 {
   "success": true,
-  "transcript": "Run the revenue reconciliation agent.",
+  "transcript": "How many workflows ran today?",
   "command": {
-    "action": "run_agent",
-    "summary": "Execute revenue reconciliation agent",
-    "arguments": {
-      "agentName": "Revenue Reconciler",
-      "input": "Use default task."
-    }
+    "action": "get_dashboard_metrics",
+    "summary": "Share today's metrics"
   },
   "result": {
-    "agentId": "f8b2...",
-    "executionId": "ce54...",
-    "output": {...},
-    "tokensUsed": 1543,
-    "duration": 12.4
-  }
-}
-```
-
-### 3.5 Monitoring & Health
-
-| Endpoint | Description | Auth |
-| --- | --- | --- |
-| `GET /api/monitoring/metrics` | Subscription metrics, expiring users, usage alerts, 7-day activity. | Admin only |
-| `POST /api/monitoring/metrics` | Plain-text summary report. | Admin only |
-| `GET /api/debugger?action=health|errors|stats|unresolved` | `health` is public, others require auth. |
-| `POST /api/debugger` | Manually log an error (testing). Requires auth. |
-| `GET /api/health` | Public readiness (API + DB). |
-| `GET /api/health/db` | Detailed DB stats (active connections). |
-
-### 3.6 Admin Utilities
-
-#### POST `/api/upgrade-admin`
-
-```json
-{
-  "email": "user@example.com",
-  "secret": "<ADMIN_UPGRADE_SECRET>"
-}
-```
-
-Marks the given user as `role = 'admin'`. Use only for bootstrapping.
-
-#### POST `/api/webhooks/stripe`
-
-Stripe sends checkout + subscription lifecycle events here. The endpoint validates the `stripe-signature` header, updates `subscriptions` & `usageTracking`, and logs via `WebhookMonitor`. You generally do not call this manually—configure it in the Stripe dashboard or via CLI.
-
----
-
-## 4. tRPC Procedures
-
-The tRPC router (`appRouter`) exposes strongly typed procedures. Below is a condensed catalog. All procedures inherit auth from `protectedProcedure` unless noted.
-
-| Router | Notable Procedures | Description |
-| --- | --- | --- |
-| `auth` | `signup`, `login`, `me`, `requestPasswordReset`, `resetPassword` | User lifecycle (bcrypt hashing + Resend emails). `signup` auto-promotes first user or owner email to admin. |
-| `agents` | `list`, `get`, `create`, `update`, `delete`, `execute`, `bulkDelete`, `bulkUpdateStatus`, `getExecutions` | CRUD + execution for AI agents. `execute` writes to `executions` via `AgentFactory`. |
-| `workflows` | `list`, `create`, `update`, `delete`, `execute`, `getExecutionStatus`, `getExecutionHistory` | Workflow builder support. `execute` calls `getWorkflowExecutor`. |
-| `execution` | `execute`, `getHistory`, `getById` | Direct agent execution helpers (shared with voice). |
-| `analytics` | `getDashboardMetrics`, `getSparklineData`, `getRecentActivity`, `getExecutionStats`, `getAgentPerformance`, `getWorkflowPerformance`, `getExecutionTrend` | Dashboard and voice metrics. |
-| `aiAdmin` | `chat`, `generatePatch`, `applyPatch`, `rollbackPatch`, conversation CRUD, GitHub helpers, file uploads, image analysis | All admin-specific controls—guards admin role. |
-| `settings` | `getSettings`, `updateSettings`, `listApiKeys`, `createApiKey`, `revokeApiKey`, `getModelConfig`, `updateModelConfig`, `getBillingInfo`, `listTeamMembers`, `inviteTeamMember`, `updateTeamMemberRole`, `removeTeamMember` | User/org configuration surfaces. |
-| `subscription` | `getCurrent`, `getUsage`, `canUseFeature`, `getPlans`, `createCheckoutSession`, `cancelSubscription`, `getCustomerPortal` | Stripe plan management + usage enforcement. |
-| `suggestions` | `list`, `generate`, `updateStatus` | Personalized system suggestions on the dashboard. |
-
-### Sample call (vanilla fetch)
-
-```ts
-const result = await fetch('/api/trpc/agents.list', {
-  method: 'POST',
-  headers: {
-    'content-type': 'application/json',
-    'authorization': `Bearer ${token}`
-  },
-  body: JSON.stringify({ input: undefined })
-}).then(res => res.json());
-```
-
-The response follows tRPC’s JSON-RPC envelope. Prefer the generated client in React (`@/utils/api` or similar) to avoid manual plumbing.
-
----
-
-## 5. Error Handling
-
-### HTTP Errors
-
-```json
-{
-  "error": "Authentication required. Please log in again."
-}
-```
-
-Status codes follow HTTP conventions (`401`, `403`, `404`, `422`, `429`, `500`). Rate-limited responses include:
-
-```
-X-RateLimit-Limit: <limit>
-X-RateLimit-Remaining: <remaining>
-X-RateLimit-Reset: <ISO timestamp>
-Retry-After: <seconds>
-```
-
-### tRPC Errors
-
-```json
-{
-  "id": 0,
-  "error": {
-    "code": -32603,
-    "message": "FORBIDDEN",
-    "data": {
-      "code": "FORBIDDEN",
-      "httpStatus": 403,
-      "path": "aiAdmin.generatePatch"
+    "metrics": {
+      "activeAgents": 4,
+      "workflows": 7,
+      "executionsToday": 19,
+      "executionsTrend": { "change": 12.5, "direction": "up" }
     }
   }
 }
 ```
 
-Handle via the generated hooks (`error` object) or `try/catch` on `client.mutation`.
+### 4.5 Monitoring & Health
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/api/monitoring/metrics` | Admin-only JSON snapshot of subscription health, usage, alerts. |
+| `POST` | `/api/monitoring/metrics` | Admin-only plaintext report. |
+| `GET` | `/api/health` | API + DB health summary (public). |
+| `GET` | `/api/health/db` | Detailed DB stats (public). |
 
----
+### 4.6 Admin Utilities & Webhooks
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/api/upgrade-admin` | Promote user by email. Body `{ email, secret }`. Requires `ADMIN_UPGRADE_SECRET`. |
+| `POST` | `/api/webhooks/stripe` | Consumes Stripe events (raw body). Handles checkout, subscription lifecycle, invoice results. Validates `stripe-signature`. |
 
-## 6. Rate Limits
+Stripe handler side-effects: updates `subscriptions` table, logs metrics via `WebhookMonitor`, and returns `{ "received": true }` on success.
 
-| Preset | Limit | Window | Used by |
-| --- | --- | --- | --- |
-| `AGI` | 20 req/min | 60 s | `/api/agi/process` |
-| `AI_ADMIN` | 5 req/min | 60 s | `/api/ai-admin/stream`, AI Admin tRPC helpers |
-| `UPLOAD` | 10 uploads/hour | 1 h | `/api/documents/upload` |
-| `AUTH` | 5 attempts/15 min | 15 min | Auth endpoints |
-| `API` | 100 req/min | 60 s | Generic fallback |
-| `SEARCH` | 30 req/min | 60 s | `/api/documents/search`, future search APIs |
+## 5. tRPC Surface ( `/api/trpc` )
 
-429 responses include `retryAfter` seconds. Rate limiting is in-memory; scale-out deployments should swap in Redis/Upstash.
+### 5.1 Routers
+| Router | Key Procedures | Notes |
+| --- | --- | --- |
+| `auth` | `me`, `register`, `login`, `logout` | Issues JWT + session metadata. |
+| `agents` | `list`, `get`, `create`, `update`, `delete`, `execute`, `getExecutions`, `bulkDelete`, `bulkUpdateStatus` | Uses Drizzle + `AgentFactory`. |
+| `workflows` | `list`, `get`, `create`, `update`, `delete`, `execute`, `getExecutionStatus`, `getExecutionHistory` | Executes via workflow engine. |
+| `aiAdmin` | `chat`, `generatePatchFromPlainLanguage`, `getExampleRequests`, `uploadFile` | Admin-only. |
+| `analytics` | `getDashboardMetrics`, `getSparklineData`, `getRecentActivity`, `getExecutionStats`, `getAgentPerformance`, `getWorkflowPerformance`, `getExecutionTrend` | Backed by aggregated SQL. |
+| `settings` | `getSettings`, `updateGeneral`, `createApiKey`, `revokeApiKey`, `updateModelConfig`, `getTeamMembers`, `inviteTeamMember`, `updateTeamMemberRole`, `removeTeamMember` | Persists to `user_settings`, `api_keys`, `team_members`. |
+| `execution` | `get`, `cancel`, `retry` (where implemented) | Hooks into `executions` table. |
+| `subscription` | `getPlans`, `createCheckoutSession`, `getPortalLink` | Wraps Stripe SDK. |
+| `suggestions` | `list`, `resolve`, `create` | Surfaces AI/UX suggestions. |
 
----
+### 5.2 Usage Example
+```typescript
+import { trpc } from '@/lib/trpc';
 
-## 7. Testing the APIs
-
-### cURL example – AGI
-
-```bash
-curl -X POST http://localhost:3000/api/agi/process \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"input":"Give me three product ideas."}'
-```
-
-### SSE example – AI Admin (Node)
-
-```ts
-const resp = await fetch('/api/ai-admin/stream', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ conversationId, message, userId, mode: 'chat' })
+const { data, error, isLoading } = trpc.agents.list.useQuery(undefined, {
+  staleTime: 5 * 60 * 1000,
 });
 
-const reader = resp.body!.getReader();
+const createMutation = trpc.workflows.create.useMutation();
+await createMutation.mutateAsync({
+  name: 'Weekly digest',
+  definition: { nodes: [...], edges: [...] },
+});
 ```
 
-### Stripe webhook test
+### 5.3 Input Validation
+- All procedures define Zod schemas; invalid input yields `BAD_REQUEST` + `zodError`.
+- Protected procedures wrap `protectedProcedure` and throw `UNAUTHORIZED` if `ctx.userId` missing.
 
-```bash
-stripe listen --forward-to http://localhost:3000/api/webhooks/stripe
-stripe trigger checkout.session.completed
+## 6. Error Model
+```json
+{
+  "error": "AGI message limit reached",
+  "code": "FORBIDDEN",
+  "data": {
+    "httpStatus": 403,
+    "path": "agi.process",
+    "limit": 200,
+    "current": 200
+  }
+}
 ```
+- REST endpoints respond with `{ error: string }` and standard HTTP codes.  
+- tRPC errors include `error.data` with `code`, `httpStatus`, `path`, and optional `zodError`.  
+- Stripe/webhook failures log via `WebhookMonitor` and return `400` to trigger Stripe retry.
 
-Ensure the CLI prints `200 OK` and the dev server logs “Subscription created...”.
-
----
+## 7. Testing & Sandbox Tips
+- Use Stripe CLI (`stripe listen --forward-to localhost:3000/api/webhooks/stripe`) to replay billing events.
+- Pinecone and OpenAI calls require valid keys even in development; use separate dev indexes and org keys.
+- Voice endpoint accepts any file convertible by Whisper; `multipart/form-data` boundary must include filename.
+- For AGI/tRPC testing without browser, send `POST /api/trpc/<router.procedure>` with `{ "input": <json> }` encoded via `superjson`.
 
 ## 8. Change Log
-
-| Date | Version | Notes |
-| --- | --- | --- |
-| 2025-11-14 | 2.0 | Rebuilt reference to match current App Router + tRPC surface, documented voice + monitoring endpoints, added rate-limit table. |
-| 2024-11-09 | 1.0 | Initial draft (deprecated). |
-
-For questions or missing endpoints, open an issue or ping the #apex-engineering channel. Always update this document when adding/modifying APIs.
-
+- **2025-11-14:** Added REST coverage for AGI, documents, AI Admin, monitoring, voice; expanded tRPC table; updated rate-limit notes.
