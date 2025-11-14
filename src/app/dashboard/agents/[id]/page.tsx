@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { useTheme } from '@/contexts/ThemeContext';
+import type { agents, executions } from '@/lib/db/schema';
 import {
   ArrowLeft,
   Play,
@@ -35,7 +36,8 @@ export default function AgentDetailPage() {
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isEditing, setIsEditing] = useState(false);
-  const [editedConfig, setEditedConfig] = useState<any>(null);
+  type AgentConfig = typeof agents.$inferSelect['config'];
+  const [editedConfig, setEditedConfig] = useState<AgentConfig | null>(null);
 
   // Fetch agent data
   const { data: agent, isLoading, refetch } = trpc.agents.get.useQuery({ id: agentId });
@@ -520,7 +522,7 @@ export default function AgentDetailPage() {
             </h3>
             {executions && executions.length > 0 ? (
               <div className="space-y-3">
-                {executions.map((execution: any) => (
+                {executions.map((execution: typeof executions.$inferSelect) => (
                   <div
                     key={execution.id}
                     className={`p-4 rounded-lg border ${

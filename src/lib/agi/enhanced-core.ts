@@ -10,10 +10,10 @@
  */
 
 import { agiMemoryService } from './memory';
-import { agiConversationService, type AGIMessage } from './conversation';
+import { agiConversationService, type AGIMessage, type AGIConversation } from './conversation';
 import { AdvancedReasoningEngine, type ReasoningMode } from './reasoning';
 import { EmotionalIntelligence } from './emotion';
-import { CreativityEngine, type CreativityTechnique } from './creativity';
+import { CreativityEngine, type CreativityTechnique, type CreativeIdea } from './creativity';
 
 export interface AGIThought {
   content: string;
@@ -172,7 +172,7 @@ export class EnhancedAGICore {
         const creativityTechnique = this.config.creativityTechnique;
         const creativeOutput = await this.creativityEngine.generateIdeas(input, 3, creativityTechnique);
         
-        creativity = creativeOutput.ideas.map((idea: any) => ({
+        creativity = creativeOutput.ideas.map((idea: CreativeIdea) => ({
           description: idea.description,
           novelty: idea.novelty,
           feasibility: idea.feasibility,
@@ -278,7 +278,7 @@ export class EnhancedAGICore {
   }
 
   async getConversationContext(): Promise<{
-    conversation: any;
+    conversation: AGIConversation | null;
     recentMessages: AGIMessage[];
     summary: string;
   }> {

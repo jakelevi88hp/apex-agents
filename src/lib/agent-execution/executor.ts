@@ -50,11 +50,17 @@ export async function executeAgent(config: ExecutionConfig): Promise<ExecutionRe
     }
 
     // Parse agent configuration
-    const agentConfig = agent.config as any;
-    const model = agentConfig.model || 'gpt-4';
-    const temperature = agentConfig.temperature || 0.7;
-    const maxTokens = agentConfig.maxTokens || 2000;
-    const systemPrompt = agentConfig.systemPrompt || agent.description;
+    interface AgentConfig {
+      model?: string;
+      temperature?: number;
+      maxTokens?: number;
+      systemPrompt?: string;
+    }
+    const agentConfig = agent.config as AgentConfig | null;
+    const model = agentConfig?.model || 'gpt-4';
+    const temperature = agentConfig?.temperature || 0.7;
+    const maxTokens = agentConfig?.maxTokens || 2000;
+    const systemPrompt = agentConfig?.systemPrompt || agent.description;
 
     // Create execution record
     const [execution] = await db.insert(executions).values({
