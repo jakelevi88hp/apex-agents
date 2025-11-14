@@ -134,7 +134,7 @@ export class WebhookMonitor {
         LIMIT ${limit}
       `);
       
-      return ((results as unknown as Array<{
+      const logs: WebhookLog[] = ((results as unknown as Array<{
         id: string;
         event: string;
         status: string;
@@ -144,11 +144,13 @@ export class WebhookMonitor {
       }>).map((row) => ({
         id: row.id,
         event: row.event,
-        status: row.status,
-        error: row.error,
+        status: (row.status === 'success' || row.status === 'failed' ? row.status : 'failed') as 'success' | 'failed',
+        error: row.error || undefined,
         timestamp: new Date(row.timestamp),
         processingTime: row.processing_time ? Math.round(row.processing_time) : 0,
       })));
+      
+      return logs;
       
     } catch (error) {
       console.error('Failed to get recent failures:', error);

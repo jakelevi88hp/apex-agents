@@ -271,7 +271,7 @@ export class SubscriptionService {
    */
   static async getUsageLimits(userId: string): Promise<Record<string, number>> {
     const subscription = await this.getUserSubscription(userId);
-    const plan = subscription?.plan || 'trial';
+    const plan = (subscription?.plan || 'trial') as SubscriptionPlan;
     const limits = PLAN_LIMITS[plan];
 
     return {
