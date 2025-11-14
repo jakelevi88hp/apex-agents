@@ -336,6 +336,33 @@ export const alerts = pgTable('alerts', {
 });
 
 // ============================================================================
+// USER SUGGESTIONS & IDEAS
+// ============================================================================
+
+export const userSuggestions = pgTable('user_suggestions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  suggestionType: varchar('suggestion_type', { length: 50 }).default('idea').notNull(),
+  source: varchar('source', { length: 50 }).default('system').notNull(),
+  confidence: decimal('confidence', { precision: 4, scale: 2 }).default('0.70').notNull(),
+  impactScore: decimal('impact_score', { precision: 4, scale: 2 }).default('0.50').notNull(),
+  metadata: jsonb('metadata'),
+  status: varchar('status', { length: 20 }).default('new').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  resolvedAt: timestamp('resolved_at'),
+}, (table) => ({
+  userIdx: index('user_suggestions_user_idx').on(table.userId),
+  statusIdx: index('user_suggestions_status_idx').on(table.status),
+  typeIdx: index('user_suggestions_type_idx').on(table.suggestionType),
+}));
+
+export type UserSuggestion = typeof userSuggestions.$inferSelect;
+export type NewUserSuggestion = typeof userSuggestions.$inferInsert;
+
+// ============================================================================
 // USER SETTINGS & API KEYS
 // ============================================================================
 
@@ -402,6 +429,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   workflows: many(workflows),
   executions: many(executions),
   knowledgeBase: many(knowledgeBase),
+  suggestions: many(userSuggestions),
   subscriptions: many(subscriptions),
 }));
 
@@ -438,5 +466,12 @@ export const executionsRelations = relations(executions, ({ one, many }) => ({
   }),
   steps: many(executionSteps),
   verifications: many(verifications),
+}));
+
+export const userSuggestionsRelations = relations(userSuggestions, ({ one }) => ({
+  user: one(users, {
+    fields: [userSuggestions.userId],
+    references: [users.id],
+  }),
 }));
 

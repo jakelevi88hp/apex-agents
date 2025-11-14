@@ -15,6 +15,13 @@
       "when": 1762684529826,
       "tag": "0001_damp_lionheart",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1763328000000,
+      "tag": "0002_inspired_insights",
+      "breakpoints": true
     }
   ]
 }
