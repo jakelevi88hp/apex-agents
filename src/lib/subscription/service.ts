@@ -63,9 +63,7 @@ export class SubscriptionService {
    * Check if a user's trial has expired
    */
   static async isTrialExpired(userId: string): Promise<boolean> {
-    const subscription = await db.query.subscriptions.findFirst({
-      where: eq(subscriptions.userId, userId),
-    });
+    const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).limit(1);
 
     if (!subscription || subscription.plan !== 'trial') {
       return false;
@@ -82,49 +80,55 @@ export class SubscriptionService {
    * Get user's current subscription
    */
   static async getUserSubscription(userId: string) {
-    return await db.query.subscriptions.findFirst({
-      where: eq(subscriptions.userId, userId),
-    });
+    const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).limit(1);
+    return subscription;
   }
 
   /**
    * Check if user can use a feature (within limits)
+   * Returns boolean for simple checks, or object with details
    */
-  static async canUseFeature(userId: string, feature: string): Promise<{ allowed: boolean; current: number; limit: number }> {
-    const usage = await db.query.usageTracking.findFirst({
-      where: and(
+  static async canUseFeature(userId: string, feature: string): Promise<boolean>;
+  static async canUseFeature(userId: string, feature: string, includeDetails: true): Promise<{ allowed: boolean; current: number; limit: number }>;
+  static async canUseFeature(userId: string, feature: string, includeDetails?: boolean): Promise<boolean | { allowed: boolean; current: number; limit: number }> {
+    const [usage] = await db.select().from(usageTracking).where(
+      and(
         eq(usageTracking.userId, userId),
         eq(usageTracking.feature, feature)
-      ),
-    });
+      )
+    ).limit(1);
 
     if (!usage) {
-      return { allowed: true, current: 0, limit: 999999 };
+      const defaultResult = { allowed: true, current: 0, limit: 999999 };
+      return includeDetails ? defaultResult : defaultResult.allowed;
     }
 
     // Check if usage needs to be reset
     if (new Date() > usage.resetAt) {
       await this.resetUsage(userId, feature);
-      return { allowed: true, current: 0, limit: usage.limit };
+      const resetResult = { allowed: true, current: 0, limit: usage.limit };
+      return includeDetails ? resetResult : resetResult.allowed;
     }
 
-    return {
+    const result = {
       allowed: usage.count < usage.limit,
       current: usage.count,
       limit: usage.limit,
     };
+
+    return includeDetails ? result : result.allowed;
   }
 
   /**
    * Increment usage for a feature
    */
   static async incrementUsage(userId: string, feature: string, amount: number = 1) {
-    const usage = await db.query.usageTracking.findFirst({
-      where: and(
+    const [usage] = await db.select().from(usageTracking).where(
+      and(
         eq(usageTracking.userId, userId),
         eq(usageTracking.feature, feature)
-      ),
-    });
+      )
+    ).limit(1);
 
     if (!usage) {
       return;
@@ -164,9 +168,7 @@ export class SubscriptionService {
     stripePriceId: string,
     currentPeriodEnd: Date
   ) {
-    const subscription = await db.query.subscriptions.findFirst({
-      where: eq(subscriptions.userId, userId),
-    });
+    const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).limit(1);
 
     if (!subscription) {
       throw new Error('No subscription found for user');
@@ -227,9 +229,7 @@ export class SubscriptionService {
    * Cancel subscription at period end
    */
   static async cancelSubscription(userId: string) {
-    const subscription = await db.query.subscriptions.findFirst({
-      where: eq(subscriptions.userId, userId),
-    });
+    const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).limit(1);
 
     if (!subscription) {
       throw new Error('No subscription found');
@@ -248,9 +248,7 @@ export class SubscriptionService {
    * Get usage statistics for a user
    */
   static async getUsageStats(userId: string) {
-    const usageRecords = await db.query.usageTracking.findMany({
-      where: eq(usageTracking.userId, userId),
-    });
+    const usageRecords = await db.select().from(usageTracking).where(eq(usageTracking.userId, userId));
 
     return usageRecords.map(record => ({
       feature: record.feature,
@@ -259,6 +257,30 @@ export class SubscriptionService {
       percentage: (record.count / record.limit) * 100,
       resetAt: record.resetAt,
     }));
+  }
+
+  /**
+   * Track usage for a feature (alias for incrementUsage for API compatibility)
+   */
+  static async trackUsage(userId: string, feature: string, amount: number = 1): Promise<void> {
+    await this.incrementUsage(userId, feature, amount);
+  }
+
+  /**
+   * Get usage limits for a user's current plan
+   */
+  static async getUsageLimits(userId: string): Promise<Record<string, number>> {
+    const subscription = await this.getUserSubscription(userId);
+    const plan = subscription?.plan || 'trial';
+    const limits = PLAN_LIMITS[plan];
+
+    return {
+      agi_messages: limits.agiMessages,
+      agents: limits.agents,
+      workflows: limits.workflows,
+      storage: limits.storage,
+      api_calls: limits.apiCalls,
+    };
   }
 }
 

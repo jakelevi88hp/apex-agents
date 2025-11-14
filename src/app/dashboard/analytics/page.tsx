@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, type PieLabelRenderProps } from 'recharts';
 import { TrendingUp, Activity, DollarSign, Clock, CheckCircle, Bot, Workflow, Zap, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -407,9 +407,11 @@ export default function AnalyticsPage() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={(props: { name?: string; percent?: number; value?: number }) => 
-                    `${props.name || ''} ${props.percent ? (props.percent * 100).toFixed(0) : 0}%`
-                  }
+                  label={(props: PieLabelRenderProps) => {
+                    const name = 'name' in props ? String(props.name) : '';
+                    const percent = 'percent' in props && typeof props.percent === 'number' ? props.percent : 0;
+                    return `${name} ${(percent * 100).toFixed(0)}%`;
+                  }}
                   outerRadius={100}
                   fill="#8884d8"
                   dataKey="value"
