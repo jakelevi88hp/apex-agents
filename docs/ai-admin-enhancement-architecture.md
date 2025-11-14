@@ -281,6 +281,15 @@ export async function applySelectedChanges(
 }
 ```
 
+### 4b. Patch Retention & Cleanup
+
+- Introduce a deterministic helper, `calculateDeletionCutoffDate(daysOld, referenceDate?)`, in `patch-storage.ts` so scheduler jobs can compute the correct cutoff without double `setDate` calls or negative drift. The helper is exported and covered by Node's built-in test runner at `src/lib/ai-admin/__tests__/patch-storage.test.ts`.
+- Update `PatchStorageService.deleteOldPatches()` to:
+  - Use the helper for both runtime logic and tests.
+  - Delete rows with `lt(aiPatches.createdAt, cutoffDate)` instead of the earlier `eq` check that never matched anything.
+  - Return the number of removed patches via `.returning({ id: aiPatches.id })`, logging and retrying without `returning` for drivers that don't support it.
+- Wire this cleanup job into the same cadence as other cron tasks so the AI Admin dashboard history stays performant without manual database pruning.
+
 ### 5. Conversation Branching
 
 **Branch Creation:**
@@ -396,6 +405,12 @@ src/app/admin/ai/
 │   ├── GitHubIntegration.tsx         # Issues/PRs panel
 │   └── CommandPalette.tsx            # Cmd+K command palette
 ```
+
+### 1b. Example Request Shortcuts
+
+- The AI Admin dashboard chat renders an "Example Requests" panel driven by `trpc.aiAdmin.getExampleRequests`. It shows a `Sparkles` header, skeleton states while loading, and pill buttons that call `handleExampleClick` to prefill/focus the chat input.
+- Example arrays and patch-history payloads are memoized with `useMemo`, and click handlers use `useCallback`, reducing renders as conversations grow.
+- This UX nudges operators toward high-quality prompts (e.g., "Search for placeholder data") and ensures parity with the backlog items listed in `todo.md`.
 
 ### 2. Streaming Response Implementation
 
