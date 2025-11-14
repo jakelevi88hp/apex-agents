@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { ChevronLeft, Sparkles, Send, Check } from 'lucide-react';
+import type { AgentConfiguration } from './ConfigurationForm';
 
 interface PreviewTestProps {
-  config: any;
+  config: AgentConfiguration;
   onComplete: () => void;
   onBack: () => void;
 }

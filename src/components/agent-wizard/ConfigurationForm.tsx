@@ -4,23 +4,36 @@ import { useState } from 'react';
 import { AgentTemplate, AVAILABLE_MODELS, AVAILABLE_TOOLS } from '@/lib/agent-templates';
 import { ChevronLeft, Save } from 'lucide-react';
 
+export interface AgentConfiguration {
+  name: string;
+  description: string;
+  type: string;
+  model: string;
+  temperature: number;
+  maxTokens: number;
+  tools: string[];
+  capabilities: Record<string, boolean>;
+  constraints: Record<string, unknown>;
+  promptTemplate: string;
+}
+
 interface ConfigurationFormProps {
   template: AgentTemplate;
-  onComplete: (config: any) => void;
+  onComplete: (config: AgentConfiguration) => void;
   onBack: () => void;
 }
 
 export default function ConfigurationForm({ template, onComplete, onBack }: ConfigurationFormProps) {
-  const [config, setConfig] = useState({
+  const [config, setConfig] = useState<AgentConfiguration>({
     name: template.name === 'Custom Agent' ? '' : template.name,
     description: template.description,
     type: template.type,
     model: template.config.model,
     temperature: template.config.temperature,
     maxTokens: template.config.maxTokens,
-    tools: template.config.tools,
-    capabilities: template.capabilities,
-    constraints: template.constraints,
+    tools: [...template.config.tools],
+    capabilities: { ...template.capabilities },
+    constraints: { ...template.constraints },
     promptTemplate: template.promptTemplate,
   });
 
@@ -138,18 +151,21 @@ export default function ConfigurationForm({ template, onComplete, onBack }: Conf
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Max Tokens
             </label>
-            <input
-              type="number"
-              value={config.maxTokens}
-              onChange={(e) => setConfig({ ...config, maxTokens: parseInt(e.target.value) })}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-              min="100"
-              max="8000"
-              step="100"
-            />
-            <p className="text-xs text-gray-400 mt-1">
-              Maximum length of the agent's response (100-8000)
-            </p>
+              <input
+                type="number"
+                value={config.maxTokens}
+                onChange={(e) => {
+                  const parsed = Number.parseInt(e.target.value, 10);
+                  setConfig({ ...config, maxTokens: Number.isNaN(parsed) ? config.maxTokens : parsed });
+                }}
+                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                min="100"
+                max="8000"
+                step="100"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Maximum length of the agent&rsquo;s response (100-8000)
+              </p>
           </div>
         </div>
       </section>
@@ -185,9 +201,9 @@ export default function ConfigurationForm({ template, onComplete, onBack }: Conf
           className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm h-48 resize-none"
           placeholder="Enter the system prompt for your agent..."
         />
-        <p className="text-xs text-gray-400 mt-2">
-          Use {'{task}'} as a placeholder for the user's input
-        </p>
+          <p className="text-xs text-gray-400 mt-2">
+            Use {'{task}'} as a placeholder for the user&rsquo;s input
+          </p>
       </section>
 
       {/* Actions */}

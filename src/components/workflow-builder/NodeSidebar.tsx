@@ -1,11 +1,19 @@
 'use client';
 
+type SidebarNodeType = 'trigger' | 'agent' | 'condition';
+
 interface NodeSidebarProps {
-  onAddNode: (type: string, data: any) => void;
+  onAddNode: (type: SidebarNodeType, data: Record<string, unknown>) => void;
 }
 
 export function NodeSidebar({ onAddNode }: NodeSidebarProps) {
-  const nodeTypes = [
+  const nodeTypes: Array<{
+    type: SidebarNodeType;
+    label: string;
+    icon: string;
+    description: string;
+    color: string;
+  }> = [
     {
       type: 'trigger',
       label: 'Trigger',

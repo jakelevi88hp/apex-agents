@@ -14,10 +14,19 @@ export default function PWAInstallPrompt() {
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
-    // Check if already installed
+    let frameId: number | undefined;
+
+    const markInstalled = () => {
+      frameId = window.requestAnimationFrame(() => setIsInstalled(true));
+    };
+
     if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
-      return;
+      markInstalled();
+      return () => {
+        if (frameId) {
+          window.cancelAnimationFrame(frameId);
+        }
+      };
     }
 
     // Check if user previously dismissed
@@ -39,15 +48,20 @@ export default function PWAInstallPrompt() {
 
     window.addEventListener('beforeinstallprompt', handler);
 
-    // Listen for app installed event
-    window.addEventListener('appinstalled', () => {
-      setIsInstalled(true);
+    const handleInstalled = () => {
+      markInstalled();
       setShowPrompt(false);
       setDeferredPrompt(null);
-    });
+    };
+
+    window.addEventListener('appinstalled', handleInstalled);
 
     return () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
       window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', handleInstalled);
     };
   }, []);
 

@@ -18,9 +18,15 @@ export default function ResetPasswordPage() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    if (!token) {
-      setError('Invalid reset link. Please request a new password reset.');
+    if (token) {
+      return undefined;
     }
+
+    const timer = window.setTimeout(() => {
+      setError('Invalid reset link. Please request a new password reset.');
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [token]);
 
   const resetMutation = trpc.auth.resetPassword.useMutation({

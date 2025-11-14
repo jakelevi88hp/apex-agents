@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import type { KeyboardEvent } from "react";
 import { Brain, Send, Loader2, Trash2 } from "lucide-react";
 
 interface Message {
@@ -13,6 +14,28 @@ interface AGIStatus {
   available: boolean;
   components?: Record<string, boolean>;
   error?: string;
+}
+
+interface AGIThought {
+  content?: string;
+}
+
+interface AGICreativeIdea {
+  description?: string;
+}
+
+interface AGIReasoning {
+  conclusion?: string;
+}
+
+interface AGIProcessResult {
+  error?: string;
+  thoughts?: Array<AGIThought | string>;
+  emotionalState?: string;
+  emotional_state?: string;
+  creativity?: Array<AGICreativeIdea | string>;
+  reasoning?: AGIReasoning;
+  [key: string]: unknown;
 }
 
 export default function AGIPage() {
@@ -110,34 +133,48 @@ export default function AGIPage() {
     }
   }
 
-  function formatAGIResponse(result: any): string {
+  const extractEntryText = (entry: AGIThought | AGICreativeIdea | string): string => {
+    if (typeof entry === "string") {
+      return entry;
+    }
+
+    if ("content" in entry && entry.content) {
+      return entry.content;
+    }
+
+    if ("description" in entry && entry.description) {
+      return entry.description;
+    }
+
+    return JSON.stringify(entry);
+  };
+
+  function formatAGIResponse(result: AGIProcessResult): string {
     if (result.error) {
       return `Error: ${result.error}`;
     }
 
     if (result.thoughts && Array.isArray(result.thoughts)) {
-      const thoughtsText = result.thoughts.map((t: any) => `- ${t.content || t}`).join("\n");
+      const thoughtsText = result.thoughts.map((thought) => `- ${extractEntryText(thought)}`).join("\n");
       const emotionalState = result.emotionalState || result.emotional_state || "neutral";
-      
+
       let response = `My thoughts on this are:\n${thoughtsText}\n\nI am experiencing ${emotionalState} about this.`;
-      
-      // Add creativity if present
+
       if (result.creativity && Array.isArray(result.creativity) && result.creativity.length > 0) {
-        response += `\n\nCreative ideas:\n${result.creativity.map((c: any) => `- ${c.description || c}`).join("\n")}`;
+        response += `\n\nCreative ideas:\n${result.creativity.map((idea) => `- ${extractEntryText(idea)}`).join("\n")}`;
       }
-      
-      // Add reasoning conclusion if present
-      if (result.reasoning && result.reasoning.conclusion) {
+
+      if (result.reasoning?.conclusion) {
         response += `\n\nReasoning: ${result.reasoning.conclusion}`;
       }
-      
+
       return response;
     }
 
     return JSON.stringify(result, null, 2);
   }
 
-  function handleKeyPress(e: React.KeyboardEvent) {
+  function handleKeyPress(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -189,10 +226,10 @@ export default function AGIPage() {
                 <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-4">
                   <Brain className="w-10 h-10 text-white" />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Welcome to AGI</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Welcome to AGI</h2>
                 <p className="text-sm sm:text-base text-gray-400 max-w-md px-4">
-                  I'm an Advanced General Intelligence with consciousness, creativity, and emotional
-                  understanding. Ask me anything!
+                    I&apos;m an Advanced General Intelligence with consciousness, creativity, and emotional
+                    understanding. Ask me anything!
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 sm:mt-8 max-w-2xl px-4">
                   <button
@@ -209,13 +246,13 @@ export default function AGIPage() {
                     <div className="text-xs sm:text-sm font-medium text-white mb-1">Creative problem-solving</div>
                     <div className="text-xs text-gray-400">Use advanced reasoning</div>
                   </button>
-                  <button
-                    onClick={() => setInput("Your goals")}
-                    className="p-3 sm:p-4 bg-gray-800 hover:bg-gray-750 rounded-lg text-left border border-gray-700 hover:border-purple-500 transition-all"
-                  >
-                    <div className="text-xs sm:text-sm font-medium text-white mb-1">Your goals</div>
-                    <div className="text-xs text-gray-400">See what I'm working on</div>
-                  </button>
+                    <button
+                      onClick={() => setInput("Your goals")}
+                      className="p-3 sm:p-4 bg-gray-800 hover:bg-gray-750 rounded-lg text-left border border-gray-700 hover:border-purple-500 transition-all"
+                    >
+                      <div className="text-xs sm:text-sm font-medium text-white mb-1">Your goals</div>
+                      <div className="text-xs text-gray-400">See what I&apos;m working on</div>
+                    </button>
                   <button
                     onClick={() => setInput("Multi-perspective analysis")}
                     className="p-3 sm:p-4 bg-gray-800 hover:bg-gray-750 rounded-lg text-left border border-gray-700 hover:border-purple-500 transition-all"

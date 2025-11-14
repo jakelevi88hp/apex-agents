@@ -18,7 +18,7 @@ interface TestResult {
   status: 'PASS' | 'FAIL' | 'SKIP';
   duration: number;
   error?: string;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 class ProductionTestSuite {

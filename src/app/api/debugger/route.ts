@@ -98,6 +98,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error('Failed to log debugger event:', error);
     return NextResponse.json(
       { error: 'Failed to log error' },
       { status: 500 }

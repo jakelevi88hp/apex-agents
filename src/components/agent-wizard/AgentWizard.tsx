@@ -4,12 +4,12 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { AgentTemplate } from '@/lib/agent-templates';
 import TemplateSelection from './TemplateSelection';
-import ConfigurationForm from './ConfigurationForm';
+import ConfigurationForm, { type AgentConfiguration } from './ConfigurationForm';
 import PreviewTest from './PreviewTest';
 
 interface AgentWizardProps {
   onClose: () => void;
-  onComplete: (agentData: any) => void;
+  onComplete: (agentData: AgentConfiguration) => void;
 }
 
 type WizardStep = 'template' | 'configure' | 'preview';
@@ -17,14 +17,14 @@ type WizardStep = 'template' | 'configure' | 'preview';
 export default function AgentWizard({ onClose, onComplete }: AgentWizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<AgentTemplate | null>(null);
-  const [agentConfig, setAgentConfig] = useState<any>(null);
+  const [agentConfig, setAgentConfig] = useState<AgentConfiguration | null>(null);
 
   const handleTemplateSelect = (template: AgentTemplate) => {
     setSelectedTemplate(template);
     setCurrentStep('configure');
   };
 
-  const handleConfigureComplete = (config: any) => {
+  const handleConfigureComplete = (config: AgentConfiguration) => {
     setAgentConfig(config);
     setCurrentStep('preview');
   };

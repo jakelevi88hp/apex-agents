@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { FileText, Download, Eye, Trash2, Search, Loader2 } from 'lucide-react';
+import { FileText, Download, Eye, Search, Loader2 } from 'lucide-react';
 import DocumentUpload from '@/components/DocumentUpload';
 
 // Lazy load PDFViewer to avoid server-side rendering issues
@@ -21,7 +21,7 @@ interface Document {
   summary?: string;
   tags?: string[];
   folder?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }

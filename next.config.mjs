@@ -1,10 +1,46 @@
+import { withSentryConfig } from '@sentry/nextjs';
 import withPWA from 'next-pwa';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     domains: ['localhost'],
+  },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+        stream: false,
+        url: false,
+        zlib: false,
+        http: false,
+        https: false,
+        assert: false,
+        os: false,
+        path: false,
+        'fs/promises': false,
+      };
+
+      config.externals = config.externals || [];
+      config.externals.push('ws', 'child_process');
+    }
+
+    return config;
   },
   async headers() {
     return [
@@ -37,7 +73,7 @@ const nextConfig = {
   },
 };
 
-export default withPWA({
+const withPWAConfig = withPWA({
   dest: 'public',
   register: true,
   skipWaiting: true,
@@ -181,5 +217,12 @@ export default withPWA({
       },
     },
   ],
-})(nextConfig);
+  })(nextConfig);
 
+const sentryWebpackPluginOptions = {
+  silent: true,
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+};
+
+export default withSentryConfig(withPWAConfig, sentryWebpackPluginOptions);

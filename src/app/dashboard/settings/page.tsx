@@ -488,9 +488,9 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div className="p-4 bg-green-900/20 border border-green-700 rounded-lg">
                   <p className="text-green-400 font-semibold mb-2">API Key Created!</p>
-                  <p className="text-sm text-gray-300 mb-3">
-                    Make sure to copy your API key now. You won't be able to see it again!
-                  </p>
+                    <p className="text-sm text-gray-300 mb-3">
+                      Make sure to copy your API key now. You won&rsquo;t be able to see it again!
+                    </p>
                   <div className="p-3 bg-gray-900 rounded font-mono text-sm text-white break-all">
                     {createdKey}
                   </div>
@@ -529,9 +529,11 @@ export default function SettingsPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Environment</label>
-                  <select
-                    value={newKeyEnvironment}
-                    onChange={(e) => setNewKeyEnvironment(e.target.value as any)}
+                    <select
+                      value={newKeyEnvironment}
+                      onChange={(e) =>
+                        setNewKeyEnvironment(e.target.value as 'development' | 'production' | 'test')
+                      }
                     className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                   >
                     <option value="development">Development</option>
