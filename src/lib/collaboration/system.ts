@@ -85,8 +85,8 @@ Analyze the task and create a plan that delegates subtasks to the appropriate ag
   ]
 }`;
 
-    const openai = getOpenAI();
-    const coordinatorResponse = await openai.chat.completions.create({
+    const coordinatorOpenAI = getOpenAI();
+    const coordinatorResponse = await coordinatorOpenAI.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [{ role: 'user', content: coordinatorPrompt }],
       response_format: { type: 'json_object' },
@@ -156,8 +156,8 @@ ${results.map(r => `${r.agentName} (${r.subtask}):\n${r.result}`).join('\n\n---\
 
 Provide a comprehensive final result that combines all agent outputs.`;
 
-    const openai = getOpenAI();
-    const finalResponse = await openai.chat.completions.create({
+    const synthesisOpenAI = getOpenAI();
+    const finalResponse = await synthesisOpenAI.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [{ role: 'user', content: synthesisPrompt }],
     });

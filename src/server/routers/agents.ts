@@ -174,5 +174,47 @@ export const agentsRouter = router({
       const successCount = results.filter(r => r !== null).length;
       return { success: true, count: successCount, failed: input.ids.length - successCount };
     }),
+
+  toggleStatus: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [agent] = await ctx.db.select().from(agents).where(eq(agents.id, input.id)).limit(1);
+      
+      if (!agent) {
+        throw new Error('Agent not found');
+      }
+
+      const newStatus = agent.status === 'active' ? 'inactive' : 'active';
+      const [updated] = await ctx.db
+        .update(agents)
+        .set({ status: newStatus, updatedAt: new Date() })
+        .where(eq(agents.id, input.id))
+        .returning();
+
+      return updated;
+    }),
+
+  duplicate: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [originalAgent] = await ctx.db.select().from(agents).where(eq(agents.id, input.id)).limit(1);
+      
+      if (!originalAgent) {
+        throw new Error('Agent not found');
+      }
+
+      const [duplicatedAgent] = await ctx.db.insert(agents).values({
+        userId: ctx.userId!,
+        name: `${originalAgent.name} (Copy)`,
+        description: originalAgent.description,
+        type: originalAgent.type,
+        config: originalAgent.config,
+        status: 'inactive',
+        capabilities: originalAgent.capabilities,
+        constraints: originalAgent.constraints,
+      }).returning();
+
+      return duplicatedAgent;
+    }),
 });
 

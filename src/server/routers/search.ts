@@ -44,19 +44,19 @@ export const searchRouter = router({
         const keywordResults = await db
           .select({
             id: documents.id,
-            title: documents.title,
-            content: documents.content,
+            name: documents.name,
+            summary: documents.summary,
             source: documents.source,
-            type: documents.type,
+            mimeType: documents.mimeType,
           })
           .from(documents)
-          .where(eq(documents.userId, ctx.userId))
+          .where(eq(documents.userId, ctx.userId!))
           .limit(input.limit);
 
         // Filter by keyword match
         const filtered = keywordResults.filter(doc => 
-          doc.title?.toLowerCase().includes(input.query.toLowerCase()) ||
-          doc.content?.toLowerCase().includes(input.query.toLowerCase())
+          doc.name?.toLowerCase().includes(input.query.toLowerCase()) ||
+          doc.summary?.toLowerCase().includes(input.query.toLowerCase())
         );
 
         return {
@@ -64,7 +64,12 @@ export const searchRouter = router({
           data: {
             query: input.query,
             results: filtered.map(doc => ({
-              ...doc,
+              id: doc.id,
+              documentId: doc.id,
+              title: doc.name || 'Untitled',
+              content: doc.summary || '',
+              source: doc.source || '',
+              type: doc.mimeType || 'unknown',
               similarity: 0.5, // Default similarity for keyword match
               metadata: {},
             })),
@@ -95,20 +100,20 @@ export const searchRouter = router({
       limit: z.number().min(1).max(20).default(5),
     }))
     .query(async ({ input, ctx }) => {
-      // Get unique document titles and common phrases
+      // Get unique document names and common phrases
       const suggestions = await db
         .select({
-          title: documents.title,
-          type: documents.type,
+          name: documents.name,
+          mimeType: documents.mimeType,
         })
         .from(documents)
-        .where(eq(documents.userId, ctx.userId))
+        .where(eq(documents.userId, ctx.userId!))
         .limit(input.limit * 2);
 
       // Filter by prefix if provided
       const filtered = input.prefix
         ? suggestions.filter(s => 
-            s.title?.toLowerCase().startsWith(input.prefix!.toLowerCase())
+            s.name?.toLowerCase().startsWith(input.prefix!.toLowerCase())
           )
         : suggestions;
 
@@ -117,8 +122,8 @@ export const searchRouter = router({
         data: filtered
           .slice(0, input.limit)
           .map(s => ({
-            text: s.title,
-            type: s.type,
+            text: s.name || 'Untitled',
+            type: s.mimeType || 'unknown',
           })),
       };
     }),

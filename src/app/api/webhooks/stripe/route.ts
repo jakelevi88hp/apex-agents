@@ -135,8 +135,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         stripeSubscriptionId: subscriptionId,
         stripeCustomerId: customerId,
         stripePriceId: priceId,
-        currentPeriodStart: new Date((subscription as unknown as { current_period_start: number }).current_period_start * 1000),
-        currentPeriodEnd: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000),
+        currentPeriodStart: new Date(((subscription as unknown as { current_period_start: number }).current_period_start) * 1000),
+        currentPeriodEnd: new Date(((subscription as unknown as { current_period_end: number }).current_period_end) * 1000),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         updatedAt: new Date(),
       })
@@ -178,13 +178,14 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
                  subscription.status === 'canceled' ? 'canceled' : 
                  subscription.status === 'past_due' ? 'past_due' : 'active';
 
+  const subWithPeriods = subscription as unknown as { current_period_start: number; current_period_end: number };
   await db
     .update(subscriptions)
     .set({
       plan,
       status,
-      currentPeriodStart: new Date((subscription as unknown as { current_period_start: number }).current_period_start * 1000),
-      currentPeriodEnd: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000),
+      currentPeriodStart: new Date(subWithPeriods.current_period_start * 1000),
+      currentPeriodEnd: new Date(subWithPeriods.current_period_end * 1000),
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
       updatedAt: new Date(),
     })
