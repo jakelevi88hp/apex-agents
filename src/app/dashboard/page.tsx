@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Bot, Workflow, Zap, TrendingUp, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { trpc } from '@/lib/trpc/client';
+import VoiceCommandPanel from '@/components/VoiceCommandPanel';
 
 // Animated counter component
 function AnimatedCounter({ value, duration = 1000 }: { value: number; duration?: number }) {
@@ -49,33 +50,36 @@ export default function DashboardPage() {
   const workflowsData = workflowsSparkline?.map(value => ({ value })) || [];
   const executionsData = executionsSparkline?.map(value => ({ value })) || [];
 
-  // Calculate progress percentages
-  const agentsProgress = metrics ? Math.min((metrics.activeAgents / 15) * 100, 100) : 0;
-  const workflowsProgress = metrics ? Math.min((metrics.workflows / 12) * 100, 100) : 0;
-  const executionsProgress = metrics ? Math.min((metrics.executionsToday / 300) * 100, 100) : 0;
+    // Calculate progress percentages
+    const agentsProgress = metrics ? Math.min((metrics.activeAgents / 15) * 100, 100) : 0;
+    const workflowsProgress = metrics ? Math.min((metrics.workflows / 12) * 100, 100) : 0;
+    const executionsProgress = metrics ? Math.min((metrics.executionsToday / 300) * 100, 100) : 0;
 
-  if (metricsLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      {/* Hero Section with Gradient */}
-      <div className="mb-8 p-8 rounded-lg bg-gradient-to-r from-purple-900/50 to-blue-900/50 border border-purple-500/30 relative overflow-hidden">
-        {/* Animated background effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 animate-pulse"></div>
-        <div className="relative z-10">
-          <h1 className="text-4xl font-bold text-white mb-2">Welcome to Apex Agents</h1>
-          <p className="text-gray-300">Manage your AI agents, workflows, and knowledge base</p>
+    if (metricsLoading) {
+      return (
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
         </div>
-      </div>
-      
-      {/* Metric Cards with Sparklines and Animations */}
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
+      );
+    }
+
+    return (
+      <div>
+        {/* Hero Section with Gradient */}
+        <div className="mb-8 p-8 rounded-lg bg-gradient-to-r from-purple-900/50 to-blue-900/50 border border-purple-500/30 relative overflow-hidden">
+          {/* Animated background effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 animate-pulse"></div>
+          <div className="relative z-10">
+            <h1 className="text-4xl font-bold text-white mb-2">Welcome to Apex Agents</h1>
+            <p className="text-gray-300">Manage your AI agents, workflows, and knowledge base</p>
+          </div>
+        </div>
+
+        {/* Voice Command Panel */}
+        <VoiceCommandPanel />
+
+        {/* Metric Cards with Sparklines and Animations */}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
         {/* Active Agents Card */}
         <div className="group bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 hover:border-purple-500/50 hover:shadow-purple-500/20 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden">
           {/* Gradient glow effect */}
