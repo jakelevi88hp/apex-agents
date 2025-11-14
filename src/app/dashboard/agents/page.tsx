@@ -2,11 +2,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
+import type { agents } from '@/lib/db/schema';
 import { 
   Search, BarChart3, PenTool, Code2, Target, Mail, 
   TrendingUp, Network, Plus, X, Loader2, Play, Settings, Send 
 } from 'lucide-react';
 import AgentWizard from '@/components/agent-wizard/AgentWizard';
+
+type Agent = typeof agents.$inferSelect;
 import AgentCardSkeleton from '@/components/AgentCardSkeleton';
 import EmptyState from '@/components/EmptyState';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -164,7 +167,7 @@ export default function AgentsPage() {
     setShowCreateModal(true);
   };
 
-  const handleExecuteAgent = (agent: any) => {
+  const handleExecuteAgent = (agent: Agent) => {
     setSelectedAgent(agent);
     setExecuteData({ objective: '', context: {} });
     setExecutionResult(null);
@@ -215,7 +218,7 @@ export default function AgentsPage() {
   };
 
   const selectAllFiltered = () => {
-    const allIds = new Set(filteredAgents.map((a: any) => a.id));
+    const allIds = new Set(filteredAgents.map((a) => a.id));
     setSelectedAgents(allIds);
   };
 
@@ -279,13 +282,13 @@ export default function AgentsPage() {
   ]);
 
   // Filter and sort agents
-  const filteredAgents = userAgents?.filter((agent: any) => {
+  const filteredAgents = userAgents?.filter((agent: Agent) => {
     const matchesSearch = agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          agent.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === 'all' || agent.type === filterType;
     const matchesStatus = filterStatus === 'all' || agent.status === filterStatus;
     return matchesSearch && matchesType && matchesStatus;
-  }).sort((a: any, b: any) => {
+  }).sort((a: Agent, b: Agent) => {
     if (sortBy === 'name') return a.name.localeCompare(b.name);
     if (sortBy === 'created') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     return 0; // executions sort would need execution count data
@@ -479,7 +482,7 @@ export default function AgentsPage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAgents.map((agent: any) => {
+              {filteredAgents.map((agent) => {
               const agentType = agentTypes.find(t => t.id === agent.type);
               const IconComponent = agentType?.icon || Search;
               

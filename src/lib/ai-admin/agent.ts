@@ -38,7 +38,7 @@ export interface PatchRecord {
 }
 
 interface CodebaseAnalysis {
-  structure: Record<string, any>;
+  structure: Record<string, unknown>;
   dependencies: string[];
   frameworks: string[];
   patterns: string[];
@@ -152,8 +152,8 @@ export class AIAdminAgent {
     }
   }
 
-  private async analyzeDirectory(dirPath: string): Promise<Record<string, any>> {
-    const structure: Record<string, any> = {};
+  private async analyzeDirectory(dirPath: string): Promise<Record<string, unknown>> {
+    const structure: Record<string, unknown> = {};
 
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true });

@@ -225,10 +225,10 @@ async function main() {
           email: userData.email,
           passwordHash,
           name: userData.name,
-          role: userData.role as any,
+          role: userData.role,
           organizationId: orgs[0].id,
-          subscriptionTier: userData.subscriptionTier as any,
-          subscriptionStatus: userData.subscriptionStatus as any,
+          subscriptionTier: userData.subscriptionTier,
+          subscriptionStatus: userData.subscriptionStatus,
         })
         .returning();
       users.push(user[0]);

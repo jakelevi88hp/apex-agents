@@ -110,20 +110,35 @@ export default function AGIPage() {
     }
   }
 
-  function formatAGIResponse(result: any): string {
+  interface AGIResponse {
+    error?: string;
+    thoughts?: Array<{ content?: string } | string>;
+    emotionalState?: string;
+    emotional_state?: string;
+    creativity?: Array<{ description?: string } | string>;
+    reasoning?: { conclusion?: string };
+  }
+
+  function formatAGIResponse(result: AGIResponse): string {
     if (result.error) {
       return `Error: ${result.error}`;
     }
 
     if (result.thoughts && Array.isArray(result.thoughts)) {
-      const thoughtsText = result.thoughts.map((t: any) => `- ${t.content || t}`).join("\n");
+      const thoughtsText = result.thoughts.map((t) => {
+        if (typeof t === 'string') return t;
+        return t.content || '';
+      }).join("\n");
       const emotionalState = result.emotionalState || result.emotional_state || "neutral";
       
       let response = `My thoughts on this are:\n${thoughtsText}\n\nI am experiencing ${emotionalState} about this.`;
       
       // Add creativity if present
       if (result.creativity && Array.isArray(result.creativity) && result.creativity.length > 0) {
-        response += `\n\nCreative ideas:\n${result.creativity.map((c: any) => `- ${c.description || c}`).join("\n")}`;
+        response += `\n\nCreative ideas:\n${result.creativity.map((c) => {
+          if (typeof c === 'string') return c;
+          return c.description || '';
+        }).join("\n")}`;
       }
       
       // Add reasoning conclusion if present

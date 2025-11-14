@@ -79,14 +79,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
     
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Webhook error:', error);
     const processingTime = Date.now() - startTime;
     await WebhookMonitor.logEvent(
       event?.type || 'unknown',
       'failed',
       processingTime,
-      error.message
+      message
     );
     return NextResponse.json(
       { error: 'Webhook handler failed' },

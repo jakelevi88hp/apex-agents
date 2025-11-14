@@ -29,7 +29,7 @@ export interface CollaborationTask {
   description: string;
   agents: string[]; // Agent IDs
   status: 'pending' | 'in_progress' | 'completed' | 'failed';
-  result?: any;
+  result?: unknown;
 }
 
 export interface AgentMessage {
@@ -37,7 +37,7 @@ export interface AgentMessage {
   agentName: string;
   message: string;
   timestamp: Date;
-  metadata?: any;
+  metadata?: unknown;
 }
 
 /**
@@ -46,7 +46,7 @@ export interface AgentMessage {
 export async function executeCollaborativeTask(
   task: CollaborationTask,
   userId: string
-): Promise<{ success: boolean; result?: any; error?: string }> {
+): Promise<{ success: boolean; result?: unknown; error?: string }> {
   try {
     const agentRecords = await db
       .select()

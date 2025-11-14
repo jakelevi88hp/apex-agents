@@ -2,7 +2,7 @@ import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { agents, executions } from '@/lib/db/schema';
 import { eq, desc, inArray } from 'drizzle-orm';
-import { AgentFactory } from '@/lib/ai/agents';
+import { AgentFactory, type AgentType } from '@/lib/ai/agents';
 import { checkUsageLimit } from '../middleware/subscription';
 
 export const agentsRouter = router({
@@ -23,9 +23,9 @@ export const agentsRouter = router({
       name: z.string(),
       description: z.string().optional(),
       type: z.enum(['research', 'analysis', 'writing', 'code', 'decision', 'communication', 'monitoring', 'orchestrator', 'custom']),
-      config: z.record(z.string(), z.any()),
+      config: z.record(z.string(), z.unknown()),
       capabilities: z.record(z.string(), z.boolean()).or(z.array(z.string())),
-      constraints: z.record(z.string(), z.any()).optional(),
+      constraints: z.record(z.string(), z.unknown()).optional(),
       promptTemplate: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
@@ -71,13 +71,15 @@ export const agentsRouter = router({
       
       if (!agent) throw new Error('Agent not found');
 
+      const agentConfig = agent.config as { model?: string; tools?: string[] } | null;
+      const capabilities = agent.capabilities as string[] | null;
       const agentInstance = AgentFactory.createAgent({
         id: agent.id,
         name: agent.name,
-        type: agent.type as any,
-        model: (agent.config as any).model || 'gpt-4-turbo',
-        tools: (agent.config as any).tools || [],
-        capabilities: (agent.capabilities as any) || [],
+        type: agent.type as AgentType,
+        model: agentConfig?.model || 'gpt-4-turbo',
+        tools: agentConfig?.tools || [],
+        capabilities: capabilities || [],
       });
 
       const [execution] = await ctx.db.insert(executions).values({

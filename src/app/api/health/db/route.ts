@@ -27,14 +27,15 @@ export async function GET() {
         activeConnections: stats.rows[0]?.connection_count || 0,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
       {
         status: 'unhealthy',
         timestamp: new Date().toISOString(),
         database: {
           connected: false,
-          error: error.message,
+          error: message,
         },
       },
       { status: 500 }

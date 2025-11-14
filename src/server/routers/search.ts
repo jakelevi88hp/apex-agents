@@ -77,11 +77,12 @@ export const searchRouter = router({
           },
           fallback: true,
         };
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
         console.error('Search error:', error);
         return {
           success: false,
-          error: error.message,
+          error: message,
           data: {
             query: input.query,
             results: [],
