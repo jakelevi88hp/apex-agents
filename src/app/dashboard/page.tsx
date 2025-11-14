@@ -5,6 +5,7 @@ import { Bot, Workflow, Zap, TrendingUp, CheckCircle, Clock, Loader2 } from 'luc
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { trpc } from '@/lib/trpc/client';
 import VoiceCommandPanel from '@/components/VoiceCommandPanel';
+import { UserSuggestionsPanel } from '@/components/dashboard/UserSuggestions';
 
 // Animated counter component
 function AnimatedCounter({ value, duration = 1000 }: { value: number; duration?: number }) {
@@ -36,7 +37,15 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    // Schedule the state change after paint to prevent hydration warnings.
+    const frameId = requestAnimationFrame(() => {
+      setMounted(true);
+    });
+
+    return () => {
+      // Ensure the queued frame does not run if the component unmounts early.
+      cancelAnimationFrame(frameId);
+    };
   }, []);
 
   // Fetch real metrics from database
