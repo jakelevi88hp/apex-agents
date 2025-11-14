@@ -17,12 +17,9 @@ export default function ResetPasswordPage() {
   // Immediately surface messaging when the token is missing to avoid hydration-time state changes.
   const [error, setError] = useState<string>(() => (token ? '' : 'Invalid reset link. Please request a new password reset.'));
   const [success, setSuccess] = useState(false);
-<<<<<<< Current (Your changes)
-=======
   const invalidLinkMessage = 'Invalid reset link. Please request a new password reset.';
   // Surface token issues without needing an immediate state change inside an effect.
   const derivedError = !token ? invalidLinkMessage : error;
->>>>>>> Incoming (Background Agent changes)
 
   const resetMutation = trpc.auth.resetPassword.useMutation({
     onSuccess: () => {

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, Activity, DollarSign, Clock, CheckCircle, Bot, Workflow, Zap, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
@@ -17,8 +17,6 @@ export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
   const [mounted, setMounted] = useState(false);
   const { isDarkMode } = useTheme();
-<<<<<<< Current (Your changes)
-=======
 
   useEffect(() => {
     // Defer the mounted flag until after the browser paints to keep hydration stable.
@@ -31,7 +29,6 @@ export default function AnalyticsPage() {
       cancelAnimationFrame(frameId);
     };
   }, []);
->>>>>>> Incoming (Background Agent changes)
   
   // Fetch dashboard metrics
   const { data: metrics, isLoading: metricsLoading } = trpc.analytics.getDashboardMetrics.useQuery();
@@ -430,7 +427,7 @@ export default function AnalyticsPage() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }: { name: string; percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={(entry: any) => `${entry.name} ${(entry.percent * 100).toFixed(0)}%`}
                   outerRadius={100}
                   fill="#8884d8"
                   dataKey="value"
