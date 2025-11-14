@@ -5,8 +5,7 @@
  */
 
 import { db } from '@/server/db';
-import { subscriptions, usageTracking } from '@/lib/db/schema';
-import { sql, eq, and, gte, lte } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 export interface SubscriptionMetrics {
   // Subscription counts
@@ -93,31 +92,34 @@ export class SubscriptionMonitor {
       FROM usage_tracking
       WHERE (count::float / "limit"::float) > 0.8
     `);
-    
+
+    // Enrich the response with recent webhook/payment failure counts
+    const failureMetrics = await this.getFailureMetrics(24);
+
     return {
-      totalSubscriptions: parseInt(counts.total),
-      activeTrials: parseInt(counts.active_trials),
-      activePremium: parseInt(counts.active_premium),
-      activePro: parseInt(counts.active_pro),
-      canceledSubscriptions: parseInt(counts.canceled),
-      expiredTrials: parseInt(counts.expired_trials),
-      
-      trialConversionRate: Math.round(conversionRate * 10) / 10,
-      churnRate: Math.round(churnRate * 10) / 10,
-      
-      mrr,
-      arr,
-      arpu: Math.round(arpu * 100) / 100,
-      
-      avgAgentsPerUser: Math.round(parseFloat(usage.avg_agents) * 10) / 10,
-      avgMessagesPerUser: Math.round(parseFloat(usage.avg_messages) * 10) / 10,
-      avgWorkflowsPerUser: Math.round(parseFloat(usage.avg_workflows) * 10) / 10,
-      avgStoragePerUser: Math.round(parseFloat(usage.avg_storage) * 100) / 100,
-      
-      usersNearLimit: parseInt(nearLimit.rows[0]?.count || '0'),
-      webhookFailures: 0, // TODO: Track webhook failures
-      paymentFailures: 0, // TODO: Track payment failures
-    };
+        totalSubscriptions: parseInt(counts.total),
+        activeTrials: parseInt(counts.active_trials),
+        activePremium: parseInt(counts.active_premium),
+        activePro: parseInt(counts.active_pro),
+        canceledSubscriptions: parseInt(counts.canceled),
+        expiredTrials: parseInt(counts.expired_trials),
+        
+        trialConversionRate: Math.round(conversionRate * 10) / 10,
+        churnRate: Math.round(churnRate * 10) / 10,
+        
+        mrr,
+        arr,
+        arpu: Math.round(arpu * 100) / 100,
+        
+        avgAgentsPerUser: Math.round(parseFloat(usage.avg_agents) * 10) / 10,
+        avgMessagesPerUser: Math.round(parseFloat(usage.avg_messages) * 10) / 10,
+        avgWorkflowsPerUser: Math.round(parseFloat(usage.avg_workflows) * 10) / 10,
+        avgStoragePerUser: Math.round(parseFloat(usage.avg_storage) * 100) / 100,
+        
+        usersNearLimit: parseInt(nearLimit.rows[0]?.count || '0'),
+        webhookFailures: failureMetrics.webhookFailures,
+        paymentFailures: failureMetrics.paymentFailures,
+      };
   }
   
   /**
@@ -312,6 +314,39 @@ export class SubscriptionMonitor {
     });
     
     return report;
+  }
+
+  /**
+   * Get webhook and payment failure metrics within the given window
+   */
+  private static async getFailureMetrics(hours: number = 24): Promise<{
+    webhookFailures: number;
+    paymentFailures: number;
+  }> {
+    try {
+      // Pull aggregated failure data within the requested time window
+      const [result] = await db.execute(sql`
+        SELECT 
+          COALESCE(SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END), 0) AS webhook_failures,
+          COALESCE(SUM(CASE WHEN event = 'invoice.payment_failed' THEN 1 ELSE 0 END), 0) AS payment_failures
+        FROM webhook_logs
+        WHERE created_at > NOW() - (INTERVAL '1 hour' * ${hours})
+      `);
+
+      // Normalize the response so undefined rows become zeros
+      const row = result.rows[0] || {};
+      return {
+        webhookFailures: parseInt(row.webhook_failures || '0'),
+        paymentFailures: parseInt(row.payment_failures || '0'),
+      };
+    } catch (error) {
+      // Keep the dashboard resilient even if the auxiliary table is missing
+      console.error('Failed to get failure metrics:', error);
+      return {
+        webhookFailures: 0,
+        paymentFailures: 0,
+      };
+    }
   }
 }
 
