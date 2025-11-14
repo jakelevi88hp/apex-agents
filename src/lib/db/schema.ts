@@ -13,6 +13,9 @@ export * from './schema/ai-conversations';
 // Export AGI memory tables
 export * from './schema/agi-memory';
 
+// Export Idea generation tables
+export * from './schema/ideas';
+
 // ============================================================================
 // USERS & AUTHENTICATION
 // ============================================================================

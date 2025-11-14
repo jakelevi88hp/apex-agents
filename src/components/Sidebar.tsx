@@ -14,6 +14,7 @@ import {
   Settings,
   Brain,
   Wrench,
+  Lightbulb,
   LogOut,
   User,
   ChevronLeft,
@@ -69,20 +70,21 @@ export default function Sidebar() {
     router.push('/login');
   };
 
-  const navItems = [
-    { href: '/dashboard/agents', icon: Bot, label: 'Agents' },
-    { href: '/dashboard/workflows', icon: Workflow, label: 'Workflows' },
-    { href: '/dashboard/knowledge', icon: BookOpen, label: 'Knowledge' },
-  ];
+    const navItems = [
+      { href: '/dashboard/agents', icon: Bot, label: 'Agents' },
+      { href: '/dashboard/workflows', icon: Workflow, label: 'Workflows' },
+      { href: '/dashboard/knowledge', icon: BookOpen, label: 'Knowledge' },
+    ];
 
-  const secondaryItems = [
-    { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
-  ];
+    const secondaryItems = [
+      { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
+    ];
 
-  const specializedItems = [
-    { href: '/dashboard/agi', icon: Brain, label: 'AGI' },
-    ...(isAdmin ? [{ href: '/dashboard/ai-admin', icon: Wrench, label: 'AI Admin' }] : []),
-  ];
+    const specializedItems = [
+      { href: '/dashboard/ideas', icon: Lightbulb, label: 'Ideas' },
+      { href: '/dashboard/agi', icon: Brain, label: 'AGI' },
+      ...(isAdmin ? [{ href: '/dashboard/ai-admin', icon: Wrench, label: 'AI Admin' }] : []),
+    ];
 
   const isActive = (href: string) => pathname === href;
 
