@@ -27,17 +27,21 @@ class NotificationSystem {
   /**
    * Subscribe to notifications
    */
-  subscribe(callback: (notification: Notification) => void) {
+  subscribe(callback: (notification: Notification) => void): () => void {
     this.notificationListeners.add(callback);
-    return () => this.notificationListeners.delete(callback);
+    return () => {
+      this.notificationListeners.delete(callback);
+    };
   }
 
   /**
    * Subscribe to notification store updates (for UI synchronization).
    */
-  subscribeToStore(callback: () => void) {
+  subscribeToStore(callback: () => void): () => void {
     this.storeListeners.add(callback);
-    return () => this.storeListeners.delete(callback);
+    return () => {
+      this.storeListeners.delete(callback);
+    };
   }
 
   /**

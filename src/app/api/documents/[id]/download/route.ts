@@ -43,6 +43,10 @@ export async function GET(
       return NextResponse.json({ error: 'Document not found' }, { status: 404 });
     }
 
+    if (!doc.filePath) {
+      return NextResponse.json({ error: 'File path not found' }, { status: 404 });
+    }
+
     // Read file from disk
     const filePath = join(UPLOAD_DIR, doc.filePath);
     const fileBuffer = await readFile(filePath);

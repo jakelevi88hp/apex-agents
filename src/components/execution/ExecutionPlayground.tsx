@@ -140,19 +140,28 @@ export function ExecutionPlayground({ agentId, agentName }: ExecutionPlaygroundP
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Executions</h3>
           <div className="space-y-3">
-            {history.map((execution) => {
-              const inputData = execution.inputData as any;
-              const outputData = execution.outputData as any;
+            {history.map((execution: { 
+              id: string; 
+              inputData: unknown; 
+              outputData: unknown; 
+              status: string;
+              startedAt: string | Date;
+              durationMs?: number | null;
+              tokensUsed?: number | null;
+              [key: string]: unknown;
+            }) => {
+              const inputData = execution.inputData as Record<string, unknown> | null | undefined;
+              const outputData = execution.outputData as Record<string, unknown> | null | undefined;
               
               return (
                 <div
                   key={execution.id}
                   className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors cursor-pointer"
                   onClick={() => {
-                    setInput(inputData?.input || '');
-                    setOutput(outputData?.output || '');
-                    setExecutionTime(execution.durationMs || null);
-                    setTokensUsed(execution.tokensUsed || null);
+                    setInput(typeof inputData?.input === 'string' ? inputData.input : '');
+                    setOutput(typeof outputData?.output === 'string' ? outputData.output : '');
+                    setExecutionTime(typeof execution.durationMs === 'number' ? execution.durationMs : null);
+                    setTokensUsed(typeof execution.tokensUsed === 'number' ? execution.tokensUsed : null);
                   }}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -161,16 +170,16 @@ export function ExecutionPlayground({ agentId, agentName }: ExecutionPlaygroundP
                       execution.status === 'failed' ? 'bg-red-100 text-red-800' :
                       'bg-yellow-100 text-yellow-800'
                     }`}>
-                      {execution.status}
+                      {String(execution.status)}
                     </span>
                     <span className="text-xs text-gray-500">
                       {new Date(execution.startedAt).toLocaleString()}
                     </span>
                   </div>
                   <p className="text-sm text-gray-700 truncate">
-                    {inputData?.input || 'No input'}
+                    {typeof inputData?.input === 'string' ? inputData.input : 'No input'}
                   </p>
-                  {execution.durationMs && execution.tokensUsed && (
+                  {typeof execution.durationMs === 'number' && typeof execution.tokensUsed === 'number' && (
                     <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
                       <span>⏱️ {execution.durationMs}ms</span>
                       <span>🎯 {execution.tokensUsed} tokens</span>
