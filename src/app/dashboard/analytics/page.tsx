@@ -1,44 +1,14 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, Activity, DollarSign, Clock, CheckCircle, Bot, Workflow, Zap, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { useTheme } from '@/contexts/ThemeContext';
-
-// Animated counter component
-function AnimatedCounter({ value, duration = 1000 }: { value: number; duration?: number }) {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    let startTime: number;
-    let animationFrame: number;
-
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      
-      setCount(Math.floor(progress * value));
-
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animate);
-      }
-    };
-
-    animationFrame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [value, duration]);
-
-  return <span>{count}</span>;
-}
+import AnimatedCounter from '@/components/AnimatedCounter';
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
-  const [mounted, setMounted] = useState(false);
   const { isDarkMode } = useTheme();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
   
   // Fetch dashboard metrics
   const { data: metrics, isLoading: metricsLoading } = trpc.analytics.getDashboardMetrics.useQuery();
@@ -70,7 +40,13 @@ export default function AnalyticsPage() {
   const workflowData = workflowPerf || [];
 
   // Status distribution
-  const statusData = [
+  type StatusSegment = {
+    name: string;
+    value: number;
+    color: string;
+  };
+
+  const statusData: StatusSegment[] = [
     { name: 'Completed', value: stats?.completed || 0, color: '#10b981' },
     { name: 'Failed', value: stats?.failed || 0, color: '#ef4444' },
     { name: 'Running', value: stats?.running || 0, color: '#3b82f6' },
@@ -120,153 +96,153 @@ export default function AnalyticsPage() {
             isDarkMode 
               ? 'bg-gray-800 border-gray-700 hover:border-purple-500/50 hover:shadow-purple-500/20' 
               : 'bg-white border-gray-200 hover:border-purple-500/50 hover:shadow-purple-500/20'
-          }`}>
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/0 group-hover:from-purple-500/10 group-hover:to-transparent transition-all duration-300"></div>
-            
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Active Agents</div>
-                <div className="p-2 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 group-hover:scale-110 transition-all duration-300">
-                  <Bot className="w-5 h-5 text-purple-400" />
+            }`}>
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/0 group-hover:from-purple-500/10 group-hover:to-transparent transition-all duration-300"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Active Agents</div>
+                  <div className="p-2 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 group-hover:scale-110 transition-all duration-300">
+                    <Bot className="w-5 h-5 text-purple-400" />
+                  </div>
+                </div>
+
+                <div className={`text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {metrics ? <AnimatedCounter value={metrics.activeAgents} /> : 0}
+                </div>
+
+                {/* Sparkline Chart */}
+                <div className="h-12 mb-2 -mx-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={agentsData}>
+                      <Line 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#A855F7" 
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className={`h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                  <div 
+                    className="h-full bg-gradient-to-r from-purple-600 to-purple-400 rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${agentsProgress}%` }}
+                  ></div>
+                </div>
+                
+                <div className={`flex items-center gap-2 mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <TrendingUp className="w-4 h-4 text-green-400" />
+                  <span>7-day trend</span>
                 </div>
               </div>
-              
-              <div className={`text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                {mounted && metrics ? <AnimatedCounter value={metrics.activeAgents} /> : metrics?.activeAgents || 0}
-              </div>
-              
-              {/* Sparkline Chart */}
-              <div className="h-12 mb-2 -mx-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={agentsData}>
-                    <Line 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="#A855F7" 
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              
-              {/* Progress Bar */}
-              <div className={`h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                <div 
-                  className="h-full bg-gradient-to-r from-purple-600 to-purple-400 rounded-full transition-all duration-1000 ease-out"
-                  style={{ width: `${agentsProgress}%` }}
-                ></div>
-              </div>
-              
-              <div className={`flex items-center gap-2 mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                <TrendingUp className="w-4 h-4 text-green-400" />
-                <span>7-day trend</span>
-              </div>
             </div>
-          </div>
 
           {/* Workflows Card */}
           <div className={`group p-6 rounded-lg shadow-lg border hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden ${
             isDarkMode 
               ? 'bg-gray-800 border-gray-700 hover:border-blue-500/50 hover:shadow-blue-500/20' 
               : 'bg-white border-gray-200 hover:border-blue-500/50 hover:shadow-blue-500/20'
-          }`}>
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/0 group-hover:from-blue-500/10 group-hover:to-transparent transition-all duration-300"></div>
-            
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Workflows</div>
-                <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 group-hover:scale-110 transition-all duration-300">
-                  <Workflow className="w-5 h-5 text-blue-400" />
+            }`}>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/0 group-hover:from-blue-500/10 group-hover:to-transparent transition-all duration-300"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Workflows</div>
+                  <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 group-hover:scale-110 transition-all duration-300">
+                    <Workflow className="w-5 h-5 text-blue-400" />
+                  </div>
+                </div>
+
+                <div className={`text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {metrics ? <AnimatedCounter value={metrics.workflows} /> : 0}
+                </div>
+
+                {/* Sparkline Chart */}
+                <div className="h-12 mb-2 -mx-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={workflowsData}>
+                      <Line 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#3B82F6" 
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className={`h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                  <div 
+                    className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${workflowsProgress}%` }}
+                  ></div>
+                </div>
+                
+                <div className={`flex items-center gap-2 mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <TrendingUp className="w-4 h-4 text-green-400" />
+                  <span>7-day trend</span>
                 </div>
               </div>
-              
-              <div className={`text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                {mounted && metrics ? <AnimatedCounter value={metrics.workflows} /> : metrics?.workflows || 0}
-              </div>
-              
-              {/* Sparkline Chart */}
-              <div className="h-12 mb-2 -mx-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={workflowsData}>
-                    <Line 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="#3B82F6" 
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              
-              {/* Progress Bar */}
-              <div className={`h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                <div 
-                  className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all duration-1000 ease-out"
-                  style={{ width: `${workflowsProgress}%` }}
-                ></div>
-              </div>
-              
-              <div className={`flex items-center gap-2 mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                <TrendingUp className="w-4 h-4 text-green-400" />
-                <span>7-day trend</span>
-              </div>
             </div>
-          </div>
 
           {/* Executions Today Card */}
           <div className={`group p-6 rounded-lg shadow-lg border hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden ${
             isDarkMode 
               ? 'bg-gray-800 border-gray-700 hover:border-cyan-500/50 hover:shadow-cyan-500/20' 
               : 'bg-white border-gray-200 hover:border-cyan-500/50 hover:shadow-cyan-500/20'
-          }`}>
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-cyan-500/0 group-hover:from-cyan-500/10 group-hover:to-transparent transition-all duration-300"></div>
-            
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Executions Today</div>
-                <div className="p-2 bg-cyan-500/20 rounded-lg group-hover:bg-cyan-500/30 group-hover:scale-110 transition-all duration-300">
-                  <Zap className="w-5 h-5 text-cyan-400" />
+            }`}>
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-cyan-500/0 group-hover:from-cyan-500/10 group-hover:to-transparent transition-all duration-300"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Executions Today</div>
+                  <div className="p-2 bg-cyan-500/20 rounded-lg group-hover:bg-cyan-500/30 group-hover:scale-110 transition-all duration-300">
+                    <Zap className="w-5 h-5 text-cyan-400" />
+                  </div>
+                </div>
+
+                <div className={`text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {metrics ? <AnimatedCounter value={metrics.executionsToday} /> : 0}
+                </div>
+
+                {/* Sparkline Chart */}
+                <div className="h-12 mb-2 -mx-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={executionsData}>
+                      <Line 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#06B6D4" 
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className={`h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                  <div 
+                    className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400 rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${executionsProgress}%` }}
+                  ></div>
+                </div>
+                
+                <div className={`flex items-center gap-2 mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <TrendingUp className="w-4 h-4 text-green-400" />
+                  <span>
+                    {metrics?.executionsTrend.direction === 'up' ? '+' : ''}
+                    {metrics?.executionsTrend.change.toFixed(1)}% vs yesterday
+                  </span>
                 </div>
               </div>
-              
-              <div className={`text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                {mounted && metrics ? <AnimatedCounter value={metrics.executionsToday} /> : metrics?.executionsToday || 0}
-              </div>
-              
-              {/* Sparkline Chart */}
-              <div className="h-12 mb-2 -mx-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={executionsData}>
-                    <Line 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="#06B6D4" 
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              
-              {/* Progress Bar */}
-              <div className={`h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                <div 
-                  className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400 rounded-full transition-all duration-1000 ease-out"
-                  style={{ width: `${executionsProgress}%` }}
-                ></div>
-              </div>
-              
-              <div className={`flex items-center gap-2 mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                <TrendingUp className="w-4 h-4 text-green-400" />
-                <span>
-                  {metrics?.executionsTrend.direction === 'up' ? '+' : ''}
-                  {metrics?.executionsTrend.change.toFixed(1)}% vs yesterday
-                </span>
-              </div>
             </div>
-          </div>
         </div>
       </div>
 
@@ -426,16 +402,16 @@ export default function AnalyticsPage() {
           <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Status Distribution</h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
-              <Pie
-                data={statusData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
+                <Pie
+                  data={statusData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }: { name: string; percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
                 {statusData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
