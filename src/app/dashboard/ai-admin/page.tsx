@@ -1,8 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { trpc } from "@/lib/trpc/client";
-import { Loader2, Send, Code, History, CheckCircle, XCircle, AlertCircle, RefreshCw } from "lucide-react";
+import {
+  Loader2,
+  Send,
+  Code,
+  History,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  RefreshCw,
+  Sparkles,
+} from "lucide-react";
 
 interface Message {
   role: "user" | "assistant" | "system";
@@ -36,27 +46,69 @@ interface PatchRecord {
   error?: string;
 }
 
+interface NormalizedPatchRecord extends PatchRecord {
+  displayTimestamp: Date;
+  normalizedFiles: string[];
+}
+
 // Force rebuild - using generatePatch endpoint
 export default function AIAdminPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "system",
-      content: "Welcome to AI Admin! I can help you analyze code, generate patches, and manage your codebase. What would you like to do?",
+      content:
+        "Welcome to AI Admin! I can help you analyze code, generate patches, and manage your codebase. What would you like to do?",
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const isInitialScrollRef = useRef(true);
-  const [activeTab, setActiveTab] = useState<"chat" | "patches" | "analysis">("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "patches" | "analysis">(
+    "chat",
+  );
 
   // tRPC mutations and queries
   const generatePatchMutation = trpc.aiAdmin.generatePatch.useMutation();
   const applyPatchMutation = trpc.aiAdmin.applyPatch.useMutation();
   const rollbackPatchMutation = trpc.aiAdmin.rollbackPatch.useMutation();
-  const { data: patchHistory, refetch: refetchHistory } = trpc.aiAdmin.getPatchHistory.useQuery();
-  const { data: codebaseAnalysis, refetch: refetchAnalysis } = trpc.aiAdmin.analyzeCodebase.useQuery();
+  const { data: patchHistory, refetch: refetchHistory } =
+    trpc.aiAdmin.getPatchHistory.useQuery();
+  const { data: codebaseAnalysis, refetch: refetchAnalysis } =
+    trpc.aiAdmin.analyzeCodebase.useQuery();
+  const { data: exampleRequestsData, isFetching: isExamplesFetching } =
+    trpc.aiAdmin.getExampleRequests.useQuery(undefined, {
+      staleTime: 1000 * 60 * 5,
+    });
+
+  const exampleRequests = useMemo(
+    () => exampleRequestsData?.examples ?? [],
+    [exampleRequestsData],
+  );
+
+  const normalizedPatchHistory = useMemo<NormalizedPatchRecord[]>(() => {
+    if (!patchHistory?.data) {
+      return [];
+    }
+
+    return patchHistory.data.map((patchRecord: PatchRecord) => {
+      const timestamp =
+        typeof patchRecord.timestamp === "string"
+          ? new Date(patchRecord.timestamp)
+          : patchRecord.timestamp;
+
+      return {
+        ...patchRecord,
+        displayTimestamp:
+          timestamp instanceof Date ? timestamp : new Date(timestamp),
+        normalizedFiles: Array.isArray(patchRecord.files)
+          ? patchRecord.files
+          : [],
+      };
+    });
+  }, [patchHistory?.data]);
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -80,8 +132,12 @@ export default function AIAdminPage() {
       if (result.success && result.data) {
         const files = Array.isArray(result.data.files) ? result.data.files : [];
         const filesCount = files.length;
-        const description = typeof result.data.description === "string" ? result.data.description : "N/A";
-        const patchId = typeof result.data.id === "string" ? result.data.id : "";
+        const description =
+          typeof result.data.description === "string"
+            ? result.data.description
+            : "N/A";
+        const patchId =
+          typeof result.data.id === "string" ? result.data.id : "";
 
         const assistantMessage: Message = {
           role: "assistant",
@@ -105,6 +161,15 @@ export default function AIAdminPage() {
     }
   };
 
+  const handleExampleClick = useCallback(
+    (request: string) => {
+      // Prefill the input with the selected request and focus the field for immediate editing.
+      setInput(request);
+      inputRef.current?.focus();
+    },
+    [inputRef],
+  );
+
   const handleApplyPatch = async (patchId: string) => {
     setIsLoading(true);
     try {
@@ -113,7 +178,8 @@ export default function AIAdminPage() {
       if (result.success) {
         const successMessage: Message = {
           role: "system",
-          content: "Patch applied successfully! The changes have been written to the filesystem.",
+          content:
+            "Patch applied successfully! The changes have been written to the filesystem.",
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, successMessage]);
@@ -152,7 +218,9 @@ export default function AIAdminPage() {
    * @param status - The status of the patch.
    * @returns The corresponding status icon element or null.
    */
-  const getStatusIcon = (status: Patch["status"]): React.ReactElement | null => {
+  const getStatusIcon = (
+    status: Patch["status"],
+  ): React.ReactElement | null => {
     switch (status) {
       case "applied":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
@@ -173,7 +241,9 @@ export default function AIAdminPage() {
       return;
     }
 
-    const scrollBehavior: ScrollBehavior = isInitialScrollRef.current ? "auto" : "smooth";
+    const scrollBehavior: ScrollBehavior = isInitialScrollRef.current
+      ? "auto"
+      : "smooth";
 
     container.scrollTo({
       top: container.scrollHeight,
@@ -190,7 +260,9 @@ export default function AIAdminPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">AI Admin</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            AI Admin
+          </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Manage your codebase with AI-powered analysis and patching
           </p>
@@ -244,13 +316,54 @@ export default function AIAdminPage() {
       {activeTab === "chat" && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="p-6">
-            <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">AI Admin Chat</h2>
+            <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
+              AI Admin Chat
+            </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Describe what you want to change, and I&apos;ll generate a patch for you
+              Describe what you want to change, and I&apos;ll generate a patch
+              for you
             </p>
 
+            {/* Example suggestions to jump-start a chat request */}
+            {(isExamplesFetching || exampleRequests.length > 0) && (
+              <div className="mb-6 rounded-lg border border-dashed border-gray-300 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900/30">
+                <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+                  <Sparkles className="h-4 w-4 text-purple-500" />
+                  <span>Need inspiration? Try one of these requests.</span>
+                  {isExamplesFetching && (
+                    <Loader2
+                      className="h-4 w-4 animate-spin text-purple-500"
+                      aria-label="Loading example requests"
+                    />
+                  )}
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {exampleRequests.length > 0
+                    ? exampleRequests.map((request) => (
+                        <button
+                          key={request}
+                          type="button"
+                          onClick={() => handleExampleClick(request)}
+                          className="px-3 py-1.5 rounded-full text-sm font-medium border border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-200 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
+                        >
+                          {request}
+                        </button>
+                      ))
+                    : Array.from({ length: 3 }).map((_, index) => (
+                        <div
+                          key={`example-skeleton-${index}`}
+                          className="h-9 w-32 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"
+                        />
+                      ))}
+                </div>
+              </div>
+            )}
+
             {/* Messages */}
-            <div ref={messagesContainerRef} className="h-[500px] overflow-y-auto mb-4 space-y-4 pr-4">
+            <div
+              ref={messagesContainerRef}
+              className="h-[500px] overflow-y-auto mb-4 space-y-4 pr-4"
+            >
               {messages.map((message, index) => (
                 <div
                   key={index}
@@ -261,11 +374,13 @@ export default function AIAdminPage() {
                       message.role === "user"
                         ? "bg-blue-600 text-white"
                         : message.role === "system"
-                        ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
+                          ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {message.content}
+                    </p>
                     <p className="text-xs opacity-70 mt-2">
                       {message.timestamp.toLocaleTimeString()}
                     </p>
@@ -293,6 +408,7 @@ export default function AIAdminPage() {
             {/* Input */}
             <div className="flex gap-2">
               <input
+                ref={inputRef}
                 type="text"
                 placeholder="Describe the changes you want to make..."
                 value={input}
@@ -326,7 +442,9 @@ export default function AIAdminPage() {
       {activeTab === "patches" && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Patch History</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Patch History
+            </h2>
             <button
               onClick={() => refetchHistory()}
               className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
@@ -337,14 +455,9 @@ export default function AIAdminPage() {
           </div>
 
           <div className="space-y-4">
-            {patchHistory?.data && patchHistory.data.length > 0 ? (
-              patchHistory.data.map((patchRecord: PatchRecord) => {
-                // Convert PatchRecord to display format
-                const timestamp = typeof patchRecord.timestamp === "string" 
-                  ? new Date(patchRecord.timestamp) 
-                  : patchRecord.timestamp;
+            {normalizedPatchHistory.length > 0 ? (
+              normalizedPatchHistory.map((patchRecord) => {
                 const description = patchRecord.request || "No description";
-                const files = patchRecord.files || [];
 
                 return (
                   <div
@@ -360,7 +473,8 @@ export default function AIAdminPage() {
                           </h3>
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Created: {timestamp instanceof Date ? timestamp.toLocaleString() : new Date(timestamp).toLocaleString()}
+                          Created:{" "}
+                          {patchRecord.displayTimestamp.toLocaleString()}
                         </p>
                       </div>
                       <span
@@ -368,8 +482,8 @@ export default function AIAdminPage() {
                           patchRecord.status === "applied"
                             ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                             : patchRecord.status === "failed"
-                            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                              : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
                         }`}
                       >
                         {patchRecord.status}
@@ -382,8 +496,8 @@ export default function AIAdminPage() {
                           Files Modified:
                         </h4>
                         <div className="space-y-1">
-                          {files.length > 0 ? (
-                            files.map((filePath, idx) => (
+                          {patchRecord.normalizedFiles.length > 0 ? (
+                            patchRecord.normalizedFiles.map((filePath, idx) => (
                               <div
                                 key={idx}
                                 className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
@@ -395,7 +509,9 @@ export default function AIAdminPage() {
                               </div>
                             ))
                           ) : (
-                            <p className="text-sm text-gray-500 dark:text-gray-400">No files listed</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              No files listed
+                            </p>
                           )}
                         </div>
                       </div>
@@ -416,7 +532,8 @@ export default function AIAdminPage() {
                             Apply Patch
                           </button>
                         )}
-                        {(patchRecord.status === "applied" || patchRecord.status === "rolled_back") && (
+                        {(patchRecord.status === "applied" ||
+                          patchRecord.status === "rolled_back") && (
                           <button
                             onClick={() => handleRollbackPatch(patchRecord.id)}
                             disabled={isLoading}
@@ -432,7 +549,8 @@ export default function AIAdminPage() {
               })
             ) : (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center text-gray-600 dark:text-gray-400">
-                No patches yet. Start a conversation in the Chat tab to generate patches.
+                No patches yet. Start a conversation in the Chat tab to generate
+                patches.
               </div>
             )}
           </div>
@@ -443,7 +561,9 @@ export default function AIAdminPage() {
       {activeTab === "analysis" && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Codebase Analysis</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Codebase Analysis
+            </h2>
             <button
               onClick={() => refetchAnalysis()}
               className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
@@ -468,7 +588,9 @@ export default function AIAdminPage() {
           ) : (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-900 dark:text-white" />
-              <p className="text-gray-600 dark:text-gray-400">Analyzing codebase...</p>
+              <p className="text-gray-600 dark:text-gray-400">
+                Analyzing codebase...
+              </p>
             </div>
           )}
         </div>

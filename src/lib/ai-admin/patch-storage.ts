@@ -8,8 +8,9 @@ import 'server-only';
 
 import { db } from '@/lib/db';
 import { aiPatches, type AIPatch, type InsertAIPatch } from '@/lib/db/schema/ai-patches';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, lt } from 'drizzle-orm';
 import type { PatchRecord } from './agent';
+import { calculateDeletionCutoffDate } from './patch-utils';
 
 export class PatchStorageService {
   /**
@@ -145,17 +146,30 @@ export class PatchStorageService {
   }
 
   /**
-   * Delete old patches (cleanup)
+   * Delete old patches (cleanup).
+   *
+   * @param daysOld - Number of days to retain patches for before deleting.
+   * @returns The count of patches removed from storage.
    */
   async deleteOldPatches(daysOld: number = 30): Promise<number> {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.setDate(cutoffDate.getDate() - daysOld));
+    const cutoffDate = calculateDeletionCutoffDate(daysOld);
 
-    const result = await db
-      .delete(aiPatches)
-      .where(eq(aiPatches.createdAt, cutoffDate));
+    try {
+      const deletedRows = await db
+        .delete(aiPatches)
+        .where(lt(aiPatches.createdAt, cutoffDate))
+        .returning({ id: aiPatches.id });
 
-    return 0; // Drizzle doesn't return affected rows count easily
+      return deletedRows.length;
+    } catch (error) {
+      console.error('[PatchStorage] Failed to delete old patches with returning clause:', error);
+
+      await db
+        .delete(aiPatches)
+        .where(lt(aiPatches.createdAt, cutoffDate));
+
+      return 0;
+    }
   }
 
   /**
