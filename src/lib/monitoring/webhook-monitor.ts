@@ -63,33 +63,40 @@ export class WebhookMonitor {
   }> {
     try {
       // Get overall stats
-      const [stats] = await db.execute(sql`
+      const statsResult = await db.execute(sql`
         SELECT 
-          COUNT(*) as total,
-          COUNT(CASE WHEN status = 'success' THEN 1 END) as successful,
-          COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed,
-          AVG(processing_time) as avg_time
+          COUNT(*)::int as total,
+          COUNT(CASE WHEN status = 'success' THEN 1 END)::int as successful,
+          COUNT(CASE WHEN status = 'failed' THEN 1 END)::int as failed,
+          AVG(processing_time)::float as avg_time
         FROM webhook_logs
         WHERE created_at > NOW() - INTERVAL '${hours} hours'
       `);
       
-      const totalEvents = parseInt(stats.rows[0]?.total || '0');
-      const successfulEvents = parseInt(stats.rows[0]?.successful || '0');
-      const failedEvents = parseInt(stats.rows[0]?.failed || '0');
-      const avgProcessingTime = Math.round(parseFloat(stats.rows[0]?.avg_time || '0'));
+      const stats = (statsResult as unknown as Array<{
+        total: number;
+        successful: number;
+        failed: number;
+        avg_time: number | null;
+      }>)[0] || { total: 0, successful: 0, failed: 0, avg_time: null };
+      
+      const totalEvents = stats.total;
+      const successfulEvents = stats.successful;
+      const failedEvents = stats.failed;
+      const avgProcessingTime = Math.round(stats.avg_time || 0);
       const successRate = totalEvents > 0 ? (successfulEvents / totalEvents) * 100 : 0;
       
       // Get event breakdown
-      const [breakdown] = await db.execute(sql`
-        SELECT event, COUNT(*) as count
+      const breakdownResult = await db.execute(sql`
+        SELECT event, COUNT(*)::int as count
         FROM webhook_logs
         WHERE created_at > NOW() - INTERVAL '${hours} hours'
         GROUP BY event
       `);
       
       const eventBreakdown: Record<string, number> = {};
-      breakdown.rows.forEach((row: any) => {
-        eventBreakdown[row.event] = parseInt(row.count);
+      (breakdownResult as unknown as Array<{ event: string; count: number }>).forEach((row) => {
+        eventBreakdown[row.event] = row.count;
       });
       
       return {
@@ -119,7 +126,7 @@ export class WebhookMonitor {
    */
   static async getRecentFailures(limit: number = 10): Promise<WebhookLog[]> {
     try {
-      const [results] = await db.execute(sql`
+      const results = await db.execute(sql`
         SELECT id, event, status, error, processing_time, created_at as timestamp
         FROM webhook_logs
         WHERE status = 'failed'
@@ -127,14 +134,21 @@ export class WebhookMonitor {
         LIMIT ${limit}
       `);
       
-      return results.rows.map((row: any) => ({
+      return ((results as unknown as Array<{
+        id: string;
+        event: string;
+        status: string;
+        error: string | null;
+        processing_time: number | null;
+        timestamp: Date;
+      }>).map((row) => ({
         id: row.id,
         event: row.event,
         status: row.status,
         error: row.error,
         timestamp: new Date(row.timestamp),
-        processingTime: parseInt(row.processing_time),
-      }));
+        processingTime: row.processing_time ? Math.round(row.processing_time) : 0,
+      })));
       
     } catch (error) {
       console.error('Failed to get recent failures:', error);
