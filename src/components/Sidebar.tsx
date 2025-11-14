@@ -70,25 +70,31 @@ export default function Sidebar() {
     router.push('/login');
   };
 
-    const navItems = [
-      { href: '/dashboard/agents', icon: Bot, label: 'Agents' },
-      { href: '/dashboard/workflows', icon: Workflow, label: 'Workflows' },
-      { href: '/dashboard/knowledge', icon: BookOpen, label: 'Knowledge' },
-    ];
+  const navItems = [
+    { href: '/dashboard/agents', icon: Bot, label: 'Agents' },
+    { href: '/dashboard/workflows', icon: Workflow, label: 'Workflows' },
+    { href: '/dashboard/knowledge', icon: BookOpen, label: 'Knowledge' },
+  ];
 
-    const secondaryItems = [
-      { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
-    ];
+  const secondaryItems = [
+    { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
+  ];
 
-    const specializedItems = [
-      { href: '/dashboard/ideas', icon: Lightbulb, label: 'Ideas' },
-      { href: '/dashboard/agi', icon: Brain, label: 'AGI' },
-      ...(isAdmin ? [{ href: '/dashboard/ai-admin', icon: Wrench, label: 'AI Admin' }] : []),
-    ];
+  const specializedItems = [
+    { href: '/dashboard/ideas', icon: Lightbulb, label: 'Ideas' },
+    { href: '/dashboard/agi', icon: Brain, label: 'AGI' },
+    ...(isAdmin ? [{ href: '/dashboard/ai-admin', icon: Wrench, label: 'AI Admin' }] : []),
+  ];
 
   const isActive = (href: string) => pathname === href;
 
-  const NavLink = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
+  type NavItem = {
+    href: string;
+    icon: typeof Bot;
+    label: string;
+  };
+
+  const NavLink = ({ href, icon: Icon, label }: NavItem) => {
     const active = isActive(href);
     return (
       <Link
