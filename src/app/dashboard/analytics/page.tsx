@@ -37,7 +37,15 @@ export default function AnalyticsPage() {
   const { isDarkMode } = useTheme();
 
   useEffect(() => {
-    setMounted(true);
+    // Defer the mounted flag until after the browser paints to keep hydration stable.
+    const frameId = requestAnimationFrame(() => {
+      setMounted(true);
+    });
+
+    return () => {
+      // Cancel any queued work so we never update state after unmount.
+      cancelAnimationFrame(frameId);
+    };
   }, []);
   
   // Fetch dashboard metrics
