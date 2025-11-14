@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc/client";
-import { Loader2, Send, Code, History, CheckCircle, XCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { Loader2, Send, Code, History, CheckCircle, XCircle, AlertCircle, RefreshCw, RotateCcw } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant" | "system";
@@ -19,7 +19,7 @@ interface Patch {
     content: string;
     action: "create" | "update" | "delete";
   }>;
-  status: "pending" | "applied" | "failed";
+  status: "pending" | "applied" | "failed" | "rolled_back";
   createdAt: Date;
   appliedAt?: Date;
   error?: string;
@@ -160,6 +160,8 @@ export default function AIAdminPage() {
         return <XCircle className="h-4 w-4 text-red-500" />;
       case "pending":
         return <AlertCircle className="h-4 w-4 text-yellow-500" />;
+      case "rolled_back":
+        return <RotateCcw className="h-4 w-4 text-orange-500" />;
       default:
         return null;
     }
@@ -363,15 +365,17 @@ export default function AIAdminPage() {
                           Created: {timestamp instanceof Date ? timestamp.toLocaleString() : new Date(timestamp).toLocaleString()}
                         </p>
                       </div>
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded ${
-                          patchRecord.status === "applied"
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            : patchRecord.status === "failed"
-                            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                        }`}
-                      >
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded ${
+                            patchRecord.status === "applied"
+                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              : patchRecord.status === "failed"
+                              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                              : patchRecord.status === "rolled_back"
+                              ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                              : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                          }`}
+                        >
                         {patchRecord.status}
                       </span>
                     </div>

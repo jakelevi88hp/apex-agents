@@ -385,8 +385,7 @@ export const aiAdminRouter = router({
     )
     .query(async ({ input }) => {
       try {
-        const agent = getAIAdminAgent();
-        const patch = agent.getPatch(input.patchId);
+        const patch = await patchStorage.getPatch(input.patchId);
 
         if (!patch) {
           throw new TRPCError({
