@@ -417,19 +417,7 @@ export const teamMembers = pgTable('team_members', {
 // ============================================================================
 // SUBSCRIPTIONS & BILLING
 // ============================================================================
-
-export const subscriptions = pgTable('subscriptions', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  stripeSubscriptionId: varchar('stripe_subscription_id', { length: 255 }).unique(),
-  stripePriceId: varchar('stripe_price_id', { length: 255 }),
-  status: varchar('status', { length: 20 }).notNull(),
-  currentPeriodStart: timestamp('current_period_start'),
-  currentPeriodEnd: timestamp('current_period_end'),
-  cancelAtPeriodEnd: boolean('cancel_at_period_end').default(false).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+// Note: subscriptions table is exported from ./schema/subscriptions.ts
 
 // ============================================================================
 // RELATIONS

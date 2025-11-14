@@ -142,6 +142,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       })
       .where(eq(subscriptions.userId, userId));
   } else {
+    const subWithPeriods = subscription as unknown as { current_period_start: number; current_period_end: number };
     await db.insert(subscriptions).values({
       userId,
       plan,
@@ -149,8 +150,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       stripeSubscriptionId: subscriptionId,
       stripeCustomerId: customerId,
       stripePriceId: priceId,
-      currentPeriodStart: new Date((subscription as unknown as { current_period_start: number }).current_period_start * 1000),
-      currentPeriodEnd: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000),
+      currentPeriodStart: new Date(subWithPeriods.current_period_start * 1000),
+      currentPeriodEnd: new Date(subWithPeriods.current_period_end * 1000),
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
     });
   }
