@@ -9,7 +9,8 @@ async function getPdfParse() {
     try {
       // Dynamic import to avoid build-time errors
       const pdfModule = await import('pdf-parse');
-      pdfParse = pdfModule.default || pdfModule;
+      // pdf-parse may export as default or named export
+      pdfParse = (pdfModule as { default?: unknown } & typeof pdfModule).default || pdfModule;
     } catch (error) {
       console.error('Failed to load pdf-parse:', error);
       throw new Error('PDF processing is not available');

@@ -4,7 +4,7 @@
  * Tracks key subscription metrics and sends alerts
  */
 
-import { db } from '@/server/db';
+import { db } from '@/lib/db';
 import { subscriptions, usageTracking } from '@/lib/db/schema';
 import { sql, eq, and, gte, lte } from 'drizzle-orm';
 
@@ -46,61 +46,87 @@ export class SubscriptionMonitor {
     const now = new Date();
     
     // Get subscription counts
-    const [subscriptionCounts] = await db.execute(sql`
+    const subscriptionCounts = await db.execute(sql`
       SELECT 
-        COUNT(*) as total,
-        COUNT(CASE WHEN plan = 'trial' AND status = 'active' AND trial_ends_at > NOW() THEN 1 END) as active_trials,
-        COUNT(CASE WHEN plan = 'premium' AND status = 'active' THEN 1 END) as active_premium,
-        COUNT(CASE WHEN plan = 'pro' AND status = 'active' THEN 1 END) as active_pro,
-        COUNT(CASE WHEN status = 'canceled' THEN 1 END) as canceled,
-        COUNT(CASE WHEN plan = 'trial' AND trial_ends_at < NOW() THEN 1 END) as expired_trials
+        COUNT(*)::int as total,
+        COUNT(CASE WHEN plan = 'trial' AND status = 'active' AND trial_ends_at > NOW() THEN 1 END)::int as active_trials,
+        COUNT(CASE WHEN plan = 'premium' AND status = 'active' THEN 1 END)::int as active_premium,
+        COUNT(CASE WHEN plan = 'pro' AND status = 'active' THEN 1 END)::int as active_pro,
+        COUNT(CASE WHEN status = 'canceled' THEN 1 END)::int as canceled,
+        COUNT(CASE WHEN plan = 'trial' AND trial_ends_at < NOW() THEN 1 END)::int as expired_trials
       FROM subscriptions
     `);
     
-    const counts = subscriptionCounts.rows[0] as any;
+    const counts = (subscriptionCounts as unknown as Array<{
+      total: number;
+      active_trials: number;
+      active_premium: number;
+      active_pro: number;
+      canceled: number;
+      expired_trials: number;
+    }>)[0] || {
+      total: 0,
+      active_trials: 0,
+      active_premium: 0,
+      active_pro: 0,
+      canceled: 0,
+      expired_trials: 0,
+    };
     
     // Calculate conversion rate (trial → paid)
-    const totalTrials = parseInt(counts.active_trials) + parseInt(counts.expired_trials);
-    const paidUsers = parseInt(counts.active_premium) + parseInt(counts.active_pro);
+    const totalTrials = counts.active_trials + counts.expired_trials;
+    const paidUsers = counts.active_premium + counts.active_pro;
     const conversionRate = totalTrials > 0 ? (paidUsers / totalTrials) * 100 : 0;
     
     // Calculate churn rate
-    const totalPaid = paidUsers + parseInt(counts.canceled);
-    const churnRate = totalPaid > 0 ? (parseInt(counts.canceled) / totalPaid) * 100 : 0;
+    const totalPaid = paidUsers + counts.canceled;
+    const churnRate = totalPaid > 0 ? (counts.canceled / totalPaid) * 100 : 0;
     
     // Calculate revenue
-    const premiumRevenue = parseInt(counts.active_premium) * 29;
-    const proRevenue = parseInt(counts.active_pro) * 99;
+    const premiumRevenue = counts.active_premium * 29;
+    const proRevenue = counts.active_pro * 99;
     const mrr = premiumRevenue + proRevenue;
     const arr = mrr * 12;
     const arpu = paidUsers > 0 ? mrr / paidUsers : 0;
     
     // Get usage metrics
-    const [usageMetrics] = await db.execute(sql`
+    const usageMetrics = await db.execute(sql`
       SELECT 
-        AVG(CASE WHEN feature = 'agents' THEN count ELSE 0 END) as avg_agents,
-        AVG(CASE WHEN feature = 'agi_messages' THEN count ELSE 0 END) as avg_messages,
-        AVG(CASE WHEN feature = 'workflows' THEN count ELSE 0 END) as avg_workflows,
-        AVG(CASE WHEN feature = 'storage' THEN count ELSE 0 END) as avg_storage
+        AVG(CASE WHEN feature = 'agents' THEN count ELSE 0 END)::float as avg_agents,
+        AVG(CASE WHEN feature = 'agi_messages' THEN count ELSE 0 END)::float as avg_messages,
+        AVG(CASE WHEN feature = 'workflows' THEN count ELSE 0 END)::float as avg_workflows,
+        AVG(CASE WHEN feature = 'storage' THEN count ELSE 0 END)::float as avg_storage
       FROM usage_tracking
     `);
     
-    const usage = usageMetrics.rows[0] as any;
+    const usage = (usageMetrics as unknown as Array<{
+      avg_agents: number;
+      avg_messages: number;
+      avg_workflows: number;
+      avg_storage: number;
+    }>)[0] || {
+      avg_agents: 0,
+      avg_messages: 0,
+      avg_workflows: 0,
+      avg_storage: 0,
+    };
     
     // Get users near limits (>80% usage)
-    const [nearLimit] = await db.execute(sql`
-      SELECT COUNT(DISTINCT user_id) as count
+    const nearLimitResult = await db.execute(sql`
+      SELECT COUNT(DISTINCT user_id)::int as count
       FROM usage_tracking
       WHERE (count::float / "limit"::float) > 0.8
     `);
     
+    const nearLimitCount = (nearLimitResult as unknown as Array<{ count: number }>)[0]?.count || 0;
+    
     return {
-      totalSubscriptions: parseInt(counts.total),
-      activeTrials: parseInt(counts.active_trials),
-      activePremium: parseInt(counts.active_premium),
-      activePro: parseInt(counts.active_pro),
-      canceledSubscriptions: parseInt(counts.canceled),
-      expiredTrials: parseInt(counts.expired_trials),
+      totalSubscriptions: counts.total,
+      activeTrials: counts.active_trials,
+      activePremium: counts.active_premium,
+      activePro: counts.active_pro,
+      canceledSubscriptions: counts.canceled,
+      expiredTrials: counts.expired_trials,
       
       trialConversionRate: Math.round(conversionRate * 10) / 10,
       churnRate: Math.round(churnRate * 10) / 10,
@@ -109,12 +135,12 @@ export class SubscriptionMonitor {
       arr,
       arpu: Math.round(arpu * 100) / 100,
       
-      avgAgentsPerUser: Math.round(parseFloat(usage.avg_agents) * 10) / 10,
-      avgMessagesPerUser: Math.round(parseFloat(usage.avg_messages) * 10) / 10,
-      avgWorkflowsPerUser: Math.round(parseFloat(usage.avg_workflows) * 10) / 10,
-      avgStoragePerUser: Math.round(parseFloat(usage.avg_storage) * 100) / 100,
+      avgAgentsPerUser: Math.round(usage.avg_agents * 10) / 10,
+      avgMessagesPerUser: Math.round(usage.avg_messages * 10) / 10,
+      avgWorkflowsPerUser: Math.round(usage.avg_workflows * 10) / 10,
+      avgStoragePerUser: Math.round(usage.avg_storage * 100) / 100,
       
-      usersNearLimit: parseInt(nearLimit.rows[0]?.count || '0'),
+      usersNearLimit: nearLimitCount,
       webhookFailures: 0, // TODO: Track webhook failures
       paymentFailures: 0, // TODO: Track payment failures
     };
@@ -143,11 +169,16 @@ export class SubscriptionMonitor {
       ORDER BY s.trial_ends_at ASC
     `);
     
-    return results.rows.map((row: any) => ({
+    return (results as unknown as Array<{
+      user_id: string;
+      email: string;
+      expires_at: Date;
+      hours_left: number;
+    }>).map((row) => ({
       userId: row.user_id,
       email: row.email,
       expiresAt: new Date(row.expires_at),
-      hoursLeft: parseInt(row.hours_left),
+      hoursLeft: row.hours_left,
     }));
   }
   
@@ -161,13 +192,13 @@ export class SubscriptionMonitor {
     current: number;
     limit: number;
   }>> {
-    const [results] = await db.execute(sql`
+    const results = await db.execute(sql`
       SELECT 
         ut.user_id,
         u.email,
         ut.feature,
-        ut.count as current,
-        ut."limit"
+        ut.count::int as current,
+        ut."limit"::int as limit
       FROM usage_tracking ut
       JOIN users u ON ut.user_id = u.id
       WHERE ut.count >= ut."limit"
@@ -175,12 +206,18 @@ export class SubscriptionMonitor {
       ORDER BY ut.updated_at DESC
     `);
     
-    return results.rows.map((row: any) => ({
+    return (results as unknown as Array<{
+      user_id: string;
+      email: string;
+      feature: string;
+      current: number;
+      limit: number;
+    }>).map((row) => ({
       userId: row.user_id,
       email: row.email,
       feature: row.feature,
-      current: parseInt(row.current),
-      limit: parseInt(row.limit),
+      current: row.current,
+      limit: row.limit,
     }));
   }
   
@@ -193,7 +230,7 @@ export class SubscriptionMonitor {
     conversions: number;
     cancellations: number;
   }>> {
-    const [results] = await db.execute(sql`
+    const results = await db.execute(sql`
       WITH dates AS (
         SELECT generate_series(
           NOW() - INTERVAL '${days} days',
@@ -202,21 +239,26 @@ export class SubscriptionMonitor {
         )::date as date
       )
       SELECT 
-        d.date::text,
-        COUNT(CASE WHEN s.plan = 'trial' AND s.created_at::date = d.date THEN 1 END) as new_trials,
-        COUNT(CASE WHEN s.plan IN ('premium', 'pro') AND s.created_at::date = d.date THEN 1 END) as conversions,
-        COUNT(CASE WHEN s.canceled_at::date = d.date THEN 1 END) as cancellations
+        d.date::text as date,
+        COUNT(CASE WHEN s.plan = 'trial' AND s.created_at::date = d.date THEN 1 END)::int as new_trials,
+        COUNT(CASE WHEN s.plan IN ('premium', 'pro') AND s.created_at::date = d.date THEN 1 END)::int as conversions,
+        COUNT(CASE WHEN s.canceled_at::date = d.date THEN 1 END)::int as cancellations
       FROM dates d
       LEFT JOIN subscriptions s ON s.created_at::date = d.date OR s.canceled_at::date = d.date
       GROUP BY d.date
       ORDER BY d.date DESC
     `);
     
-    return results.rows.map((row: any) => ({
+    return (results as unknown as Array<{
+      date: string;
+      new_trials: number;
+      conversions: number;
+      cancellations: number;
+    }>).map((row) => ({
       date: row.date,
-      newTrials: parseInt(row.new_trials),
-      conversions: parseInt(row.conversions),
-      cancellations: parseInt(row.cancellations),
+      newTrials: row.new_trials,
+      conversions: row.conversions,
+      cancellations: row.cancellations,
     }));
   }
   

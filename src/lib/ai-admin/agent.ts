@@ -38,7 +38,7 @@ export interface PatchRecord {
 }
 
 interface CodebaseAnalysis {
-  structure: Record<string, any>;
+  structure: Record<string, unknown>;
   dependencies: string[];
   frameworks: string[];
   patterns: string[];
@@ -152,8 +152,8 @@ export class AIAdminAgent {
     }
   }
 
-  private async analyzeDirectory(dirPath: string): Promise<Record<string, any>> {
-    const structure: Record<string, any> = {};
+  private async analyzeDirectory(dirPath: string): Promise<Record<string, unknown>> {
+    const structure: Record<string, unknown> = {};
 
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true });
@@ -399,7 +399,17 @@ Remember: Be action-oriented, make reasonable assumptions, and only ask question
         const existingPaths = new Set(context.files.map(f => f.path));
         for (const file of gatheredContext.files) {
           if (!existingPaths.has(file.path)) {
-            context.files.push(file);
+            const ext = file.path.split('.').pop() || '';
+            const languageMap: Record<string, string> = {
+              'ts': 'typescript', 'tsx': 'tsx', 'js': 'javascript', 'jsx': 'jsx',
+              'json': 'json', 'css': 'css', 'md': 'markdown', 'py': 'python',
+            };
+            context.files.push({
+              path: file.path,
+              content: file.content,
+              reason: 'Gathered from repository',
+              language: languageMap[ext.toLowerCase()] || ext,
+            });
           }
         }
         await this.log(`Enhanced context: ${context.files.length} total files after merging`);
@@ -1028,7 +1038,7 @@ Remember: Be action-oriented, make reasonable assumptions, and only ask question
         throw new Error('GitHub service not initialized');
       }
 
-      const pr = await this.githubService.createPullRequest(title, head, base, body);
+      const pr = await this.githubService.createPullRequest(head, title, body || '');
       await this.log(`Created PR: ${title}`);
       return pr;
     } catch (error) {

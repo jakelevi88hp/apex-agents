@@ -14,7 +14,7 @@ export interface AgentConfig {
   maxIterations?: number;
   tools: string[];
   capabilities: string[];
-  constraints?: Record<string, any>;
+  constraints?: Record<string, unknown>;
 }
 
 export type AgentType = 
@@ -33,7 +33,7 @@ export interface AgentExecution {
   objective: string;
   plan: TaskPlan;
   status: 'running' | 'completed' | 'failed';
-  result?: any;
+  result?: unknown;
   error?: string;
   startedAt: Date;
   completedAt?: Date;
@@ -50,9 +50,9 @@ export abstract class BaseAgent {
     this.memory = new MemorySystem();
   }
 
-  abstract execute(objective: string, context?: Record<string, any>): Promise<any>;
+  abstract execute(objective: string, context?: Record<string, unknown>): Promise<unknown>;
 
-  protected async createPlan(objective: string, context?: Record<string, any>): Promise<TaskPlan> {
+  protected async createPlan(objective: string, context?: Record<string, unknown>): Promise<TaskPlan> {
     return await taskPlanner.createPlan(objective, context);
   }
 

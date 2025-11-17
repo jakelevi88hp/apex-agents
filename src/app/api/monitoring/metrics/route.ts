@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     const [dbUser] = await db
       .select({ role: users.role })
       .from(users)
-      .where(eq(users.id, user.id))
+      .where(eq(users.id, user.userId))
       .limit(1);
 
     const isAdmin = dbUser?.role === 'admin' || dbUser?.role === 'owner';

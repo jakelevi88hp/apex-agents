@@ -115,8 +115,8 @@ async function testAIAdmin() {
 
     // Display patch history
     console.log('📝 Patch History:');
-    const history = agent.getPatchHistory();
-    history.forEach((p, i) => {
+    const history = await agent.getPatchHistory();
+    history.forEach((p: any, i: number) => {
       console.log(`${i + 1}. ${p.id} - ${p.status} - ${p.files.length} files`);
     });
 

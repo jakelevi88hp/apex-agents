@@ -1,4 +1,11 @@
-export default function AgentCardSkeleton() {
+import React, { memo } from 'react';
+
+/**
+ * Agent Card Skeleton Component
+ * 
+ * Memoized to prevent unnecessary re-renders in lists.
+ */
+const AgentCardSkeleton = memo(function AgentCardSkeleton() {
   return (
     <div className="bg-gray-800 p-6 rounded-lg shadow-lg border-2 border-gray-700 animate-pulse">
       <div className="flex items-start justify-between mb-4">
@@ -23,4 +30,8 @@ export default function AgentCardSkeleton() {
       </div>
     </div>
   );
-}
+});
+
+AgentCardSkeleton.displayName = 'AgentCardSkeleton';
+
+export default AgentCardSkeleton;

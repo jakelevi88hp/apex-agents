@@ -1,12 +1,12 @@
 import 'server-only';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
 import * as schema from './schema';
 
 // Lazy database connection - only initialize when actually used
-let _db: ReturnType<typeof drizzle> | null = null;
+let _db: NeonHttpDatabase<typeof schema> | null = null;
 
-function initDb() {
+function initDb(): NeonHttpDatabase<typeof schema> {
   if (_db) return _db;
   
   if (!process.env.DATABASE_URL) {
@@ -21,16 +21,17 @@ function initDb() {
   return _db;
 }
 
-// Export lazy-initialized database instance
-export const db = new Proxy({} as ReturnType<typeof drizzle>, {
-  get(target, prop) {
+// Export lazy-initialized database instance with proper typing
+export const db = new Proxy({} as NeonHttpDatabase<typeof schema>, {
+  get(_target, prop) {
     const instance = initDb();
-    return (instance as any)[prop];
+    // Type-safe proxy access
+    return (instance as Record<string | symbol, unknown>)[prop];
   }
-});
+}) as NeonHttpDatabase<typeof schema>;
 
 // Helper function to get database instance
-export async function getDb() {
+export function getDb(): NeonHttpDatabase<typeof schema> {
   return initDb();
 }
 

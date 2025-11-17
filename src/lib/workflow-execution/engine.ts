@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { workflows, executions, executionSteps } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { executeAgent } from '../agent-execution/executor';
 
 interface WorkflowExecutionConfig {
@@ -16,9 +16,7 @@ export async function executeWorkflow(config: WorkflowExecutionConfig) {
   
   try {
     // Fetch workflow configuration
-    const workflow = await db.query.workflows.findFirst({
-      where: eq(workflows.id, config.workflowId),
-    });
+    const [workflow] = await db.select().from(workflows).where(eq(workflows.id, config.workflowId)).limit(1);
 
     if (!workflow) {
       throw new Error(`Workflow not found: ${config.workflowId}`);
@@ -154,10 +152,9 @@ function evaluateCondition(condition: string, data: any): boolean {
 }
 
 export async function getWorkflowExecutions(workflowId: string, limit: number = 10) {
-  return await db.query.executions.findMany({
-    where: eq(executions.workflowId, workflowId),
-    orderBy: (executions, { desc }) => [desc(executions.startedAt)],
-    limit,
-  });
+  return await db.select().from(executions)
+    .where(eq(executions.workflowId, workflowId))
+    .orderBy(desc(executions.startedAt))
+    .limit(limit);
 }
 

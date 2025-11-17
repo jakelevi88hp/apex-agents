@@ -3,6 +3,7 @@ import { relations } from 'drizzle-orm';
 
 // Export subscription tables
 export * from './schema/subscriptions';
+import { subscriptions } from './schema/subscriptions';
 
 // Export AI patches tables
 export * from './schema/ai-patches';
@@ -178,41 +179,7 @@ export const knowledgeBase = pgTable('knowledge_base', {
   embeddingIdx: index('knowledge_embedding_idx').on(table.embeddingId),
 }));
 
-export const documents = pgTable('documents', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  organizationId: uuid('organization_id').references(() => organizations.id),
-  name: text('name').notNull(),
-  mimeType: varchar('mime_type', { length: 100 }).notNull(),
-  size: integer('size').notNull(), // in bytes
-  source: text('source').notNull(), // S3 URL or file path
-  status: varchar('status', { length: 20 }).default('processing').notNull(), // processing, ready, failed
-  summary: text('summary'),
-  tags: jsonb('tags'),
-  folder: varchar('folder', { length: 255 }),
-  metadata: jsonb('metadata'),
-  embeddingStatus: varchar('embedding_status', { length: 20 }).default('pending'), // pending, processing, completed, failed
-  chunkCount: integer('chunk_count').default(0),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-}, (table) => ({
-  userIdx: index('documents_user_idx').on(table.userId),
-  statusIdx: index('documents_status_idx').on(table.status),
-  folderIdx: index('documents_folder_idx').on(table.folder),
-}));
-
-export const documentChunks = pgTable('document_chunks', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  documentId: uuid('document_id').references(() => documents.id, { onDelete: 'cascade' }).notNull(),
-  chunkIndex: integer('chunk_index').notNull(),
-  text: text('text').notNull(),
-  embedding: text('embedding'), // JSON string of vector embedding
-  metadata: jsonb('metadata'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-}, (table) => ({
-  documentIdx: index('document_chunks_document_idx').on(table.documentId),
-  chunkIdx: index('document_chunks_chunk_idx').on(table.documentId, table.chunkIndex),
-}));
+// Documents schema moved to ./schema/documents.ts
 
 export const dataConnectors = pgTable('data_connectors', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -369,6 +336,33 @@ export const alerts = pgTable('alerts', {
 });
 
 // ============================================================================
+// USER SUGGESTIONS & IDEAS
+// ============================================================================
+
+export const userSuggestions = pgTable('user_suggestions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  suggestionType: varchar('suggestion_type', { length: 50 }).default('idea').notNull(),
+  source: varchar('source', { length: 50 }).default('system').notNull(),
+  confidence: decimal('confidence', { precision: 4, scale: 2 }).default('0.70').notNull(),
+  impactScore: decimal('impact_score', { precision: 4, scale: 2 }).default('0.50').notNull(),
+  metadata: jsonb('metadata'),
+  status: varchar('status', { length: 20 }).default('new').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  resolvedAt: timestamp('resolved_at'),
+}, (table) => ({
+  userIdx: index('user_suggestions_user_idx').on(table.userId),
+  statusIdx: index('user_suggestions_status_idx').on(table.status),
+  typeIdx: index('user_suggestions_type_idx').on(table.suggestionType),
+}));
+
+export type UserSuggestion = typeof userSuggestions.$inferSelect;
+export type NewUserSuggestion = typeof userSuggestions.$inferInsert;
+
+// ============================================================================
 // USER SETTINGS & API KEYS
 // ============================================================================
 
@@ -420,19 +414,7 @@ export const teamMembers = pgTable('team_members', {
 // ============================================================================
 // SUBSCRIPTIONS & BILLING
 // ============================================================================
-
-export const subscriptions = pgTable('subscriptions', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  stripeSubscriptionId: varchar('stripe_subscription_id', { length: 255 }).unique(),
-  stripePriceId: varchar('stripe_price_id', { length: 255 }),
-  status: varchar('status', { length: 20 }).notNull(),
-  currentPeriodStart: timestamp('current_period_start'),
-  currentPeriodEnd: timestamp('current_period_end'),
-  cancelAtPeriodEnd: boolean('cancel_at_period_end').default(false).notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+// Note: subscriptions table is exported from ./schema/subscriptions.ts
 
 // ============================================================================
 // RELATIONS
@@ -447,6 +429,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   workflows: many(workflows),
   executions: many(executions),
   knowledgeBase: many(knowledgeBase),
+  suggestions: many(userSuggestions),
   subscriptions: many(subscriptions),
 }));
 
@@ -483,5 +466,12 @@ export const executionsRelations = relations(executions, ({ one, many }) => ({
   }),
   steps: many(executionSteps),
   verifications: many(verifications),
+}));
+
+export const userSuggestionsRelations = relations(userSuggestions, ({ one }) => ({
+  user: one(users, {
+    fields: [userSuggestions.userId],
+    references: [users.id],
+  }),
 }));
 

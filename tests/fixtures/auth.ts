@@ -5,7 +5,7 @@ type AuthFixtures = {
 };
 
 export const test = base.extend<AuthFixtures>({
-  authenticatedPage: async ({ page }, use) => {
+  authenticatedPage: async ({ page }: { page: any }, use: (page: any) => Promise<void>) => {
     // Navigate to login page
     await page.goto('/auth/login');
     

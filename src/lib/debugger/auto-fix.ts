@@ -45,13 +45,14 @@ export class AutoFixService {
       }
 
       // Store the fix
+      // result is a PatchRecord, which has patch (string) and files (string[])
       const autoFix: AutoFix = {
         id: crypto.randomUUID(),
         errorId: error.id,
         fixType: error.category,
-        description: result.description || 'Auto-generated fix',
-        codeChanges: result.patch,
-        filePath: result.files?.[0],
+        description: result.request || 'Auto-generated fix',
+        codeChanges: result.patch || '',
+        filePath: result.files?.[0] || '',
         applied: false,
         rollbackAvailable: true,
       };

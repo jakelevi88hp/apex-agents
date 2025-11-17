@@ -389,23 +389,25 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div>
-                <h3 className="text-lg font-bold text-white mb-4">Payment Method</h3>
-                <div className="p-4 border border-gray-700 rounded-lg flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-8 bg-gray-700 rounded flex items-center justify-center text-xs text-white uppercase">
-                      {billingInfo.paymentMethod.brand}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-white">•••• {billingInfo.paymentMethod.last4}</div>
-                      <div className="text-sm text-gray-400">
-                        Expires {billingInfo.paymentMethod.expiryMonth}/{billingInfo.paymentMethod.expiryYear}
+              {billingInfo.paymentMethod && (
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-4">Payment Method</h3>
+                  <div className="p-4 border border-gray-700 rounded-lg flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-8 bg-gray-700 rounded flex items-center justify-center text-xs text-white uppercase">
+                        {billingInfo.paymentMethod.brand}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-white">•••• {billingInfo.paymentMethod.last4}</div>
+                        <div className="text-sm text-gray-400">
+                          Expires {billingInfo.paymentMethod.expiryMonth}/{billingInfo.paymentMethod.expiryYear}
+                        </div>
                       </div>
                     </div>
+                    <button className="text-purple-400 hover:text-purple-300">Update</button>
                   </div>
-                  <button className="text-purple-400 hover:text-purple-300">Update</button>
                 </div>
-              </div>
+              )}
             </div>
           )}
 

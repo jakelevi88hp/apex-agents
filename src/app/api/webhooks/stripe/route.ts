@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe/stripe';
-import { db } from '@/server/db';
+import { db } from '@/lib/db';
 import { subscriptions } from '@/lib/db/schema/subscriptions';
 import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
@@ -79,14 +79,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
     
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Webhook error:', error);
     const processingTime = Date.now() - startTime;
     await WebhookMonitor.logEvent(
       event?.type || 'unknown',
       'failed',
       processingTime,
-      error.message
+      message
     );
     return NextResponse.json(
       { error: 'Webhook handler failed' },
@@ -106,7 +107,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // Get the subscription from Stripe
   const subscriptionId = session.subscription as string;
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const subscription: Stripe.Subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
   // Determine tier based on price
   const priceId = subscription.items.data[0].price.id;
@@ -135,13 +136,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         stripeSubscriptionId: subscriptionId,
         stripeCustomerId: customerId,
         stripePriceId: priceId,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        currentPeriodStart: new Date(((subscription as unknown as { current_period_start: number }).current_period_start) * 1000),
+        currentPeriodEnd: new Date(((subscription as unknown as { current_period_end: number }).current_period_end) * 1000),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         updatedAt: new Date(),
       })
       .where(eq(subscriptions.userId, userId));
   } else {
+    const subWithPeriods = subscription as unknown as { current_period_start: number; current_period_end: number };
     await db.insert(subscriptions).values({
       userId,
       plan,
@@ -149,8 +151,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       stripeSubscriptionId: subscriptionId,
       stripeCustomerId: customerId,
       stripePriceId: priceId,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      currentPeriodStart: new Date(subWithPeriods.current_period_start * 1000),
+      currentPeriodEnd: new Date(subWithPeriods.current_period_end * 1000),
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
     });
   }
@@ -177,13 +179,14 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
                  subscription.status === 'canceled' ? 'canceled' : 
                  subscription.status === 'past_due' ? 'past_due' : 'active';
 
+  const subWithPeriods = subscription as unknown as { current_period_start: number; current_period_end: number };
   await db
     .update(subscriptions)
     .set({
       plan,
       status,
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      currentPeriodStart: new Date(subWithPeriods.current_period_start * 1000),
+      currentPeriodEnd: new Date(subWithPeriods.current_period_end * 1000),
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
       updatedAt: new Date(),
     })
@@ -214,7 +217,10 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
   const customerId = invoice.customer as string;
-  const subscriptionId = invoice.subscription as string;
+  const invoiceWithSubscription = invoice as Stripe.Invoice & { subscription?: string | Stripe.Subscription | null };
+  const subscriptionId = typeof invoiceWithSubscription.subscription === 'string' 
+    ? invoiceWithSubscription.subscription 
+    : invoiceWithSubscription.subscription?.id || null;
 
   if (!subscriptionId) {
     return;
@@ -233,7 +239,10 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
-  const subscriptionId = invoice.subscription as string;
+  const invoiceWithSubscription = invoice as Stripe.Invoice & { subscription?: string | Stripe.Subscription | null };
+  const subscriptionId = typeof invoiceWithSubscription.subscription === 'string' 
+    ? invoiceWithSubscription.subscription 
+    : invoiceWithSubscription.subscription?.id || null;
 
   if (!subscriptionId) {
     return;

@@ -90,7 +90,7 @@ export async function generatePatchFromPlainLanguage(
     const enhancedRequest = `${interpreted.expandedDescription}
 
 SPECIFIC ACTIONS TO TAKE:
-${interpreted.suggestedActions.map((a, i) => `${i + 1}. ${a}`).join('\n')}
+${interpreted.suggestedActions.map((a: string, i: number) => `${i + 1}. ${a}`).join('\n')}
 
 SUGGESTED FILES TO MODIFY:
 ${interpreted.suggestedFiles.join('\n')}
