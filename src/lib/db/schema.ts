@@ -17,6 +17,9 @@ export * from './schema/agi-memory';
 // Export documents tables
 export * from './schema/documents';
 
+// Export Pieces features tables
+export * from './schema/pieces-features';
+
 // ============================================================================
 // USERS & AUTHENTICATION
 // ============================================================================
