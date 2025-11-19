@@ -14,8 +14,8 @@ export * from './schema/ai-conversations';
 // Export AGI memory tables
 export * from './schema/agi-memory';
 
-// Export documents tables
-export * from './schema/documents';
+// Export Idea generation tables
+export * from './schema/ideas';
 
 // Export Pieces features tables
 export * from './schema/pieces-features';

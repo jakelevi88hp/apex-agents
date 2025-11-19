@@ -15,6 +15,7 @@ import {
   Settings,
   Brain,
   Wrench,
+  Lightbulb,
   LogOut,
   User,
   ChevronLeft,
@@ -72,13 +73,20 @@ export default function Sidebar() {
   ];
 
   const specializedItems = [
+    { href: '/dashboard/ideas', icon: Lightbulb, label: 'Ideas' },
     { href: '/dashboard/agi', icon: Brain, label: 'AGI' },
     ...(isAdmin ? [{ href: '/dashboard/ai-admin', icon: Wrench, label: 'AI Admin' }] : []),
   ];
 
   const isActive = (href: string) => pathname === href;
 
-  const NavLink = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
+  type NavItem = {
+    href: string;
+    icon: typeof Bot;
+    label: string;
+  };
+
+  const NavLink = ({ href, icon: Icon, label }: NavItem) => {
     const active = isActive(href);
     return (
       <Link
