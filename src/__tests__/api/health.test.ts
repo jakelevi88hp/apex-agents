@@ -5,34 +5,39 @@
  */
 
 import { GET } from '@/app/api/health/route';
-import { NextRequest } from 'next/server';
 
 // Mock database
-jest.mock('@/lib/db', () => ({
-  db: {
-    select: jest.fn(),
-  },
-}));
+jest.mock('@/lib/db', () => {
+  const executeMock = jest.fn().mockResolvedValue([{ result: 1 }]);
+  return {
+    __esModule: true,
+    db: {
+      execute: executeMock,
+    },
+    executeMock,
+  };
+});
+
+const { executeMock } = require('@/lib/db');
 
 describe('Health Check API', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    executeMock.mockResolvedValue([{ result: 1 }]);
   });
 
   it('should return 200 when system is healthy', async () => {
-    const request = new NextRequest('http://localhost:3000/api/health');
-    const response = await GET(request);
-    
-    expect(response.status).toBe(200);
+    const response = await GET();
     const data = await response.json();
-    expect(data.status).toBe('ok');
+
+    expect(response.status).toBe(200);
+    expect(data.status).toBe('healthy');
   });
 
   it('should include timestamp in response', async () => {
-    const request = new NextRequest('http://localhost:3000/api/health');
-    const response = await GET(request);
+    const response = await GET();
     const data = await response.json();
-    
+
     expect(data.timestamp).toBeDefined();
     expect(new Date(data.timestamp).getTime()).toBeGreaterThan(0);
   });
