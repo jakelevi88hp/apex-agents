@@ -20,7 +20,7 @@ Apex Agents is a multi-tenant AI agent management platform built on Next.js 14 (
 | AGI Console | Conversational UI, enhanced reasoning, episodic memory | `src/lib/agi/enhanced-core`, `app/api/agi/process` |
 | Knowledge Base | Secure upload, chunking, semantic search | `app/api/documents/*`, `src/lib/document-processor`, `src/lib/pinecone-service` |
 | AI Admin & Debugger | SSE streaming assistant, patch generator, runtime health monitor | `app/api/ai-admin/stream`, `app/api/debugger`, `src/lib/ai-admin/*`, `src/lib/debugger/*` |
-| Voice Commands | Whisper transcription + command execution bridge | `app/api/voice`, `src/components/VoiceCommandPanel` |
+| Voice Commands | Whisper transcription + command execution bridge + OpenAI TTS replies | `app/api/voice`, `src/components/VoiceCommandPanel` |
 | Subscriptions & Monitoring | Stripe checkout, webhook ingest, usage meters, upgrade workflows | `app/api/webhooks/stripe`, `src/lib/subscription/*`, `app/api/monitoring/metrics` |
 
 ## 3. Functional Requirements
@@ -43,6 +43,7 @@ Apex Agents is a multi-tenant AI agent management platform built on Next.js 14 (
    - AI Admin SSE endpoint streams either conversational chunks or patch metadata and writes history.
 6. **Voice Interface**
    - Accepts audio form-data, transcribes with Whisper, turns NL into structured commands, and executes metrics queries or agent runs.
+   - Generates conversational summaries and synthesizes speech so the app can respond verbally.
 7. **Monitoring & Billing**
    - `/api/monitoring/metrics` exposes subscription health (GET JSON/POST text report).
    - Stripe webhook keeps `subscriptions` table in sync with checkout, payment, and lifecycle events.

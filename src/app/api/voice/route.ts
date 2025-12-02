@@ -30,6 +30,17 @@ function getOpenAI(): OpenAI {
   return cachedOpenAI;
 }
 
+interface VoiceAudioPayload {
+  /**
+   * Base64 encoded binary audio suitable for data URLs.
+   */
+  audioBase64: string;
+  /**
+   * Reported MIME type so the client can choose the correct player.
+   */
+  mimeType: string;
+}
+
 const commandSchema = z.object({
   action: z.enum(['respond', 'get_dashboard_metrics', 'run_agent']),
   summary: z.string(),
@@ -245,6 +256,82 @@ async function executeCommand(
 }
 
 /**
+ * Generate a conversational reply describing what happened so it can be spoken back to the user.
+ *
+ * @param {string} transcript - The raw user request captured from speech.
+ * @param {z.infer<typeof commandSchema>} command - The structured interpretation of the request.
+ * @param {Record<string, unknown>} executionResult - The data returned after executing the command.
+ * @returns {Promise<string>} A concise natural language response.
+ */
+async function craftVoiceReply(
+  transcript: string,
+  command: z.infer<typeof commandSchema>,
+  executionResult: Record<string, unknown>,
+): Promise<string> {
+  const openai = getOpenAI();
+  const condensedResult = (() => {
+    try {
+      return JSON.stringify(executionResult);
+    } catch {
+      return 'Unable to serialize execution result';
+    }
+  })().slice(0, 3000);
+
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    temperature: 0.5,
+    messages: [
+      {
+        role: 'system',
+        content:
+          'You are the friendly voice of Apex Agents. Summarize results clearly in under 80 words. ' +
+          'Reference concrete numbers when available and invite the user to continue the dialogue.',
+      },
+      {
+        role: 'user',
+        content: [
+          `User request: ${transcript}`,
+          `Command summary: ${command.summary}`,
+          `Action: ${command.action}`,
+          `Execution result JSON: ${condensedResult}`,
+        ].join('\n'),
+      },
+    ],
+  });
+
+  const reply = completion.choices[0]?.message?.content?.trim();
+
+  if (!reply) {
+    throw new Error('Voice reply was empty');
+  }
+
+  return reply;
+}
+
+/**
+ * Convert a text reply into playable speech audio through OpenAI TTS.
+ *
+ * @param {string} responseText - The message that should be spoken to the user.
+ * @returns {Promise<VoiceAudioPayload>} Base64 audio data and MIME metadata.
+ */
+async function synthesizeVoiceAudio(responseText: string): Promise<VoiceAudioPayload> {
+  const openai = getOpenAI();
+  const speech = await openai.audio.speech.create({
+    model: 'gpt-4o-mini-tts',
+    voice: 'alloy',
+    input: responseText,
+    format: 'mp3',
+  });
+
+  const audioBuffer = Buffer.from(await speech.arrayBuffer());
+
+  return {
+    audioBase64: audioBuffer.toString('base64'),
+    mimeType: 'audio/mpeg',
+  };
+}
+
+/**
  * Handle POST requests to the voice command endpoint.
  *
  * @param {NextRequest} request - The incoming HTTP request.
@@ -280,12 +367,28 @@ export async function POST(request: NextRequest) {
     const command = await interpretCommand(transcript);
     // Execute the requested action and gather the result payload.
     const executionResult = await executeCommand(command, user.userId);
+    let voicePayload: { text: string; audioBase64: string; mimeType: string } | null = null;
+
+    try {
+      // Summarize the results using a conversational tone.
+      const spokenText = await craftVoiceReply(transcript, command, executionResult);
+      // Synthesize speech audio so the client can play it back to the user.
+      const audioData = await synthesizeVoiceAudio(spokenText);
+      voicePayload = {
+        text: spokenText,
+        audioBase64: audioData.audioBase64,
+        mimeType: audioData.mimeType,
+      };
+    } catch (voiceError) {
+      console.warn('[Voice Command] Unable to generate voice response:', voiceError);
+    }
 
     return NextResponse.json({
       success: true,
       transcript,
       command,
       result: executionResult,
+      voice: voicePayload,
     });
   } catch (error) {
     console.error('[Voice Command] Error:', error);
