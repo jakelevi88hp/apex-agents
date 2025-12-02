@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Mic, Square, Loader2, Sparkles } from 'lucide-react';
 
 /**
@@ -26,6 +26,21 @@ interface VoiceCommandResponse {
   command: ParsedCommand;
   result: Record<string, unknown>;
   error?: string;
+  voice?:
+    | {
+        text: string;
+        audioBase64: string;
+        mimeType: string;
+      }
+    | null;
+}
+
+/**
+ * Represents the synthesized audio returned from the server ready for playback.
+ */
+interface VoicePlaybackState {
+  text: string;
+  audioUrl: string;
 }
 
 /**
@@ -46,11 +61,34 @@ export function VoiceCommandPanel(): JSX.Element {
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
   // Capture friendly error messages for display.
   const [error, setError] = useState<string | null>(null);
+  // Track the synthesized audio clip so the user can hear the agent speak.
+  const [voiceResponse, setVoiceResponse] = useState<VoicePlaybackState | null>(null);
 
   // Hold onto the MediaRecorder instance so we can stop it later.
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   // Accumulate audio data chunks emitted by the recorder.
   const audioChunksRef = useRef<Blob[]>([]);
+  // Reference to the HTMLAudioElement so we can trigger playback programmatically.
+  const audioElementRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // Attempt to auto-play the new voice response once it becomes available.
+    async function autoPlayVoice(): Promise<void> {
+      if (!voiceResponse || !audioElementRef.current) {
+        return;
+      }
+
+      try {
+        audioElementRef.current.currentTime = 0;
+        await audioElementRef.current.play();
+      } catch (playbackError) {
+        // Autoplay may be blocked by the browser; surface a console warning instead.
+        console.warn('[VoiceCommandPanel] Autoplay prevented:', playbackError);
+      }
+    }
+
+    void autoPlayVoice();
+  }, [voiceResponse]);
 
   /**
    * Handle unexpected failures by logging them and showing a readable message.
@@ -81,6 +119,7 @@ export function VoiceCommandPanel(): JSX.Element {
     setCommand(null);
     setResult(null);
     setError(null);
+    setVoiceResponse(null);
 
     try {
       // Wrap the Blob in a File so FormData sends a meaningful filename and MIME type.
@@ -118,6 +157,15 @@ export function VoiceCommandPanel(): JSX.Element {
       setCommand(payload.command);
       // Keep the execution result for display (metrics, agent output, etc.).
       setResult(payload.result);
+      // Build an object URL for the synthesized speech so it can be replayed.
+      const nextVoiceResponse =
+        payload.voice && payload.voice.audioBase64 && payload.voice.mimeType
+          ? {
+              text: payload.voice.text,
+              audioUrl: `data:${payload.voice.mimeType};base64,${payload.voice.audioBase64}`,
+            }
+          : null;
+      setVoiceResponse(nextVoiceResponse);
     } catch (caughtError) {
       // Handle any network, parsing, or server errors gracefully.
       handleError(caughtError);
@@ -165,6 +213,7 @@ export function VoiceCommandPanel(): JSX.Element {
       setTranscript(null);
       setCommand(null);
       setResult(null);
+      setVoiceResponse(null);
     } catch (caughtError) {
       // Propagate permission or hardware issues to the UI.
       handleError(caughtError);
@@ -299,6 +348,33 @@ export function VoiceCommandPanel(): JSX.Element {
         ) : (
           <p className="text-sm text-gray-500">
             Execution results will appear once a voice command has been processed.
+          </p>
+        )}
+      </div>
+
+      <div className="mt-4 rounded-md border border-gray-700 bg-gray-800/70 p-4">
+        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-purple-300">
+          <Sparkles className="h-4 w-4" />
+          Voice Reply
+        </h3>
+        {voiceResponse ? (
+          <div className="space-y-3 text-sm text-gray-300">
+            <p>{voiceResponse.text}</p>
+            <audio
+              ref={audioElementRef}
+              src={voiceResponse.audioUrl}
+              controls
+              className="w-full"
+            >
+              Your browser does not support the audio element.
+            </audio>
+            <p className="text-xs text-gray-500">
+              Tap play if the browser blocks automatic playback.
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">
+            Once a command finishes, Apex Agents will speak this summary back to you.
           </p>
         )}
       </div>
