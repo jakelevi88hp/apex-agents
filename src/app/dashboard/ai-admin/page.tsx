@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc/client";
-import { Loader2, Send, Code, History, CheckCircle, XCircle, AlertCircle, RefreshCw, RotateCcw } from "lucide-react";
+import { Loader2, Send, Code, History, CheckCircle, XCircle, AlertCircle, RefreshCw, RotateCcw, Mic, Volume2 } from "lucide-react";
+import { AIAdminVoiceInput } from "@/components/AIAdminVoiceInput";
+import { AIAdminVoiceOutput } from "@/components/AIAdminVoiceOutput";
+import { useSpeechRecognitionAdmin } from "@/hooks/useSpeechRecognitionAdmin";
+import { useVoiceAdminStore } from "@/lib/stores/voiceAdminStore";
 
 interface Message {
   role: "user" | "assistant" | "system";
@@ -50,6 +54,10 @@ export default function AIAdminPage() {
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const isInitialScrollRef = useRef(true);
   const [activeTab, setActiveTab] = useState<"chat" | "patches" | "analysis">("chat");
+  
+  // Voice state and hooks
+  const { voiceMode, setVoiceMode, transcript, clearTranscript } = useVoiceAdminStore();
+  const { isRecording } = useSpeechRecognitionAdmin();
 
   // tRPC mutations and queries
   const generatePatchMutation = trpc.aiAdmin.generatePatch.useMutation();
@@ -166,6 +174,18 @@ export default function AIAdminPage() {
         return null;
     }
   };
+
+  // Auto-submit voice input when recording stops
+  useEffect(() => {
+    if (voiceMode && transcript && !isRecording) {
+      setInput(transcript);
+      const timer = setTimeout(() => {
+        handleSendMessage();
+        clearTranscript();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isRecording, voiceMode, transcript, clearTranscript]);
 
   useEffect(() => {
     // Ensure the scroll container is available before attempting to scroll
@@ -292,6 +312,32 @@ export default function AIAdminPage() {
               )}
             </div>
 
+            {/* Voice Mode Toggle */}
+            <div className="mb-4 flex items-center gap-2">
+              <button
+                onClick={() => setVoiceMode(!voiceMode)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors ${
+                  voiceMode
+                    ? "bg-blue-500 text-white hover:bg-blue-600"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                <Mic className="h-4 w-4" />
+                {voiceMode ? "Voice Mode" : "Text Mode"}
+              </button>
+              {voiceMode && (
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {isRecording ? "🎤 Listening..." : "Click microphone to start speaking"}
+                </span>
+              )}
+            </div>
+
+            {/* Voice Input */}
+            {voiceMode && (
+              <div className="mb-4">
+                <AIAdminVoiceInput />
+              </div>
+            )}
             {/* Input */}
             <div className="flex gap-2">
               <input
