@@ -5,7 +5,6 @@ import { trpc } from "@/lib/trpc/client";
 import { Loader2, Send, Code, History, CheckCircle, XCircle, AlertCircle, RefreshCw, RotateCcw, Mic, Volume2 } from "lucide-react";
 import { AIAdminVoiceInput } from "@/components/AIAdminVoiceInput";
 import { AIAdminVoiceOutput } from "@/components/AIAdminVoiceOutput";
-import { useSpeechRecognitionAdmin } from "@/hooks/useSpeechRecognitionAdmin";
 import { useVoiceAdminStore } from "@/lib/stores/voiceAdminStore";
 
 interface Message {
@@ -56,8 +55,7 @@ export default function AIAdminPage() {
   const [activeTab, setActiveTab] = useState<"chat" | "patches" | "analysis">("chat");
   
   // Voice state and hooks
-  const { voiceMode, setVoiceMode, transcript, clearTranscript } = useVoiceAdminStore();
-  const { isRecording } = useSpeechRecognitionAdmin();
+  const { voiceMode, setVoiceMode, transcript, clearTranscript, isRecording } = useVoiceAdminStore();
 
   // tRPC mutations and queries
   const generatePatchMutation = trpc.aiAdmin.generatePatch.useMutation();
