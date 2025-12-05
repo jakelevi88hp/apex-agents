@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useErrorStore } from '@/lib/stores/errorStore';
+import { createAppError, ErrorType } from '@/lib/errorHandler';
 import type { agents, executions } from '@/lib/db/schema';
 import {
   ArrowLeft,
@@ -44,6 +46,9 @@ export default function AgentDetailPage() {
   const { data: executions } = trpc.execution.getByAgent.useQuery({ agentId }, { enabled: !!agentId });
   const { data: analytics } = trpc.analytics.getAgentAnalytics.useQuery({ agentId }, { enabled: !!agentId });
 
+  // Error handling
+  const { addError } = useErrorStore();
+
   // Mutations
   const updateAgent = trpc.agents.update.useMutation({
     onSuccess: () => {
@@ -51,11 +56,37 @@ export default function AgentDetailPage() {
       setIsEditing(false);
       setEditedConfig(null);
     },
+    onError: (error) => {
+      const appError = createAppError(
+        ErrorType.CLIENT_ERROR,
+        `Failed to update agent: ${error.message}`,
+        {
+          originalError: new Error(error.message),
+          context: { agentId, operation: 'update' },
+          recoverable: true,
+          retryable: true,
+        }
+      );
+      addError(appError);
+    },
   });
 
   const deleteAgent = trpc.agents.delete.useMutation({
     onSuccess: () => {
       router.push('/dashboard/agents');
+    },
+    onError: (error) => {
+      const appError = createAppError(
+        ErrorType.CLIENT_ERROR,
+        `Failed to delete agent: ${error.message}`,
+        {
+          originalError: new Error(error.message),
+          context: { agentId, operation: 'delete' },
+          recoverable: true,
+          retryable: false,
+        }
+      );
+      addError(appError);
     },
   });
 
@@ -63,11 +94,37 @@ export default function AgentDetailPage() {
     onSuccess: () => {
       refetch();
     },
+    onError: (error) => {
+      const appError = createAppError(
+        ErrorType.CLIENT_ERROR,
+        `Failed to update agent status: ${error.message}`,
+        {
+          originalError: new Error(error.message),
+          context: { agentId, operation: 'toggleStatus' },
+          recoverable: true,
+          retryable: true,
+        }
+      );
+      addError(appError);
+    },
   });
 
   const duplicateAgent = trpc.agents.duplicate.useMutation({
     onSuccess: (newAgent) => {
       router.push(`/dashboard/agents/${newAgent.id}`);
+    },
+    onError: (error) => {
+      const appError = createAppError(
+        ErrorType.CLIENT_ERROR,
+        `Failed to duplicate agent: ${error.message}`,
+        {
+          originalError: new Error(error.message),
+          context: { agentId, operation: 'duplicate' },
+          recoverable: true,
+          retryable: true,
+        }
+      );
+      addError(appError);
     },
   });
 

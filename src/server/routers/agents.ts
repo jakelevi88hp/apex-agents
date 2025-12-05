@@ -4,6 +4,7 @@ import { agents, executions } from '@/lib/db/schema';
 import { eq, desc, inArray } from 'drizzle-orm';
 import { AgentFactory, type AgentType } from '@/lib/ai/agents';
 import { checkUsageLimit } from '../middleware/subscription';
+import { TRPCError } from '@trpc/server';
 
 export const agentsRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -56,8 +57,28 @@ export const agentsRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.delete(agents).where(eq(agents.id, input.id));
-      return { success: true };
+      try {
+        // Verify agent exists and belongs to user
+        const [agent] = await ctx.db.select().from(agents).where(eq(agents.id, input.id));
+        
+        if (!agent) {
+          throw new Error('Agent not found');
+        }
+        
+        if (agent.userId !== ctx.userId) {
+          throw new Error('Unauthorized: You do not have permission to delete this agent');
+        }
+        
+        // Delete the agent
+        await ctx.db.delete(agents).where(eq(agents.id, input.id));
+        
+        console.log(`[Agent Delete] Successfully deleted agent ${input.id} for user ${ctx.userId}`);
+        
+        return { success: true };
+      } catch (error) {
+        console.error(`[Agent Delete Error] Failed to delete agent ${input.id}:`, error);
+        throw error;
+      }
     }),
 
   execute: protectedProcedure
