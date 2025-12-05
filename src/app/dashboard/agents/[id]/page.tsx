@@ -46,8 +46,7 @@ export default function AgentDetailPage() {
   const { data: executions } = trpc.execution.getByAgent.useQuery({ agentId }, { enabled: !!agentId });
   const { data: analytics } = trpc.analytics.getAgentAnalytics.useQuery({ agentId }, { enabled: !!agentId });
 
-  // Error handling
-  const { addError } = useErrorStore();
+  // Error handling removed - using alerts instead due to React hook issues
 
   // Mutations
   const updateAgent = trpc.agents.update.useMutation({
@@ -59,17 +58,7 @@ export default function AgentDetailPage() {
     },
     onError: (error) => {
       console.error('[Client] Agent update failed:', { error: error.message, agentId });
-      const appError = createAppError(
-        ErrorType.CLIENT_ERROR,
-        `Failed to update agent: ${error.message}`,
-        {
-          originalError: new Error(error.message),
-          context: { agentId, operation: 'update' },
-          recoverable: true,
-          retryable: true,
-        }
-      );
-      addError(appError);
+      alert(`Failed to update agent: ${error.message}`);
     },
   });
 
@@ -91,23 +80,11 @@ export default function AgentDetailPage() {
   const toggleStatus = trpc.agents.toggleStatus.useMutation({
     onSuccess: () => {
       console.log('[Client] Agent status toggle successful');
-      // Invalidate the agents list to reflect status change
-      utils.agents.list.invalidate();
       refetch();
     },
     onError: (error) => {
       console.error('[Client] Agent status toggle failed:', { error: error.message, agentId });
-      const appError = createAppError(
-        ErrorType.CLIENT_ERROR,
-        `Failed to update agent status: ${error.message}`,
-        {
-          originalError: new Error(error.message),
-          context: { agentId, operation: 'toggleStatus' },
-          recoverable: true,
-          retryable: true,
-        }
-      );
-      addError(appError);
+      alert(`Failed to update agent status: ${error.message}`);
     },
   });
 
@@ -118,17 +95,7 @@ export default function AgentDetailPage() {
     },
     onError: (error) => {
       console.error('[Client] Agent duplication failed:', { error: error.message, agentId });
-      const appError = createAppError(
-        ErrorType.CLIENT_ERROR,
-        `Failed to duplicate agent: ${error.message}`,
-        {
-          originalError: new Error(error.message),
-          context: { agentId, operation: 'duplicate' },
-          recoverable: true,
-          retryable: true,
-        }
-      );
-      addError(appError);
+      alert(`Failed to duplicate agent: ${error.message}`);
     },
   });
 
