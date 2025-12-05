@@ -40,6 +40,11 @@ const nextConfig = {
   },
 };
 
+// Suppress Sentry warnings
+if (!process.env.SENTRY_SUPPRESS_GLOBAL_ERROR_HANDLER_FILE_WARNING) {
+  process.env.SENTRY_SUPPRESS_GLOBAL_ERROR_HANDLER_FILE_WARNING = '1';
+}
+
 // Sentry configuration options
 const sentryWebpackPluginOptions = {
   // Suppresses source map uploading logs during build
