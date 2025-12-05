@@ -13,9 +13,9 @@ import type { PatchRecord } from './agent';
 
 export class PatchStorageService {
   /**
-   * Save a patch to the database
+   * Save a patch to the database with optional branch name
    */
-  async savePatch(userId: string, patch: PatchRecord): Promise<AIPatch> {
+  async savePatch(userId: string, patch: PatchRecord, branchName?: string): Promise<AIPatch> {
     try {
       console.log('[PatchStorage] Attempting to save patch for user:', userId);
       console.log('[PatchStorage] Patch data:', JSON.stringify(patch, null, 2));
@@ -40,6 +40,7 @@ export class PatchStorageService {
         testingSteps: patchData.testingSteps as any || null,
         risks: patchData.risks as any || null,
         status: 'pending',
+        branchName: branchName || null,
         metadata: {
           generatedAt: patch.timestamp instanceof Date ? patch.timestamp.toISOString() : patch.timestamp,
           originalId: patch.id, // Store original agent ID in metadata

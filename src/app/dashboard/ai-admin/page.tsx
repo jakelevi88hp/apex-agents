@@ -553,6 +553,11 @@ export default function AIAdminPage() {
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           Created: {timestamp instanceof Date ? timestamp.toLocaleString() : new Date(timestamp).toLocaleString()}
                         </p>
+                        {(patchRecord as any).branchName && (
+                          <p className="text-sm text-blue-600 dark:text-blue-400 font-mono">
+                            Branch: <code className="bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded">{(patchRecord as any).branchName}</code>
+                          </p>
+                        )}
                       </div>
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded ${

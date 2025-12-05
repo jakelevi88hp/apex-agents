@@ -16,6 +16,7 @@ export const aiPatches = pgTable('ai_patches', {
   testingSteps: jsonb('testing_steps'), // Array of testing steps
   risks: jsonb('risks'), // Array of potential risks
   status: text('status').notNull().default('pending'), // pending, applied, failed, rolled_back
+  branchName: text('branch_name'), // Git branch name for this patch
   appliedAt: timestamp('applied_at'), // When the patch was applied
   rolledBackAt: timestamp('rolled_back_at'), // When the patch was rolled back
   error: text('error'), // Error message if application failed

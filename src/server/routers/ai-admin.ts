@@ -233,9 +233,21 @@ export const aiAdminRouter = router({
         
         const patch = await agent.generatePatch(input.request, fileContextText);
         
+        // Create a git branch for this patch
+        let branchName: string | undefined;
+        try {
+          const { generateBranchName, createPatchBranch, pushBranch } = await import('@/lib/ai-admin/git-utils');
+          branchName = generateBranchName(patch.patch);
+          await createPatchBranch(branchName);
+          console.log('[generatePatch] Created git branch:', branchName);
+        } catch (error) {
+          console.warn('[generatePatch] Failed to create git branch:', error);
+          // Continue without branch creation - it's not critical
+        }
+        
         // Save patch to database for persistence across serverless instances
         console.log('[generatePatch] Original agent patch ID:', patch.id, 'Type:', typeof patch.id);
-        const savedPatch = await patchStorage.savePatch(ctx.userId, patch);
+        const savedPatch = await patchStorage.savePatch(ctx.userId, patch, branchName);
         console.log('[generatePatch] Saved patch to database with UUID:', savedPatch.id, 'Type:', typeof savedPatch.id);
         
         // Return the saved patch with database UUID, not the original agent patch
@@ -250,6 +262,7 @@ export const aiAdminRouter = router({
           risks: savedPatch.risks || [],
           generatedAt: savedPatch.createdAt ? savedPatch.createdAt.toISOString() : new Date().toISOString(), // Convert Date to ISO string with fallback
           status: savedPatch.status,
+          branchName: savedPatch.branchName || undefined,
         };
         console.log('[generatePatch] savedPatch.createdAt:', savedPatch.createdAt, 'Type:', typeof savedPatch.createdAt);
         console.log('[generatePatch] Returning patch ID to frontend:', responseData.id, 'Type:', typeof responseData.id);
