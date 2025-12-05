@@ -270,7 +270,7 @@ export default function AIAdminPage() {
       
       return () => clearTimeout(timer);
     }
-  }, [voiceMode, isRecording, transcript, clearTranscript, chatMutation, generatePatchMutation, refetchHistory])
+  }, [voiceMode, isRecording, transcript])
 
   useEffect(() => {
     // Ensure the scroll container is available before attempting to scroll
