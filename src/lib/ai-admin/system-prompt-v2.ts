@@ -321,19 +321,97 @@ export function getSystemPromptV2(analysis?: {
 }): string {
   let prompt = AI_ADMIN_SYSTEM_PROMPT_V2;
   
+  // Inject comprehensive codebase knowledge
+  const codebaseKnowledge = `
+# COMPREHENSIVE CODEBASE KNOWLEDGE
+
+You have complete understanding of the Apex Agents platform:
+
+## Architecture
+- 199 TypeScript/TSX files organized in 58 directories
+- Next.js 14 App Router with React 18
+- tRPC 11 for type-safe APIs
+- PostgreSQL with Drizzle ORM
+- Zustand for state management
+- Tailwind CSS 4 for styling
+
+## Key Directories
+- src/app/ - Next.js pages and layouts
+- src/components/ - React components (UI, features)
+- src/lib/ - Business logic and utilities
+- src/server/ - Backend code (routers, services, middleware)
+- src/hooks/ - Custom React hooks
+- src/contexts/ - React contexts
+
+## tRPC Routers (in src/server/routers/)
+- auth.ts - Authentication (login, signup, logout, me)
+- agents.ts - Agent management (CRUD, execute, history)
+- workflows.ts - Workflow management (CRUD, execute, status)
+- ai-admin.ts - AI Admin (chat, generatePatch, applyPatch, analyzeCodebase)
+- analytics.ts - Analytics (metrics, stats, trends)
+- settings.ts - User settings (profile, API keys, billing, team)
+- execution.ts - Execution management (start, status, cancel, results)
+- search.ts - Search functionality (documents, code, executions)
+- subscription.ts - Subscription management (plans, upgrades, billing)
+
+## Database Schema (src/server/db/schema.ts)
+- users - User accounts with roles (owner, admin, user)
+- agents - Agent configurations and capabilities
+- workflows - Workflow definitions with triggers and steps
+- executions - Execution history and results
+- user_settings - User preferences and API keys
+- team_members - Team collaboration
+- documents - Knowledge base documents
+- chunks - Document embeddings
+- patches - AI Admin generated patches
+
+## Recent Features
+- Voice input with speech-to-text (Web Speech API)
+- Text-to-speech responses for natural conversation
+- Two-phase conversation system (chat + patch generation)
+- Full conversation context awareness
+- Automatic message submission on recording stop
+
+## Important Files
+- src/lib/ai-admin/agent.ts - AI Admin agent implementation
+- src/lib/ai-admin/system-prompt-v2.ts - This system prompt
+- src/app/dashboard/ai-admin/page.tsx - AI Admin UI
+- src/components/AIAdminVoiceInput.tsx - Voice input component
+- src/lib/stores/voiceAdminStore.ts - Voice state management
+- src/server/routers/_app.ts - Main router registration
+
+## Development Patterns
+- Use tRPC for all API calls (type-safe)
+- Use Zod for input validation
+- Use Drizzle ORM for database queries
+- Use shadcn/ui components for UI
+- Use Zustand for complex state
+- Use React Query for server state caching
+- Use TypeScript with proper types
+- Add error handling with TRPCError
+- Include loading states for async operations
+
+## When Responding to Requests
+1. Reference specific file paths
+2. Understand dependencies between components
+3. Follow existing code patterns
+4. Identify all affected files
+5. Provide complete, working code
+6. Explain the changes clearly
+7. Consider side effects and regressions
+`;
+  
+  prompt += codebaseKnowledge;
+  
   if (analysis) {
     prompt += `
-
 # CURRENT CODEBASE ANALYSIS
-
 **Frameworks Detected:** ${analysis.frameworks.join(', ')}
 **Patterns Detected:** ${analysis.patterns.join(', ')}
-
 **Project Structure:**
 \`\`\`json
 ${JSON.stringify(analysis.structure, null, 2)}
 \`\`\`
-
 Use this analysis to understand the current codebase state and make informed decisions.`;
   }
   
