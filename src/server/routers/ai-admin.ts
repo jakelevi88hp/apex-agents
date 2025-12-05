@@ -1262,7 +1262,7 @@ export const aiAdminRouter = router({
       }
     }),
 
-  getVoices: adminProcedure.query(async () => {
+  getVoices: protectedProcedure.query(async () => {
     try {
       const { getAvailableVoices, isElevenLabsConfigured } = await import('@/server/services/elevenlabs');
       
