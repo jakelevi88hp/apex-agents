@@ -1,5 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useVoiceAdminStore } from '@/lib/stores/voiceAdminStore';
+import { useVoiceErrorStore } from '@/lib/stores/voiceErrorStore';
+import { handleSpeechRecognitionError, VoiceErrorType, createVoiceError } from '@/lib/voice/errorHandler';
 
 interface SpeechRecognitionEvent extends Event {
   results: any;
@@ -20,6 +22,7 @@ export const useSpeechRecognitionAdmin = () => {
     setInterimTranscript,
     clearTranscript,
   } = useVoiceAdminStore();
+  const { addError } = useVoiceErrorStore();
 
   // Initialize speech recognition
   useEffect(() => {
@@ -27,7 +30,12 @@ export const useSpeechRecognitionAdmin = () => {
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      console.warn('Speech Recognition API not supported in this browser');
+      const error = createVoiceError(
+        VoiceErrorType.SPEECH_RECOGNITION_NOT_SUPPORTED,
+        new Error('Speech Recognition API not supported'),
+        false
+      );
+      addError(error);
       return;
     }
 
@@ -65,7 +73,9 @@ export const useSpeechRecognitionAdmin = () => {
 
     // Handle errors
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.error('Speech recognition error:', event.error);
+      const error = handleSpeechRecognitionError(event.error);
+      addError(error);
+      setRecording(false);
     };
 
     // Handle end
@@ -78,7 +88,7 @@ export const useSpeechRecognitionAdmin = () => {
         recognitionRef.current.abort();
       }
     };
-  }, [setRecording, setTranscript, setInterimTranscript]);
+  }, [setRecording, setTranscript, setInterimTranscript, addError]);
 
   // Start recording
   const startRecording = useCallback(() => {
@@ -87,7 +97,7 @@ export const useSpeechRecognitionAdmin = () => {
       recognitionRef.current.start();
       setRecording(true);
     }
-  }, [isRecording, setRecording, clearTranscript]);
+  }, [isRecording, setRecording, clearTranscript, addError]);
 
   // Stop recording
   const stopRecording = useCallback(() => {
@@ -104,7 +114,7 @@ export const useSpeechRecognitionAdmin = () => {
     } else {
       startRecording();
     }
-  }, [isRecording, startRecording, stopRecording]);
+  }, [isRecording, startRecording, stopRecording, addError]);
 
   return {
     isRecording,
