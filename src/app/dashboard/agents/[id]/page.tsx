@@ -38,13 +38,23 @@ export default function AgentDetailPage() {
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   type AgentConfig = typeof agents.$inferSelect['config'];
   const [editedConfig, setEditedConfig] = useState<AgentConfig | null>(null);
 
-  // Fetch agent data
-  const { data: agent, isLoading, refetch } = trpc.agents.get.useQuery({ id: agentId });
-  const { data: executions } = trpc.execution.getByAgent.useQuery({ agentId }, { enabled: !!agentId });
-  const { data: analytics } = trpc.analytics.getAgentAnalytics.useQuery({ agentId }, { enabled: !!agentId });
+  // Fetch agent data (disable queries while deleting to prevent race conditions)
+  const { data: agent, isLoading, refetch } = trpc.agents.get.useQuery(
+    { id: agentId },
+    { enabled: !isDeleting }
+  );
+  const { data: executions } = trpc.execution.getByAgent.useQuery(
+    { agentId },
+    { enabled: !!agentId && !isDeleting }
+  );
+  const { data: analytics } = trpc.analytics.getAgentAnalytics.useQuery(
+    { agentId },
+    { enabled: !!agentId && !isDeleting }
+  );
 
   // Error handling removed - using alerts instead due to React hook issues
 
@@ -67,11 +77,16 @@ export default function AgentDetailPage() {
   const deleteAgent = trpc.agents.delete.useMutation({
     onSuccess: () => {
       console.log('[Client] Agent deletion successful');
-      // Simply redirect - the page will show 404 if it tries to reload
-      router.push('/dashboard/agents');
+      // Mark as deleting to prevent race conditions
+      setIsDeleting(true);
+      // Redirect after a short delay to ensure state is updated
+      setTimeout(() => {
+        router.push('/dashboard/agents');
+      }, 100);
     },
     onError: (error) => {
       console.error('[Client] Agent deletion failed:', { error: error.message, agentId });
+      setIsDeleting(false);
       // Show error alert
       alert(`Failed to delete agent: ${error.message}`);
     },
@@ -99,11 +114,16 @@ export default function AgentDetailPage() {
     },
   });
 
-  if (isLoading) {
-    console.log('[Client] Loading agent details:', { agentId });
+  if (isLoading || isDeleting) {
+    console.log('[Client] Loading agent details:', { agentId, isDeleting });
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-purple-400 animate-spin mx-auto mb-4" />
+          <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
+            {isDeleting ? 'Deleting agent...' : 'Loading agent details...'}
+          </p>
+        </div>
       </div>
     );
   }
