@@ -1229,5 +1229,59 @@ export const aiAdminRouter = router({
         });
       }
     }),
-});
 
+  textToSpeech: adminProcedure
+    .input(
+      z.object({
+        text: z.string().min(1).max(5000),
+        voiceId: z.string().optional(),
+        stability: z.number().optional().default(0.5),
+        similarityBoost: z.number().optional().default(0.75),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const { textToSpeech } = await import('@/server/services/elevenlabs');
+        const audioBase64 = await textToSpeech({
+          text: input.text,
+          voiceId: input.voiceId,
+          stability: input.stability,
+          similarityBoost: input.similarityBoost,
+        });
+        return {
+          success: true,
+          audio: audioBase64,
+          mimeType: 'audio/mpeg',
+        };
+      } catch (error) {
+        console.error('[AI Admin] Text-to-speech error:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to generate speech: ${error}`,
+        });
+      }
+    }),
+
+  getVoices: adminProcedure.query(async () => {
+    try {
+      const { getAvailableVoices, isElevenLabsConfigured } = await import('@/server/services/elevenlabs');
+      
+      if (!isElevenLabsConfigured()) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'ElevenLabs is not configured',
+        });
+      }
+
+      return {
+        success: true,
+        voices: getAvailableVoices(),
+      };
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: `Failed to get voices: ${error}`,
+      });
+    }
+  }),
+});

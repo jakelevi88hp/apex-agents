@@ -54,6 +54,7 @@
     "clsx": "^2.1.1",
     "drizzle-kit": "^0.18.1",
     "drizzle-orm": "^0.44.7",
+    "elevenlabs": "^1.59.0",
     "jsonwebtoken": "^9.0.2",
     "langchain": "^1.0.1",
     "lucide-react": "^0.548.0",

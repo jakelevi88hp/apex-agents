@@ -39,8 +39,37 @@ interface PatchRecord {
   error?: string;
 }
 
-// Helper function to speak text using Web Speech API
-const speakText = (text: string) => {
+// Helper function to speak text using ElevenLabs or Web Speech API fallback
+const speakText = async (text: string, voiceId?: string) => {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    // Try ElevenLabs first
+    const response = await fetch('/api/trpc/aiAdmin.textToSpeech', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        input: { text, voiceId },
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.result?.data?.audio) {
+        const audio = new Audio(`data:audio/mpeg;base64,${data.result.data.audio}`);
+        audio.play().catch(() => fallbackSpeak(text));
+        return;
+      }
+    }
+  } catch (error) {
+    console.warn('[Voice] ElevenLabs failed, falling back to Web Speech API:', error);
+  }
+  
+  // Fallback to Web Speech API
+  fallbackSpeak(text);
+};
+
+const fallbackSpeak = (text: string) => {
   if (typeof window === 'undefined') return;
   
   // Cancel any ongoing speech
