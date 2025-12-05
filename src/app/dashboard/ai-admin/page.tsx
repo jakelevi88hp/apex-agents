@@ -1,5 +1,6 @@
-import { speakText, setGlobalTextToSpeechMutation } from "@/lib/ai-admin/speak-text";
 "use client";
+
+import { speakText, setGlobalTextToSpeechMutation } from "@/lib/ai-admin/speak-text";
 
 import { useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc/client";
