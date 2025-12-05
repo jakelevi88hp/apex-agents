@@ -73,9 +73,14 @@ export default function AgentDetailPage() {
     },
   });
 
+  const utils = trpc.useUtils();
+
   const deleteAgent = trpc.agents.delete.useMutation({
-    onSuccess: () => {
-      console.log('[Client] Agent deletion successful, redirecting to agents list');
+    onSuccess: async () => {
+      console.log('[Client] Agent deletion successful, invalidating cache and redirecting');
+      // Invalidate the agents list query to refresh the list
+      await utils.agents.list.invalidate();
+      // Redirect to agents list
       router.push('/dashboard/agents');
     },
     onError: (error) => {
@@ -97,6 +102,8 @@ export default function AgentDetailPage() {
   const toggleStatus = trpc.agents.toggleStatus.useMutation({
     onSuccess: () => {
       console.log('[Client] Agent status toggle successful');
+      // Invalidate the agents list to reflect status change
+      utils.agents.list.invalidate();
       refetch();
     },
     onError: (error) => {
@@ -116,8 +123,10 @@ export default function AgentDetailPage() {
   });
 
   const duplicateAgent = trpc.agents.duplicate.useMutation({
-    onSuccess: (newAgent) => {
+    onSuccess: async (newAgent) => {
       console.log('[Client] Agent duplication successful:', { newAgentId: newAgent.id });
+      // Invalidate the agents list to show the new agent
+      await utils.agents.list.invalidate();
       router.push(`/dashboard/agents/${newAgent.id}`);
     },
     onError: (error) => {
