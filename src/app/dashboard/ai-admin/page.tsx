@@ -39,6 +39,23 @@ interface PatchRecord {
   error?: string;
 }
 
+// Helper function to speak text using Web Speech API
+const speakText = (text: string) => {
+  if (typeof window === 'undefined') return;
+  
+  // Cancel any ongoing speech
+  window.speechSynthesis.cancel();
+  
+  // Create utterance
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 1.0;
+  utterance.pitch = 1.0;
+  utterance.volume = 1.0;
+  
+  // Speak
+  window.speechSynthesis.speak(utterance);
+};
+
 // Force rebuild - using generatePatch endpoint
 export default function AIAdminPage() {
   const [messages, setMessages] = useState<Message[]>([
@@ -104,6 +121,8 @@ export default function AIAdminPage() {
           };
 
           setMessages((prev) => [...prev, assistantMessage]);
+          // Speak the patch response
+          speakText("Patch generated successfully!");
           refetchHistory();
         }
       } else {
@@ -130,6 +149,8 @@ export default function AIAdminPage() {
           };
 
           setMessages((prev) => [...prev, assistantMessage]);
+          // Speak the AI response for natural conversation
+          speakText(result.message);
         } else {
           const errorMessage: Message = {
             role: "assistant",
@@ -215,7 +236,6 @@ export default function AIAdminPage() {
 
   // Auto-submit voice input when recording stops
   useEffect(() => {
-    return; // TEMPORARILY DISABLED TO DEBUG
     if (!voiceMode || !transcript || isRecording) {
       return;
     }
@@ -254,12 +274,16 @@ export default function AIAdminPage() {
               patchId: String(result.data.id),
             };
             setMessages((prev) => [...prev, assistantMessage]);
+            // Speak the patch response
+            speakText("Patch generated successfully!");
             refetchHistory();
           }
         } else {
           const result = await chatMutation.mutateAsync({ message: messageText, conversationHistory: [] });
           if (result.success) {
             setMessages((prev) => [...prev, { role: "assistant", content: result.message, timestamp: new Date() }]);
+            // Speak the AI response for natural conversation
+            speakText(result.message);
           }
         }
       } catch (error) {
@@ -277,7 +301,6 @@ export default function AIAdminPage() {
   }, [voiceMode, isRecording, transcript, chatMutation, generatePatchMutation, refetchHistory])
 
   useEffect(() => {
-    return; // TEMPORARILY DISABLED TO DEBUG
     // Ensure the scroll container is available before attempting to scroll
     const container = messagesContainerRef.current;
 
