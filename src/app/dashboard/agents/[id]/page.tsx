@@ -155,6 +155,21 @@ export default function AgentDetailPage() {
   const agentConfig = agent.config as any;
 
   const handleSaveConfig = () => {
+    // Validate config
+    if (!editedConfig || Object.keys(editedConfig).length === 0) {
+      const validationError = createAppError(
+        ErrorType.VALIDATION_ERROR,
+        'Configuration cannot be empty',
+        {
+          context: { field: 'config' },
+          recoverable: true,
+          retryable: false,
+        }
+      );
+      addError(validationError);
+      return;
+    }
+    
     updateAgent.mutate({
       id: agentId,
       config: editedConfig,
