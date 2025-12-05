@@ -107,12 +107,14 @@ export default function AIAdminPage() {
         }
       } else {
         // Regular conversation - use chat endpoint
+        // Include the current message in conversation history for better context
         const conversationHistory = messages
           .filter(m => m.role !== 'system')
           .map(m => ({
             role: m.role as 'user' | 'assistant',
             content: m.content,
-          }));
+          }))
+          .concat([{ role: 'user' as const, content: messageText }]);
 
         const result = await chatMutation.mutateAsync({
           message: messageText,
@@ -127,6 +129,13 @@ export default function AIAdminPage() {
           };
 
           setMessages((prev) => [...prev, assistantMessage]);
+        } else {
+          const errorMessage: Message = {
+            role: "assistant",
+            content: "Failed to get response. Please try again.",
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, errorMessage]);
         }
       }
     } catch (error) {
@@ -237,7 +246,16 @@ export default function AIAdminPage() {
               refetchHistory();
             }
           } else {
-            const result = await chatMutation.mutateAsync({ message: messageText, conversationHistory: [] });
+            // Build conversation history including current message
+            const conversationHistory = messages
+              .filter(m => m.role !== 'system')
+              .map(m => ({
+                role: m.role as 'user' | 'assistant',
+                content: m.content,
+              }))
+              .concat([{ role: 'user' as const, content: messageText }]);
+            
+            const result = await chatMutation.mutateAsync({ message: messageText, conversationHistory });
             if (result.success) {
               setMessages((prev) => [...prev, { role: "assistant", content: result.message, timestamp: new Date() }]);
             }
