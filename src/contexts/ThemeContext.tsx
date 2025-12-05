@@ -35,15 +35,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [isDarkMode]);
 
-  // Initialize theme from localStorage on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      const darkMode = savedTheme === 'dark';
-      setIsDarkMode(darkMode);
-    }
-  }, []);
-
   // Memoize toggle function to prevent unnecessary re-renders
   const toggleDarkMode = useCallback(() => {
     setIsDarkMode((prevMode) => {
@@ -53,11 +44,19 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   }, []);
 
+  // Sync localStorage when theme changes
+  useEffect(() => {
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
   // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo(
     () => ({ isDarkMode, toggleDarkMode }),
     [isDarkMode, toggleDarkMode]
   );
+
+  // Note: Removed duplicate localStorage initialization effect
+  // Theme is now initialized in useState callback and synced in useEffect
 
   return (
     <ThemeContext.Provider value={contextValue}>
