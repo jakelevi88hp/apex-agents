@@ -84,7 +84,7 @@ export default function AgentDetailPage() {
       await utils.agents.get.invalidate({ id: agentId });
       // Redirect to agents list
       console.log('[Client] Redirecting to agents list');
-      await router.push('/dashboard/agents');
+      router.push('/dashboard/agents');
     },
     onError: (error) => {
       console.error('[Client] Agent deletion failed:', { error: error.message, agentId });
@@ -131,7 +131,7 @@ export default function AgentDetailPage() {
       // Invalidate the agents list to show the new agent
       await utils.agents.list.invalidate();
       console.log('[Client] Redirecting to new agent:', { newAgentId: newAgent.id });
-      await router.push(`/dashboard/agents/${newAgent.id}`);
+      router.push(`/dashboard/agents/${newAgent.id}`);
     },
     onError: (error) => {
       console.error('[Client] Agent duplication failed:', { error: error.message, agentId });
