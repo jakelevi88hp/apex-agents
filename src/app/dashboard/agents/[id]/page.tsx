@@ -76,14 +76,9 @@ export default function AgentDetailPage() {
   const utils = trpc.useUtils();
 
   const deleteAgent = trpc.agents.delete.useMutation({
-    onSuccess: async () => {
-      console.log('[Client] Agent deletion successful, invalidating cache and redirecting');
-      // Invalidate the agents list query to refresh the list
-      await utils.agents.list.invalidate();
-      // Invalidate the current agent query so it won't try to reload
-      await utils.agents.get.invalidate({ id: agentId });
-      // Redirect to agents list
-      console.log('[Client] Redirecting to agents list');
+    onSuccess: () => {
+      console.log('[Client] Agent deletion successful');
+      // Simply redirect - the page will show 404 if it tries to reload
       router.push('/dashboard/agents');
     },
     onError: (error) => {
@@ -126,11 +121,8 @@ export default function AgentDetailPage() {
   });
 
   const duplicateAgent = trpc.agents.duplicate.useMutation({
-    onSuccess: async (newAgent) => {
+    onSuccess: (newAgent) => {
       console.log('[Client] Agent duplication successful:', { newAgentId: newAgent.id });
-      // Invalidate the agents list to show the new agent
-      await utils.agents.list.invalidate();
-      console.log('[Client] Redirecting to new agent:', { newAgentId: newAgent.id });
       router.push(`/dashboard/agents/${newAgent.id}`);
     },
     onError: (error) => {
