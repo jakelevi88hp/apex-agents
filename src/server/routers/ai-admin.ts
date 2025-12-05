@@ -1264,23 +1264,17 @@ export const aiAdminRouter = router({
 
   getVoices: protectedProcedure.query(async () => {
     try {
-      const { getAvailableVoices, isElevenLabsConfigured } = await import('@/server/services/elevenlabs');
+      const { getAvailableVoices } = await import('@/server/services/elevenlabs');
       
-      if (!isElevenLabsConfigured()) {
-        throw new TRPCError({
-          code: 'PRECONDITION_FAILED',
-          message: 'ElevenLabs is not configured',
-        });
-      }
-
       return {
         success: true,
         voices: getAvailableVoices(),
       };
     } catch (error) {
+      console.error('[AI Admin] Error getting voices:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: `Failed to get voices: ${error}`,
+        message: 'Failed to get voices',
       });
     }
   }),
