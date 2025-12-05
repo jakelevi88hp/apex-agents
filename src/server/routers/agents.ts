@@ -5,6 +5,7 @@ import { eq, desc, inArray } from 'drizzle-orm';
 import { AgentFactory, type AgentType } from '@/lib/ai/agents';
 import { checkUsageLimit } from '../middleware/subscription';
 import { TRPCError } from '@trpc/server';
+import { and } from 'drizzle-orm';
 
 export const agentsRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -57,26 +58,45 @@ export const agentsRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      const agentId = input.id;
+      const userId = ctx.userId;
+      
+      console.log(`[Agent Delete] Starting deletion for agent ${agentId} by user ${userId}`);
+      
       try {
         // Verify agent exists and belongs to user
-        const [agent] = await ctx.db.select().from(agents).where(eq(agents.id, input.id));
+        const agentList = await ctx.db.select().from(agents).where(eq(agents.id, agentId));
+        console.log(`[Agent Delete] Query result:`, { found: agentList.length, agentId });
         
-        if (!agent) {
+        if (agentList.length === 0) {
+          console.error(`[Agent Delete Error] Agent not found: ${agentId}`);
           throw new Error('Agent not found');
         }
         
-        if (agent.userId !== ctx.userId) {
+        const agent = agentList[0];
+        console.log(`[Agent Delete] Agent found:`, { id: agent.id, userId: agent.userId, name: agent.name });
+        
+        if (agent.userId !== userId) {
+          console.error(`[Agent Delete Error] Unauthorized - agent.userId: ${agent.userId}, ctx.userId: ${userId}`);
           throw new Error('Unauthorized: You do not have permission to delete this agent');
         }
         
         // Delete the agent
-        await ctx.db.delete(agents).where(eq(agents.id, input.id));
+        const deleteResult = await ctx.db.delete(agents).where(eq(agents.id, agentId));
+        console.log(`[Agent Delete] Delete operation completed for agent ${agentId}`);
         
-        console.log(`[Agent Delete] Successfully deleted agent ${input.id} for user ${ctx.userId}`);
+        // Verify deletion
+        const verifyList = await ctx.db.select().from(agents).where(eq(agents.id, agentId));
+        if (verifyList.length > 0) {
+          console.error(`[Agent Delete Error] Agent still exists after deletion: ${agentId}`);
+          throw new Error('Failed to delete agent - agent still exists in database');
+        }
+        
+        console.log(`[Agent Delete] Successfully deleted agent ${agentId} for user ${userId}`);
         
         return { success: true };
       } catch (error) {
-        console.error(`[Agent Delete Error] Failed to delete agent ${input.id}:`, error);
+        console.error(`[Agent Delete Error] Failed to delete agent ${agentId}:`, error);
         throw error;
       }
     }),

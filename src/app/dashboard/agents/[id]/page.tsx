@@ -52,11 +52,13 @@ export default function AgentDetailPage() {
   // Mutations
   const updateAgent = trpc.agents.update.useMutation({
     onSuccess: () => {
+      console.log('[Client] Agent update successful');
       refetch();
       setIsEditing(false);
       setEditedConfig(null);
     },
     onError: (error) => {
+      console.error('[Client] Agent update failed:', { error: error.message, agentId });
       const appError = createAppError(
         ErrorType.CLIENT_ERROR,
         `Failed to update agent: ${error.message}`,
@@ -73,9 +75,11 @@ export default function AgentDetailPage() {
 
   const deleteAgent = trpc.agents.delete.useMutation({
     onSuccess: () => {
+      console.log('[Client] Agent deletion successful, redirecting to agents list');
       router.push('/dashboard/agents');
     },
     onError: (error) => {
+      console.error('[Client] Agent deletion failed:', { error: error.message, agentId });
       const appError = createAppError(
         ErrorType.CLIENT_ERROR,
         `Failed to delete agent: ${error.message}`,
@@ -92,9 +96,11 @@ export default function AgentDetailPage() {
 
   const toggleStatus = trpc.agents.toggleStatus.useMutation({
     onSuccess: () => {
+      console.log('[Client] Agent status toggle successful');
       refetch();
     },
     onError: (error) => {
+      console.error('[Client] Agent status toggle failed:', { error: error.message, agentId });
       const appError = createAppError(
         ErrorType.CLIENT_ERROR,
         `Failed to update agent status: ${error.message}`,
@@ -111,9 +117,11 @@ export default function AgentDetailPage() {
 
   const duplicateAgent = trpc.agents.duplicate.useMutation({
     onSuccess: (newAgent) => {
+      console.log('[Client] Agent duplication successful:', { newAgentId: newAgent.id });
       router.push(`/dashboard/agents/${newAgent.id}`);
     },
     onError: (error) => {
+      console.error('[Client] Agent duplication failed:', { error: error.message, agentId });
       const appError = createAppError(
         ErrorType.CLIENT_ERROR,
         `Failed to duplicate agent: ${error.message}`,
@@ -129,6 +137,7 @@ export default function AgentDetailPage() {
   });
 
   if (isLoading) {
+    console.log('[Client] Loading agent details:', { agentId });
     return (
       <div className="flex items-center justify-center h-96">
         <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
@@ -137,6 +146,7 @@ export default function AgentDetailPage() {
   }
 
   if (!agent) {
+    console.error('[Client] Agent not found:', { agentId });
     return (
       <div className="text-center py-12">
         <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -178,6 +188,7 @@ export default function AgentDetailPage() {
 
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this agent? This action cannot be undone.')) {
+      console.log('[Client] Initiating agent deletion:', { agentId });
       deleteAgent.mutate({ id: agentId });
     }
   };
