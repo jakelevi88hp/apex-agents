@@ -81,7 +81,13 @@ export const agentsRouter = router({
           throw new Error('Unauthorized: You do not have permission to delete this agent');
         }
         
-        // Delete the agent
+        // First, delete all executions associated with this agent (cascade delete)
+        console.log(`[Agent Delete] Deleting associated executions for agent ${agentId}`);
+        const executionDeleteResult = await ctx.db.delete(executions).where(eq(executions.agentId, agentId));
+        console.log(`[Agent Delete] Deleted executions for agent ${agentId}`);
+        
+        // Now delete the agent
+        console.log(`[Agent Delete] Deleting agent ${agentId}`);
         const deleteResult = await ctx.db.delete(agents).where(eq(agents.id, agentId));
         console.log(`[Agent Delete] Delete operation completed for agent ${agentId}`);
         
