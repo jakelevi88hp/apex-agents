@@ -80,8 +80,11 @@ export default function AgentDetailPage() {
       console.log('[Client] Agent deletion successful, invalidating cache and redirecting');
       // Invalidate the agents list query to refresh the list
       await utils.agents.list.invalidate();
+      // Invalidate the current agent query so it won't try to reload
+      await utils.agents.get.invalidate({ id: agentId });
       // Redirect to agents list
-      router.push('/dashboard/agents');
+      console.log('[Client] Redirecting to agents list');
+      await router.push('/dashboard/agents');
     },
     onError: (error) => {
       console.error('[Client] Agent deletion failed:', { error: error.message, agentId });
@@ -127,7 +130,8 @@ export default function AgentDetailPage() {
       console.log('[Client] Agent duplication successful:', { newAgentId: newAgent.id });
       // Invalidate the agents list to show the new agent
       await utils.agents.list.invalidate();
-      router.push(`/dashboard/agents/${newAgent.id}`);
+      console.log('[Client] Redirecting to new agent:', { newAgentId: newAgent.id });
+      await router.push(`/dashboard/agents/${newAgent.id}`);
     },
     onError: (error) => {
       console.error('[Client] Agent duplication failed:', { error: error.message, agentId });
@@ -161,6 +165,9 @@ export default function AgentDetailPage() {
         <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           Agent not found
         </h2>
+        <p className={`mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          This agent may have been deleted or you don't have permission to view it.
+        </p>
         <button
           onClick={() => router.push('/dashboard/agents')}
           className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
