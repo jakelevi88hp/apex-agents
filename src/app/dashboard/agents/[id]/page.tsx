@@ -83,17 +83,8 @@ export default function AgentDetailPage() {
     },
     onError: (error) => {
       console.error('[Client] Agent deletion failed:', { error: error.message, agentId });
-      const appError = createAppError(
-        ErrorType.CLIENT_ERROR,
-        `Failed to delete agent: ${error.message}`,
-        {
-          originalError: new Error(error.message),
-          context: { agentId, operation: 'delete' },
-          recoverable: true,
-          retryable: false,
-        }
-      );
-      addError(appError);
+      // Show error alert
+      alert(`Failed to delete agent: ${error.message}`);
     },
   });
 
