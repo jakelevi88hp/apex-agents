@@ -1,12 +1,13 @@
 "use client";
 
-import { speakText, setGlobalTextToSpeechMutation } from "@/lib/ai-admin/speak-text";
+import { speakText, setGlobalTextToSpeechMutation, setGlobalSelectedVoiceId } from "@/lib/ai-admin/speak-text";
 
 import { useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc/client";
 import { Loader2, Send, Code, History, CheckCircle, XCircle, AlertCircle, RefreshCw, RotateCcw, Mic, Volume2 } from "lucide-react";
 import { AIAdminVoiceInput } from "@/components/AIAdminVoiceInput";
 import { AIAdminVoiceOutput } from "@/components/AIAdminVoiceOutput";
+import { VoiceSelector } from "@/components/VoiceSelector";
 import { useVoiceAdminStore } from "@/lib/stores/voiceAdminStore";
 
 interface Message {
@@ -61,7 +62,7 @@ export default function AIAdminPage() {
   const [activeTab, setActiveTab] = useState<"chat" | "patches" | "analysis">("chat");
   
   // Voice state and hooks
-  const { voiceMode, setVoiceMode, transcript, clearTranscript, isRecording } = useVoiceAdminStore();
+  const { voiceMode, setVoiceMode, transcript, clearTranscript, isRecording, selectedVoiceId, setSelectedVoiceId } = useVoiceAdminStore();
 
   // tRPC mutations and queries
   const chatMutation = trpc.aiAdmin.chat.useMutation();
@@ -71,6 +72,10 @@ export default function AIAdminPage() {
   useEffect(() => {
     setGlobalTextToSpeechMutation(textToSpeechMutation);
   }, [textToSpeechMutation]);
+
+  useEffect(() => {
+    setGlobalSelectedVoiceId(selectedVoiceId);
+  }, [selectedVoiceId]);
   const applyPatchMutation = trpc.aiAdmin.applyPatch.useMutation();
   const rollbackPatchMutation = trpc.aiAdmin.rollbackPatch.useMutation();
   const { data: patchHistory, refetch: refetchHistory } = trpc.aiAdmin.getPatchHistory.useQuery();
@@ -458,9 +463,15 @@ export default function AIAdminPage() {
                 {voiceMode ? "Voice Mode" : "Text Mode"}
               </button>
               {voiceMode && (
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {isRecording ? "🎤 Listening..." : "Click microphone to start speaking"}
-                </span>
+                <>
+                  <VoiceSelector
+                    selectedVoiceId={selectedVoiceId}
+                    onVoiceChange={setSelectedVoiceId}
+                  />
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {isRecording ? "🎤 Listening..." : "Click microphone to start speaking"}
+                  </span>
+                </>
               )}
             </div>
 

@@ -5,9 +5,14 @@
 
 // Global reference to textToSpeechMutation - will be set by component
 let globalTextToSpeechMutation: any = null;
+let globalSelectedVoiceId: string = 'rachel';
 
 export const setGlobalTextToSpeechMutation = (mutation: any) => {
   globalTextToSpeechMutation = mutation;
+};
+
+export const setGlobalSelectedVoiceId = (voiceId: string) => {
+  globalSelectedVoiceId = voiceId;
 };
 
 export const speakText = async (text: string, voiceId?: string) => {
@@ -18,7 +23,7 @@ export const speakText = async (text: string, voiceId?: string) => {
     if (globalTextToSpeechMutation) {
       const result = await globalTextToSpeechMutation.mutateAsync({
         text,
-        voiceId,
+        voiceId: voiceId || globalSelectedVoiceId,
       });
       
       if (result.audio) {

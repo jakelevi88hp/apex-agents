@@ -14,6 +14,7 @@ export interface VoiceAdminState {
   voiceEnabled: boolean;
   autoPlay: boolean;
   voiceMode: boolean;
+  selectedVoiceId: string;
   
   // Actions
   setRecording: (recording: boolean) => void;
@@ -27,6 +28,7 @@ export interface VoiceAdminState {
   setVoiceEnabled: (enabled: boolean) => void;
   setAutoPlay: (autoPlay: boolean) => void;
   setVoiceMode: (mode: boolean) => void;
+  setSelectedVoiceId: (voiceId: string) => void;
 }
 
 export const useVoiceAdminStore = create<VoiceAdminState>((set) => ({
@@ -39,6 +41,7 @@ export const useVoiceAdminStore = create<VoiceAdminState>((set) => ({
   voiceEnabled: true,
   autoPlay: true,
   voiceMode: false,
+  selectedVoiceId: 'rachel',
   
   // Actions
   setRecording: (recording) => set({ isRecording: recording }),
@@ -52,4 +55,5 @@ export const useVoiceAdminStore = create<VoiceAdminState>((set) => ({
   setVoiceEnabled: (enabled) => set({ voiceEnabled: enabled }),
   setAutoPlay: (autoPlay) => set({ autoPlay }),
   setVoiceMode: (mode) => set({ voiceMode: mode }),
+  setSelectedVoiceId: (voiceId) => set({ selectedVoiceId: voiceId }),
 }));
