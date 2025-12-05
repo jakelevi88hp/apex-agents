@@ -215,62 +215,65 @@ export default function AIAdminPage() {
 
   // Auto-submit voice input when recording stops
   useEffect(() => {
-    if (voiceMode && transcript && !isRecording) {
-      const messageText = transcript.trim();
-      
-      // Prevent duplicate submissions
-      if (lastSubmittedTranscriptRef.current === messageText) {
-        return;
-      }
-      lastSubmittedTranscriptRef.current = messageText;
-      
-      // Add user message
-      const userMessage: Message = {
-        role: "user",
-        content: messageText,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, userMessage]);
-      setInput("");
-      setIsLoading(true);
-
-      // Send after a short delay
-      const timer = setTimeout(async () => {
-        try {
-          const isPatchRequest = /generate patch|create patch|make patch|apply changes|generate code|write code/i.test(messageText);
-
-          if (isPatchRequest) {
-            const result = await generatePatchMutation.mutateAsync({ request: messageText });
-            if (result.success && result.data) {
-              const files = Array.isArray(result.data.files) ? result.data.files : [];
-              const assistantMessage: Message = {
-                role: "assistant",
-                content: `Patch generated!\n\n**Description:** ${result.data.description}\n\n**Files:** ${files.length}`,
-                timestamp: new Date(),
-                patchId: String(result.data.id),
-              };
-              setMessages((prev) => [...prev, assistantMessage]);
-              refetchHistory();
-            }
-          } else {
-            const result = await chatMutation.mutateAsync({ message: messageText, conversationHistory: [] });
-            if (result.success) {
-              setMessages((prev) => [...prev, { role: "assistant", content: result.message, timestamp: new Date() }]);
-            }
-          }
-        } catch (error) {
-          const errorMessage: Message = { role: "assistant", content: `Error: ${error}`, timestamp: new Date() };
-          setMessages((prev) => [...prev, errorMessage]);
-        } finally {
-          setIsLoading(false);
-          clearTranscript();
-          lastSubmittedTranscriptRef.current = "";
-        }
-      }, 300);
-      
-      return () => clearTimeout(timer);
+    if (!voiceMode || !transcript || isRecording) {
+      return;
     }
-  }, [voiceMode, isRecording, transcript])
+
+    const messageText = transcript.trim();
+    
+    // Prevent duplicate submissions
+    if (lastSubmittedTranscriptRef.current === messageText) {
+      return;
+    }
+    lastSubmittedTranscriptRef.current = messageText;
+    
+    // Add user message
+    const userMessage: Message = {
+      role: "user",
+      content: messageText,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
+
+    // Send after a short delay
+    const timer = setTimeout(async () => {
+      try {
+        const isPatchRequest = /generate patch|create patch|make patch|apply changes|generate code|write code/i.test(messageText);
+
+        if (isPatchRequest) {
+          const result = await generatePatchMutation.mutateAsync({ request: messageText });
+          if (result.success && result.data) {
+            const files = Array.isArray(result.data.files) ? result.data.files : [];
+            const assistantMessage: Message = {
+              role: "assistant",
+              content: `Patch generated!\n\n**Description:** ${result.data.description}\n\n**Files:** ${files.length}`,
+              timestamp: new Date(),
+              patchId: String(result.data.id),
+            };
+            setMessages((prev) => [...prev, assistantMessage]);
+            refetchHistory();
+          }
+        } else {
+          const result = await chatMutation.mutateAsync({ message: messageText, conversationHistory: [] });
+          if (result.success) {
+            setMessages((prev) => [...prev, { role: "assistant", content: result.message, timestamp: new Date() }]);
+          }
+        }
+      } catch (error) {
+        const errorMessage: Message = { role: "assistant", content: `Error: ${error}`, timestamp: new Date() };
+        setMessages((prev) => [...prev, errorMessage]);
+      } finally {
+        setIsLoading(false);
+        lastSubmittedTranscriptRef.current = "";
+        // Clear transcript AFTER all state updates are done
+        setTimeout(() => clearTranscript(), 0);
+      }
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [voiceMode, isRecording, transcript, chatMutation, generatePatchMutation, refetchHistory])
 
   useEffect(() => {
     // Ensure the scroll container is available before attempting to scroll
