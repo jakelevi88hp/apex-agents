@@ -277,6 +277,7 @@ export default function AIAdminPage() {
   }, [voiceMode, isRecording, transcript, chatMutation, generatePatchMutation, refetchHistory])
 
   useEffect(() => {
+    return; // TEMPORARILY DISABLED TO DEBUG
     // Ensure the scroll container is available before attempting to scroll
     const container = messagesContainerRef.current;
 
