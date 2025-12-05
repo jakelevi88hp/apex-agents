@@ -279,7 +279,16 @@ export default function AIAdminPage() {
             refetchHistory();
           }
         } else {
-          const result = await chatMutation.mutateAsync({ message: messageText, conversationHistory: [] });
+          // Build conversation history including current message
+          const conversationHistory = messages
+            .filter(m => m.role !== 'system')
+            .map(m => ({
+              role: m.role as 'user' | 'assistant',
+              content: m.content,
+            }))
+            .concat([{ role: 'user' as const, content: messageText }]);
+          
+          const result = await chatMutation.mutateAsync({ message: messageText, conversationHistory });
           if (result.success) {
             setMessages((prev) => [...prev, { role: "assistant", content: result.message, timestamp: new Date() }]);
             // Speak the AI response for natural conversation
@@ -298,7 +307,7 @@ export default function AIAdminPage() {
     }, 300);
     
     return () => clearTimeout(timer);
-  }, [voiceMode, isRecording, transcript, chatMutation, generatePatchMutation, refetchHistory])
+  }, [voiceMode, isRecording, transcript, messages])
 
   useEffect(() => {
     // Ensure the scroll container is available before attempting to scroll
