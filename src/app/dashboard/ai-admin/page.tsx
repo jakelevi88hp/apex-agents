@@ -52,6 +52,7 @@ export default function AIAdminPage() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const isInitialScrollRef = useRef(true);
+  const lastSubmittedTranscriptRef = useRef<string>("");
   const [activeTab, setActiveTab] = useState<"chat" | "patches" | "analysis">("chat");
   
   // Voice state and hooks
@@ -217,6 +218,12 @@ export default function AIAdminPage() {
     if (voiceMode && transcript && !isRecording) {
       const messageText = transcript.trim();
       
+      // Prevent duplicate submissions
+      if (lastSubmittedTranscriptRef.current === messageText) {
+        return;
+      }
+      lastSubmittedTranscriptRef.current = messageText;
+      
       // Add user message
       const userMessage: Message = {
         role: "user",
@@ -246,16 +253,7 @@ export default function AIAdminPage() {
               refetchHistory();
             }
           } else {
-            // Build conversation history including current message
-            const conversationHistory = messages
-              .filter(m => m.role !== 'system')
-              .map(m => ({
-                role: m.role as 'user' | 'assistant',
-                content: m.content,
-              }))
-              .concat([{ role: 'user' as const, content: messageText }]);
-            
-            const result = await chatMutation.mutateAsync({ message: messageText, conversationHistory });
+            const result = await chatMutation.mutateAsync({ message: messageText, conversationHistory: [] });
             if (result.success) {
               setMessages((prev) => [...prev, { role: "assistant", content: result.message, timestamp: new Date() }]);
             }
@@ -266,12 +264,13 @@ export default function AIAdminPage() {
         } finally {
           setIsLoading(false);
           clearTranscript();
+          lastSubmittedTranscriptRef.current = "";
         }
       }, 300);
       
       return () => clearTimeout(timer);
     }
-  }, [isRecording, voiceMode, transcript, clearTranscript, chatMutation, generatePatchMutation, refetchHistory])
+  }, [voiceMode, isRecording, transcript, clearTranscript, chatMutation, generatePatchMutation, refetchHistory])
 
   useEffect(() => {
     // Ensure the scroll container is available before attempting to scroll
