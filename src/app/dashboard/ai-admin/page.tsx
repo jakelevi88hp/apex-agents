@@ -58,6 +58,7 @@ export default function AIAdminPage() {
   const { voiceMode, setVoiceMode, transcript, clearTranscript, isRecording } = useVoiceAdminStore();
 
   // tRPC mutations and queries
+  const chatMutation = trpc.aiAdmin.chat.useMutation();
   const generatePatchMutation = trpc.aiAdmin.generatePatch.useMutation();
   const applyPatchMutation = trpc.aiAdmin.applyPatch.useMutation();
   const rollbackPatchMutation = trpc.aiAdmin.rollbackPatch.useMutation();
@@ -74,35 +75,64 @@ export default function AIAdminPage() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const messageText = input.trim();
     setInput("");
     setIsLoading(true);
 
     try {
-      // Generate patch from natural language request
-      const result = await generatePatchMutation.mutateAsync({
-        request: input.trim(),
-      });
+      // Check if user is asking to generate a patch
+      const isPatchRequest = /generate patch|create patch|make patch|apply changes|generate code|write code/i.test(messageText);
 
-      if (result.success && result.data) {
-        const files = Array.isArray(result.data.files) ? result.data.files : [];
-        const filesCount = files.length;
-        const description = typeof result.data.description === "string" ? result.data.description : "N/A";
-        const patchId = typeof result.data.id === "string" ? result.data.id : "";
+      if (isPatchRequest) {
+        // Generate patch from natural language request
+        const result = await generatePatchMutation.mutateAsync({
+          request: messageText,
+        });
 
-        const assistantMessage: Message = {
-          role: "assistant",
-          content: `Patch generated successfully!\n\n**Description:** ${description}\n\n**Files to be modified:** ${filesCount}\n\nWould you like me to apply this patch?`,
-          timestamp: new Date(),
-          patchId,
-        };
+        if (result.success && result.data) {
+          const files = Array.isArray(result.data.files) ? result.data.files : [];
+          const filesCount = files.length;
+          const description = typeof result.data.description === "string" ? result.data.description : "N/A";
+          const patchId = typeof result.data.id === "string" ? result.data.id : "";
 
-        setMessages((prev) => [...prev, assistantMessage]);
-        refetchHistory();
+          const assistantMessage: Message = {
+            role: "assistant",
+            content: `Patch generated successfully!\n\n**Description:** ${description}\n\n**Files to be modified:** ${filesCount}\n\nWould you like me to apply this patch?`,
+            timestamp: new Date(),
+            patchId,
+          };
+
+          setMessages((prev) => [...prev, assistantMessage]);
+          refetchHistory();
+        }
+      } else {
+        // Regular conversation - use chat endpoint
+        const conversationHistory = messages
+          .filter(m => m.role !== 'system')
+          .map(m => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          }));
+
+        const result = await chatMutation.mutateAsync({
+          message: messageText,
+          conversationHistory,
+        });
+
+        if (result.success) {
+          const assistantMessage: Message = {
+            role: "assistant",
+            content: result.message,
+            timestamp: new Date(),
+          };
+
+          setMessages((prev) => [...prev, assistantMessage]);
+        }
       }
     } catch (error) {
       const errorMessage: Message = {
         role: "assistant",
-        content: `Error: ${error instanceof Error ? error.message : "Failed to generate patch"}`,
+        content: `Error: ${error instanceof Error ? error.message : "Failed to process message"}`,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
