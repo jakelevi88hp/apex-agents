@@ -70,6 +70,7 @@ export default function AIAdminPage() {
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const isInitialScrollRef = useRef(true);
   const lastSubmittedTranscriptRef = useRef<string>("");
+  const isSubmittingRef = useRef(false);
   const [activeTab, setActiveTab] = useState<"chat" | "patches" | "analysis">("chat");
   
   // Voice state and hooks
@@ -237,16 +238,23 @@ export default function AIAdminPage() {
   // Auto-submit voice input when recording stops
   useEffect(() => {
     if (!voiceMode || !transcript || isRecording) {
+      isSubmittingRef.current = false;
       return;
     }
 
     const messageText = transcript.trim();
+    console.log('[Voice] Recording stopped, message ready:', messageText);
     
     // Prevent duplicate submissions
-    if (lastSubmittedTranscriptRef.current === messageText) {
+    if (lastSubmittedTranscriptRef.current === messageText || isSubmittingRef.current) {
+      console.log('[Voice] Skipping duplicate submission');
       return;
     }
+    
+    // Mark as submitting to prevent re-triggers
+    isSubmittingRef.current = true;
     lastSubmittedTranscriptRef.current = messageText;
+    console.log('[Voice] Starting message submission...');
     
     // Add user message
     const userMessage: Message = {
@@ -261,6 +269,7 @@ export default function AIAdminPage() {
     // Send after a short delay
     const timer = setTimeout(async () => {
       try {
+        console.log('[Voice] Sending message:', messageText);
         const isPatchRequest = /generate patch|create patch|make patch|apply changes|generate code|write code/i.test(messageText);
 
         if (isPatchRequest) {
@@ -290,24 +299,33 @@ export default function AIAdminPage() {
           
           const result = await chatMutation.mutateAsync({ message: messageText, conversationHistory });
           if (result.success) {
+            console.log('[Voice] Response received:', result.message);
             setMessages((prev) => [...prev, { role: "assistant", content: result.message, timestamp: new Date() }]);
             // Speak the AI response for natural conversation
             speakText(result.message);
+          } else {
+            console.error('[Voice] Chat failed:', result);
           }
         }
       } catch (error) {
+        console.error('[Voice] Error submitting message:', error);
         const errorMessage: Message = { role: "assistant", content: `Error: ${error}`, timestamp: new Date() };
         setMessages((prev) => [...prev, errorMessage]);
       } finally {
+        console.log('[Voice] Submission complete, clearing state');
         setIsLoading(false);
+        isSubmittingRef.current = false;
         lastSubmittedTranscriptRef.current = "";
         // Clear transcript AFTER all state updates are done
         setTimeout(() => clearTranscript(), 0);
       }
-    }, 300);
+    }, 100);
     
-    return () => clearTimeout(timer);
-  }, [voiceMode, isRecording, transcript, messages])
+    return () => {
+      clearTimeout(timer);
+      isSubmittingRef.current = false;
+    };
+  }, [voiceMode, isRecording, transcript])
 
   useEffect(() => {
     // Ensure the scroll container is available before attempting to scroll
