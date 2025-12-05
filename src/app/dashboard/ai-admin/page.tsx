@@ -215,6 +215,7 @@ export default function AIAdminPage() {
 
   // Auto-submit voice input when recording stops
   useEffect(() => {
+    return; // TEMPORARILY DISABLED TO DEBUG
     if (!voiceMode || !transcript || isRecording) {
       return;
     }
