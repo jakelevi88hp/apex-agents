@@ -206,14 +206,54 @@ export default function AIAdminPage() {
   // Auto-submit voice input when recording stops
   useEffect(() => {
     if (voiceMode && transcript && !isRecording) {
-      setInput(transcript);
-      const timer = setTimeout(() => {
-        handleSendMessage();
-        clearTranscript();
-      }, 500);
+      const messageText = transcript.trim();
+      
+      // Add user message
+      const userMessage: Message = {
+        role: "user",
+        content: messageText,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, userMessage]);
+      setInput("");
+      setIsLoading(true);
+
+      // Send after a short delay
+      const timer = setTimeout(async () => {
+        try {
+          const isPatchRequest = /generate patch|create patch|make patch|apply changes|generate code|write code/i.test(messageText);
+
+          if (isPatchRequest) {
+            const result = await generatePatchMutation.mutateAsync({ request: messageText });
+            if (result.success && result.data) {
+              const files = Array.isArray(result.data.files) ? result.data.files : [];
+              const assistantMessage: Message = {
+                role: "assistant",
+                content: `Patch generated!\n\n**Description:** ${result.data.description}\n\n**Files:** ${files.length}`,
+                timestamp: new Date(),
+                patchId: String(result.data.id),
+              };
+              setMessages((prev) => [...prev, assistantMessage]);
+              refetchHistory();
+            }
+          } else {
+            const result = await chatMutation.mutateAsync({ message: messageText, conversationHistory: [] });
+            if (result.success) {
+              setMessages((prev) => [...prev, { role: "assistant", content: result.message, timestamp: new Date() }]);
+            }
+          }
+        } catch (error) {
+          const errorMessage: Message = { role: "assistant", content: `Error: ${error}`, timestamp: new Date() };
+          setMessages((prev) => [...prev, errorMessage]);
+        } finally {
+          setIsLoading(false);
+          clearTranscript();
+        }
+      }, 300);
+      
       return () => clearTimeout(timer);
     }
-  }, [isRecording, voiceMode, transcript, clearTranscript]);
+  }, [isRecording, voiceMode, transcript, clearTranscript, chatMutation, generatePatchMutation, refetchHistory])
 
   useEffect(() => {
     // Ensure the scroll container is available before attempting to scroll
