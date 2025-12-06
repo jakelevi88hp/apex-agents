@@ -1,3 +1,5 @@
+import 'server-only';
+
 /**
  * Git Utilities for AI Admin Patches
  * 
@@ -8,6 +10,7 @@ import { execSync } from 'child_process';
 import path from 'path';
 
 const REPO_PATH = process.env.REPO_PATH || process.cwd();
+const IS_SERVERLESS = process.env.VERCEL === '1' || !process.env.REPO_PATH;
 
 /**
  * Generate a safe branch name from a patch description
@@ -30,6 +33,11 @@ export function generateBranchName(description: string): string {
  * Create a new git branch for a patch
  */
 export async function createPatchBranch(branchName: string): Promise<void> {
+  if (IS_SERVERLESS) {
+    console.warn(`[GitUtils] Skipping git operations in serverless environment`);
+    return; // Skip git operations in serverless
+  }
+  
   try {
     console.log(`[GitUtils] Creating branch: ${branchName}`);
     
@@ -58,6 +66,10 @@ export async function createPatchBranch(branchName: string): Promise<void> {
  * Commit changes to the current branch
  */
 export async function commitChanges(message: string, files?: string[]): Promise<void> {
+  if (IS_SERVERLESS) {
+    console.warn(`[GitUtils] Skipping git commit in serverless environment`);
+    return; // Skip git operations in serverless
+  }
   try {
     console.log(`[GitUtils] Committing changes: ${message}`);
     
@@ -85,6 +97,10 @@ export async function commitChanges(message: string, files?: string[]): Promise<
  * Push branch to remote
  */
 export async function pushBranch(branchName: string): Promise<string> {
+  if (IS_SERVERLESS) {
+    console.warn(`[GitUtils] Skipping git push in serverless environment`);
+    return ''; // Return empty URL in serverless
+  }
   try {
     console.log(`[GitUtils] Pushing branch: ${branchName}`);
     
@@ -134,6 +150,10 @@ export function branchExists(branchName: string): boolean {
  * Delete a branch (local and remote)
  */
 export async function deleteBranch(branchName: string, remote: boolean = true): Promise<void> {
+  if (IS_SERVERLESS) {
+    console.warn(`[GitUtils] Skipping git delete in serverless environment`);
+    return; // Skip git operations in serverless
+  }
   try {
     console.log(`[GitUtils] Deleting branch: ${branchName}`);
     
