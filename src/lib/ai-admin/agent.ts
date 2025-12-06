@@ -63,7 +63,7 @@ export class AIAdminAgent {
     this.isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
     
     // Use provided model, environment variable, or default
-    this.model = model || process.env.AI_ADMIN_MODEL || 'gpt-4o';
+    this.model = model || process.env.AI_ADMIN_MODEL || 'gpt-4-turbo';
     this.log(`AI Admin initialized with model: ${this.model}`);
     
     // Initialize context builder
