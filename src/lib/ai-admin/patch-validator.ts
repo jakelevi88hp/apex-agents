@@ -133,11 +133,53 @@ export class PatchValidator {
       warnings.push('No testing steps provided - consider adding them');
     }
 
+    // Check 11: Next.js client component validation
+    for (const file of patch.files) {
+      if (file.path?.endsWith('.tsx') && file.content) {
+        const hasHooks = /\b(useState|useEffect|useContext|useReducer|useCallback|useMemo|useRef|useLayoutEffect|useInsertionEffect|useImperativeHandle|useSyncExternalStore|useTransition|useDeferredValue|useId)\s*\(/.test(file.content);
+        const hasUseClient = /^[\s]*['"]use client['"]/.test(file.content);
+        
+        if (hasHooks && !hasUseClient) {
+          errors.push(`File "${file.path}" uses React hooks but is missing "use client" directive at the top`);
+        }
+      }
+    }
+
     return {
       valid: errors.length === 0,
       errors,
       warnings,
     };
+  }
+
+  /**
+   * Auto-fix Next.js client component issues
+   */
+  autoFixNextJsClientComponents(patch: PatchData): PatchData {
+    const fixedPatch = { ...patch };
+    
+    if (fixedPatch.files) {
+      fixedPatch.files = fixedPatch.files.map(file => {
+        if (file.path?.endsWith('.tsx') && file.content) {
+          const hasHooks = /\b(useState|useEffect|useContext|useReducer|useCallback|useMemo|useRef|useLayoutEffect|useInsertionEffect|useImperativeHandle|useSyncExternalStore|useTransition|useDeferredValue|useId)\s*\(/.test(file.content);
+          const hasUseClient = /^[\s]*['"]use client['"]/.test(file.content);
+          
+          if (hasHooks && !hasUseClient) {
+            // Add "use client" directive at the top
+            const lines = file.content.split('\n');
+            const firstNonEmptyIndex = lines.findIndex(line => line.trim().length > 0 && !line.trim().startsWith('/'));
+            
+            if (firstNonEmptyIndex >= 0) {
+              lines.splice(firstNonEmptyIndex, 0, '"use client";');
+              return { ...file, content: lines.join('\n') };
+            }
+          }
+        }
+        return file;
+      });
+    }
+    
+    return fixedPatch;
   }
 
   /**

@@ -468,10 +468,15 @@ Remember: Be action-oriented, make reasonable assumptions, and only ask question
             await this.log(`All ${patchData.files.length} files have valid path fields`);
           }
           
+          // Auto-fix Next.js client component issues
+          let fixedPatchData = this.patchValidator.autoFixNextJsClientComponents(patchData as PatchData);
+          
           // Validate immediately using PatchValidator
-          const validationResult = this.patchValidator.validate(patchData as PatchData, requestText);
+          const validationResult = this.patchValidator.validate(fixedPatchData as PatchData, requestText);
           
           if (validationResult.valid) {
+            // Use the fixed patch data
+            patchData = fixedPatchData;
             // Log warnings if any
             if (validationResult.warnings.length > 0) {
               await this.log(`Patch validation warnings: ${validationResult.warnings.join('; ')}`, 'warning');
