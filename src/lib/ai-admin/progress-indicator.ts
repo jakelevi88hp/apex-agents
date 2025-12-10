@@ -5,6 +5,10 @@
  * Enables streaming output without pause messages
  */
 
+'use server';
+
+// This module is server-only and should not be imported in client components
+
 export type ProgressStatus = 'complete' | 'in-progress' | 'queued' | 'error';
 
 export interface ProgressSection {
