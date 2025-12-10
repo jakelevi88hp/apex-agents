@@ -638,5 +638,6 @@ if (require.main === module) {
   main().catch(console.error);
 }
 
-export { StressTestRunner, StressTestConfig, TestResult };
+export { StressTestRunner };
+export type { StressTestConfig, TestResult };
 

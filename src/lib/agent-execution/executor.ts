@@ -43,20 +43,24 @@ export async function executeAgent(config: ExecutionConfig): Promise<ExecutionRe
   
   try {
     // Fetch agent configuration from database
-    const agent = await db.query.agents.findFirst({
-      where: eq(agents.id, config.agentId),
-    });
+    const [agent] = await db.select().from(agents).where(eq(agents.id, config.agentId)).limit(1);
 
     if (!agent) {
       throw new Error(`Agent not found: ${config.agentId}`);
     }
 
     // Parse agent configuration
-    const agentConfig = agent.config as any;
-    const model = agentConfig.model || 'gpt-4';
-    const temperature = agentConfig.temperature || 0.7;
-    const maxTokens = agentConfig.maxTokens || 2000;
-    const systemPrompt = agentConfig.systemPrompt || agent.description;
+    interface AgentConfig {
+      model?: string;
+      temperature?: number;
+      maxTokens?: number;
+      systemPrompt?: string;
+    }
+    const agentConfig = agent.config as AgentConfig | null;
+    const model = agentConfig?.model || 'gpt-4';
+    const temperature = agentConfig?.temperature || 0.7;
+    const maxTokens = agentConfig?.maxTokens || 2000;
+    const systemPrompt = agentConfig?.systemPrompt || agent.description;
 
     // Create execution record
     const [execution] = await db.insert(executions).values({
@@ -138,9 +142,7 @@ export async function* executeAgentStream(config: ExecutionConfig): AsyncGenerat
   
   try {
     // Fetch agent configuration
-    const agent = await db.query.agents.findFirst({
-      where: eq(agents.id, config.agentId),
-    });
+    const [agent] = await db.select().from(agents).where(eq(agents.id, config.agentId)).limit(1);
 
     if (!agent) {
       throw new Error(`Agent not found: ${config.agentId}`);
@@ -208,19 +210,18 @@ export async function* executeAgentStream(config: ExecutionConfig): AsyncGenerat
  * Get execution history for an agent
  */
 export async function getExecutionHistory(agentId: string, limit: number = 10) {
-  return await db.query.executions.findMany({
-    where: eq(executions.agentId, agentId),
-    orderBy: (executions, { desc }) => [desc(executions.startedAt)],
-    limit,
-  });
+  const { desc } = await import('drizzle-orm');
+  return await db.select().from(executions)
+    .where(eq(executions.agentId, agentId))
+    .orderBy(desc(executions.startedAt))
+    .limit(limit);
 }
 
 /**
  * Get execution by ID
  */
 export async function getExecution(executionId: string) {
-  return await db.query.executions.findFirst({
-    where: eq(executions.id, executionId),
-  });
+  const [execution] = await db.select().from(executions).where(eq(executions.id, executionId)).limit(1);
+  return execution;
 }
 

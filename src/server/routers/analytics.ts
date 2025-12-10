@@ -391,5 +391,43 @@ export const analyticsRouter = router({
 
       return trend;
     }),
+
+  /**
+   * Get analytics for a specific agent
+   */
+  getAgentAnalytics: protectedProcedure
+    .input(z.object({ agentId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.userId;
+
+      const agentStats = await db
+        .select({
+          total: sql<number>`count(*)`,
+          completed: sql<number>`count(*) filter (where ${executions.status} = 'completed')`,
+          failed: sql<number>`count(*) filter (where ${executions.status} = 'failed')`,
+          running: sql<number>`count(*) filter (where ${executions.status} = 'running')`,
+          avgDuration: sql<number>`avg(${executions.durationMs})`,
+          totalCost: sql<number>`sum(${executions.costUsd})`,
+          totalTokens: sql<number>`sum(${executions.tokensUsed})`,
+        })
+        .from(executions)
+        .where(and(eq(executions.userId, userId), eq(executions.agentId, input.agentId)));
+
+      const result = agentStats[0] || {};
+
+      return {
+        total: Number(result.total || 0),
+        completed: Number(result.completed || 0),
+        failed: Number(result.failed || 0),
+        running: Number(result.running || 0),
+        successRate:
+          Number(result.total || 0) > 0
+            ? (Number(result.completed || 0) / Number(result.total || 0)) * 100
+            : 0,
+        avgDurationMs: Number(result.avgDuration || 0),
+        totalCostUsd: Number(result.totalCost || 0),
+        totalTokens: Number(result.totalTokens || 0),
+      };
+    }),
 });
 

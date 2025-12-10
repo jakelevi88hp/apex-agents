@@ -308,28 +308,7 @@ export class GitHubService {
     }
   }
 
-  /**
-   * Create pull request
-   */
-  async createPullRequest(
-    title: string,
-    head: string,
-    base: string = 'main',
-    body?: string
-  ): Promise<any> {
-    try {
-      const { data } = await this.octokit.pulls.create({
-        owner: this.owner,
-        repo: this.repo,
-        title,
-        head,
-        base,
-        body,
-      });
-      return data;
-    } catch (error) {
-      throw new Error(`Failed to create pull request: ${error}`);
-    }
-  }
+  // Note: createPullRequest is already defined above with signature (branchName, title, body)
+  // This duplicate method is removed to avoid conflicts
 }
 

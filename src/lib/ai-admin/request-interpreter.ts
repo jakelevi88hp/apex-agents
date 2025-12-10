@@ -29,7 +29,7 @@ export class RequestInterpreter {
   private openai: OpenAI;
   private model: string;
 
-  constructor(apiKey: string, model: string = 'gpt-4o') {
+  constructor(apiKey: string, model: string = 'gpt-4-turbo') {
     this.openai = new OpenAI({ apiKey });
     this.model = model;
   }

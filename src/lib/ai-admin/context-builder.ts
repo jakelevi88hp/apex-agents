@@ -11,6 +11,7 @@ interface FileContext {
   path: string;
   content: string;
   reason: string; // Why this file was included
+  language?: string; // File language/extension for syntax highlighting
 }
 
 interface ComponentInventory {
@@ -43,10 +44,12 @@ export class ContextBuilder {
     for (const filePath of targetFiles) {
       const content = await this.readFile(filePath);
       if (content) {
+        const ext = path.extname(filePath).slice(1);
         files.push({
           path: filePath,
           content,
           reason: 'Target file for modification',
+          language: this.getLanguageFromExtension(ext),
         });
       }
     }
@@ -59,10 +62,12 @@ export class ContextBuilder {
         if (!files.some(f => f.path === relatedPath)) {
           const content = await this.readFile(relatedPath);
           if (content) {
+            const ext = path.extname(relatedPath).slice(1);
             files.push({
               path: relatedPath,
               content,
               reason: `Related to ${file.path}`,
+              language: this.getLanguageFromExtension(ext),
             });
           }
         }
@@ -449,5 +454,28 @@ export class ContextBuilder {
     summary += `${inventory.contexts.join(', ')}\n\n`;
 
     return summary;
+  }
+
+  /**
+   * Get language identifier from file extension
+   */
+  private getLanguageFromExtension(ext: string): string {
+    const languageMap: Record<string, string> = {
+      'ts': 'typescript',
+      'tsx': 'tsx',
+      'js': 'javascript',
+      'jsx': 'jsx',
+      'json': 'json',
+      'css': 'css',
+      'scss': 'scss',
+      'sass': 'sass',
+      'md': 'markdown',
+      'py': 'python',
+      'sql': 'sql',
+      'html': 'html',
+      'yaml': 'yaml',
+      'yml': 'yaml',
+    };
+    return languageMap[ext.toLowerCase()] || ext;
   }
 }

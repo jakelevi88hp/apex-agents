@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
-import { db } from '@/server/db';
-import { documents } from '@/server/db/schema/documents';
+import { db, documents } from '@/lib/db';
+import { eq } from 'drizzle-orm';
 import { DocumentProcessor } from '@/lib/document-processor';
 import { PineconeService } from '@/lib/pinecone-service';
 import { verifyToken } from '@/lib/auth/jwt';
@@ -177,7 +177,7 @@ async function processDocumentAsync(
           chunkCount: chunks.length,
         },
       })
-      .where({ id: documentId });
+      .where(eq(documents.id, documentId));
 
     console.log(`Document ${documentId} processed successfully`);
 
@@ -191,7 +191,7 @@ async function processDocumentAsync(
         processingError: error instanceof Error ? error.message : 'Unknown error',
         updatedAt: new Date(),
       })
-      .where({ id: documentId });
+      .where(eq(documents.id, documentId));
   }
 }
 

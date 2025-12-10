@@ -1,0 +1,38 @@
+architect:
+  authority: highest
+  responsibilities:
+    - architecture design
+    - pattern enforcement
+    - task creation
+
+backend:
+  responsibilities:
+    - api
+    - database
+    - services
+
+frontend:
+  responsibilities:
+    - ui
+    - components
+    - state
+
+optimization:
+  responsibilities:
+    - performance
+    - refactor
+
+qa:
+  responsibilities:
+    - tests
+    - validation
+
+docs:
+  responsibilities:
+    - documentation
+    - onboarding
+
+release:
+  responsibilities:
+    - deployment
+    - CI/CD

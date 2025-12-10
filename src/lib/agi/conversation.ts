@@ -15,11 +15,11 @@ export interface AGIMessage {
   conversationId: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
-  thoughts?: any;
+  thoughts?: unknown;
   emotionalState?: string;
-  creativity?: any;
-  reasoning?: any;
-  metadata?: any;
+  creativity?: unknown;
+  reasoning?: unknown;
+  metadata?: unknown;
   createdAt?: Date;
 }
 
@@ -29,11 +29,11 @@ export interface AGIConversation {
   title?: string;
   summary?: string;
   emotionalTone?: string;
-  topics?: any;
+  topics?: unknown;
   startedAt?: Date;
   endedAt?: Date;
   messageCount?: number;
-  metadata?: any;
+  metadata?: unknown;
 }
 
 export class AGIConversationService {

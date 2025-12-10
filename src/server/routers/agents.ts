@@ -2,8 +2,10 @@ import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { agents, executions } from '@/lib/db/schema';
 import { eq, desc, inArray } from 'drizzle-orm';
-import { AgentFactory } from '@/lib/ai/agents';
+import { AgentFactory, type AgentType } from '@/lib/ai/agents';
 import { checkUsageLimit } from '../middleware/subscription';
+import { TRPCError } from '@trpc/server';
+import { and } from 'drizzle-orm';
 
 export const agentsRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -23,9 +25,9 @@ export const agentsRouter = router({
       name: z.string(),
       description: z.string().optional(),
       type: z.enum(['research', 'analysis', 'writing', 'code', 'decision', 'communication', 'monitoring', 'orchestrator', 'custom']),
-      config: z.record(z.string(), z.any()),
+      config: z.record(z.string(), z.unknown()),
       capabilities: z.record(z.string(), z.boolean()).or(z.array(z.string())),
-      constraints: z.record(z.string(), z.any()).optional(),
+      constraints: z.record(z.string(), z.unknown()).optional(),
       promptTemplate: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
@@ -56,8 +58,53 @@ export const agentsRouter = router({
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.delete(agents).where(eq(agents.id, input.id));
-      return { success: true };
+      const agentId = input.id;
+      const userId = ctx.userId;
+      
+      console.log(`[Agent Delete] Starting deletion for agent ${agentId} by user ${userId}`);
+      
+      try {
+        // Verify agent exists and belongs to user
+        const agentList = await ctx.db.select().from(agents).where(eq(agents.id, agentId));
+        console.log(`[Agent Delete] Query result:`, { found: agentList.length, agentId });
+        
+        if (agentList.length === 0) {
+          console.error(`[Agent Delete Error] Agent not found: ${agentId}`);
+          throw new Error('Agent not found');
+        }
+        
+        const agent = agentList[0];
+        console.log(`[Agent Delete] Agent found:`, { id: agent.id, userId: agent.userId, name: agent.name });
+        
+        if (agent.userId !== userId) {
+          console.error(`[Agent Delete Error] Unauthorized - agent.userId: ${agent.userId}, ctx.userId: ${userId}`);
+          throw new Error('Unauthorized: You do not have permission to delete this agent');
+        }
+        
+        // First, delete all executions associated with this agent (cascade delete)
+        console.log(`[Agent Delete] Deleting associated executions for agent ${agentId}`);
+        const executionDeleteResult = await ctx.db.delete(executions).where(eq(executions.agentId, agentId));
+        console.log(`[Agent Delete] Deleted executions for agent ${agentId}`);
+        
+        // Now delete the agent
+        console.log(`[Agent Delete] Deleting agent ${agentId}`);
+        const deleteResult = await ctx.db.delete(agents).where(eq(agents.id, agentId));
+        console.log(`[Agent Delete] Delete operation completed for agent ${agentId}`);
+        
+        // Verify deletion
+        const verifyList = await ctx.db.select().from(agents).where(eq(agents.id, agentId));
+        if (verifyList.length > 0) {
+          console.error(`[Agent Delete Error] Agent still exists after deletion: ${agentId}`);
+          throw new Error('Failed to delete agent - agent still exists in database');
+        }
+        
+        console.log(`[Agent Delete] Successfully deleted agent ${agentId} for user ${userId}`);
+        
+        return { success: true };
+      } catch (error) {
+        console.error(`[Agent Delete Error] Failed to delete agent ${agentId}:`, error);
+        throw error;
+      }
     }),
 
   execute: protectedProcedure
@@ -71,13 +118,15 @@ export const agentsRouter = router({
       
       if (!agent) throw new Error('Agent not found');
 
+      const agentConfig = agent.config as { model?: string; tools?: string[] } | null;
+      const capabilities = agent.capabilities as string[] | null;
       const agentInstance = AgentFactory.createAgent({
         id: agent.id,
         name: agent.name,
-        type: agent.type as any,
-        model: (agent.config as any).model || 'gpt-4-turbo',
-        tools: (agent.config as any).tools || [],
-        capabilities: (agent.capabilities as any) || [],
+        type: agent.type as AgentType,
+        model: agentConfig?.model || 'gpt-4-turbo',
+        tools: agentConfig?.tools || [],
+        capabilities: capabilities || [],
       });
 
       const [execution] = await ctx.db.insert(executions).values({
@@ -173,6 +222,48 @@ export const agentsRouter = router({
 
       const successCount = results.filter(r => r !== null).length;
       return { success: true, count: successCount, failed: input.ids.length - successCount };
+    }),
+
+  toggleStatus: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [agent] = await ctx.db.select().from(agents).where(eq(agents.id, input.id)).limit(1);
+      
+      if (!agent) {
+        throw new Error('Agent not found');
+      }
+
+      const newStatus = agent.status === 'active' ? 'inactive' : 'active';
+      const [updated] = await ctx.db
+        .update(agents)
+        .set({ status: newStatus, updatedAt: new Date() })
+        .where(eq(agents.id, input.id))
+        .returning();
+
+      return updated;
+    }),
+
+  duplicate: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const [originalAgent] = await ctx.db.select().from(agents).where(eq(agents.id, input.id)).limit(1);
+      
+      if (!originalAgent) {
+        throw new Error('Agent not found');
+      }
+
+      const [duplicatedAgent] = await ctx.db.insert(agents).values({
+        userId: ctx.userId!,
+        name: `${originalAgent.name} (Copy)`,
+        description: originalAgent.description,
+        type: originalAgent.type,
+        config: originalAgent.config,
+        status: 'inactive',
+        capabilities: originalAgent.capabilities,
+        constraints: originalAgent.constraints,
+      }).returning();
+
+      return duplicatedAgent;
     }),
 });
 

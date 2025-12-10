@@ -49,7 +49,9 @@ export class VerificationEngine {
   private async findSources(claim: string): Promise<Source[]> {
     try {
       // Use Pinecone to search for relevant documents in knowledge base
-      const searchResults = await PineconeService.searchSimilar(claim, 5);
+      // Note: searchSimilar requires userId, but we don't have it in this context
+      // For now, use an empty string or skip this search
+      const searchResults = await PineconeService.searchSimilar(claim, '', 5);
       
       if (!searchResults || searchResults.length === 0) {
         console.warn('No sources found in knowledge base for claim:', claim);

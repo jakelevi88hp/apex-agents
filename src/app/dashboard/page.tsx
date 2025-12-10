@@ -1,6 +1,4 @@
 'use client';
-
-import { useEffect, useState } from 'react';
 import { Bot, Workflow, Zap, TrendingUp, CheckCircle, Clock, Loader2 } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { trpc } from '@/lib/trpc/client';
@@ -34,12 +32,6 @@ function AnimatedCounter({ value, duration = 1000 }: { value: number; duration?:
 }
 
 export default function DashboardPage() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   // Fetch real metrics from database
   const { data: metrics, isLoading: metricsLoading } = trpc.analytics.getDashboardMetrics.useQuery();
   const { data: agentsSparkline } = trpc.analytics.getSparklineData.useQuery({ metric: 'agents' });
@@ -92,8 +84,9 @@ export default function DashboardPage() {
                 <Bot className="h-5 w-5 text-purple-400" />
               </div>
             </div>
-            <div className="mb-2 text-4xl font-bold text-white">
-              {mounted && metrics ? <AnimatedCounter value={metrics.activeAgents} /> : metrics?.activeAgents || 0}
+            
+            <div className="text-4xl font-bold text-white mb-2">
+                {metrics ? <AnimatedCounter value={metrics.activeAgents} /> : 0}
             </div>
             <div className="mb-2 -mx-2 h-12">
               <ResponsiveContainer width="100%" height="100%">
@@ -125,8 +118,9 @@ export default function DashboardPage() {
                 <Workflow className="h-5 w-5 text-blue-400" />
               </div>
             </div>
-            <div className="mb-2 text-4xl font-bold text-white">
-              {mounted && metrics ? <AnimatedCounter value={metrics.workflows} /> : metrics?.workflows || 0}
+            
+            <div className="text-4xl font-bold text-white mb-2">
+                {metrics ? <AnimatedCounter value={metrics.workflows} /> : 0}
             </div>
             <div className="mb-2 -mx-2 h-12">
               <ResponsiveContainer width="100%" height="100%">
@@ -158,8 +152,9 @@ export default function DashboardPage() {
                 <Zap className="h-5 w-5 text-cyan-400" />
               </div>
             </div>
-            <div className="mb-2 text-4xl font-bold text-white">
-              {mounted && metrics ? <AnimatedCounter value={metrics.executionsToday} /> : metrics?.executionsToday || 0}
+            
+            <div className="text-4xl font-bold text-white mb-2">
+                {metrics ? <AnimatedCounter value={metrics.executionsToday} /> : 0}
             </div>
             <div className="mb-2 -mx-2 h-12">
               <ResponsiveContainer width="100%" height="100%">

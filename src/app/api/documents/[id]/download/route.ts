@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { db } from '@/server/db';
-import { documents } from '@/server/db/schema/documents';
+import { db, documents } from '@/lib/db';
 import { eq, and } from 'drizzle-orm';
 import { verifyToken } from '@/lib/auth/jwt';
 
@@ -41,6 +40,10 @@ export async function GET(
 
     if (!doc) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 });
+    }
+
+    if (!doc.filePath) {
+      return NextResponse.json({ error: 'File path not found' }, { status: 404 });
     }
 
     // Read file from disk

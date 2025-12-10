@@ -37,7 +37,7 @@ export const documents = pgTable('documents', {
   chunkCount: integer('chunk_count').default(0),
   
   // Metadata
-  metadata: jsonb('metadata').$type<Record<string, any>>(),
+  metadata: jsonb('metadata').$type<Record<string, unknown>>(),
   
   // Timestamps
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -61,7 +61,7 @@ export const documentChunks = pgTable('document_chunks', {
   pineconeId: text('pinecone_id'),
   
   // Metadata
-  metadata: jsonb('metadata').$type<Record<string, any>>(),
+  metadata: jsonb('metadata').$type<Record<string, unknown>>(),
   
   // Timestamps
   createdAt: timestamp('created_at').defaultNow().notNull(),

@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useErrorStore } from '@/lib/stores/errorStore';
+import { createAppError, ErrorType } from '@/lib/errorHandler';
+import type { agents, executions } from '@/lib/db/schema';
 import {
   ArrowLeft,
   Play,
@@ -35,54 +38,106 @@ export default function AgentDetailPage() {
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isEditing, setIsEditing] = useState(false);
-  const [editedConfig, setEditedConfig] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  type AgentConfig = typeof agents.$inferSelect['config'];
+  const [editedConfig, setEditedConfig] = useState<AgentConfig | null>(null);
 
-  // Fetch agent data
-  const { data: agent, isLoading, refetch } = trpc.agents.get.useQuery({ id: agentId });
-  const { data: executions } = trpc.executions.getByAgent.useQuery({ agentId }, { enabled: !!agentId });
-  const { data: analytics } = trpc.analytics.getAgentAnalytics.useQuery({ agentId }, { enabled: !!agentId });
+  // Fetch agent data (disable queries while deleting to prevent race conditions)
+  const { data: agent, isLoading, refetch } = trpc.agents.get.useQuery(
+    { id: agentId },
+    { enabled: !isDeleting }
+  );
+  const { data: executions } = trpc.execution.getByAgent.useQuery(
+    { agentId },
+    { enabled: !!agentId && !isDeleting }
+  );
+  const { data: analytics } = trpc.analytics.getAgentAnalytics.useQuery(
+    { agentId },
+    { enabled: !!agentId && !isDeleting }
+  );
+
+  // Error handling removed - using alerts instead due to React hook issues
 
   // Mutations
   const updateAgent = trpc.agents.update.useMutation({
     onSuccess: () => {
+      console.log('[Client] Agent update successful');
       refetch();
       setIsEditing(false);
       setEditedConfig(null);
     },
+    onError: (error) => {
+      console.error('[Client] Agent update failed:', { error: error.message, agentId });
+      alert(`Failed to update agent: ${error.message}`);
+    },
   });
+
+  const utils = trpc.useUtils();
 
   const deleteAgent = trpc.agents.delete.useMutation({
     onSuccess: () => {
-      router.push('/dashboard/agents');
+      console.log('[Client] Agent deletion successful');
+      // Mark as deleting to prevent race conditions
+      setIsDeleting(true);
+      // Redirect after a short delay to ensure state is updated
+      setTimeout(() => {
+        router.push('/dashboard/agents');
+      }, 100);
+    },
+    onError: (error) => {
+      console.error('[Client] Agent deletion failed:', { error: error.message, agentId });
+      setIsDeleting(false);
+      // Show error alert
+      alert(`Failed to delete agent: ${error.message}`);
     },
   });
 
   const toggleStatus = trpc.agents.toggleStatus.useMutation({
     onSuccess: () => {
+      console.log('[Client] Agent status toggle successful');
       refetch();
+    },
+    onError: (error) => {
+      console.error('[Client] Agent status toggle failed:', { error: error.message, agentId });
+      alert(`Failed to update agent status: ${error.message}`);
     },
   });
 
   const duplicateAgent = trpc.agents.duplicate.useMutation({
     onSuccess: (newAgent) => {
+      console.log('[Client] Agent duplication successful:', { newAgentId: newAgent.id });
       router.push(`/dashboard/agents/${newAgent.id}`);
+    },
+    onError: (error) => {
+      console.error('[Client] Agent duplication failed:', { error: error.message, agentId });
+      alert(`Failed to duplicate agent: ${error.message}`);
     },
   });
 
-  if (isLoading) {
+  if (isLoading || isDeleting) {
+    console.log('[Client] Loading agent details:', { agentId, isDeleting });
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-purple-400 animate-spin mx-auto mb-4" />
+          <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
+            {isDeleting ? 'Deleting agent...' : 'Loading agent details...'}
+          </p>
+        </div>
       </div>
     );
   }
 
   if (!agent) {
+    console.error('[Client] Agent not found:', { agentId });
     return (
       <div className="text-center py-12">
         <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           Agent not found
         </h2>
+        <p className={`mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          This agent may have been deleted or you don't have permission to view it.
+        </p>
         <button
           onClick={() => router.push('/dashboard/agents')}
           className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
@@ -96,6 +151,21 @@ export default function AgentDetailPage() {
   const agentConfig = agent.config as any;
 
   const handleSaveConfig = () => {
+    // Validate config
+    if (!editedConfig || Object.keys(editedConfig).length === 0) {
+      const validationError = createAppError(
+        ErrorType.VALIDATION_ERROR,
+        'Configuration cannot be empty',
+        {
+          context: { field: 'config' },
+          recoverable: true,
+          retryable: false,
+        }
+      );
+      addError(validationError);
+      return;
+    }
+    
     updateAgent.mutate({
       id: agentId,
       config: editedConfig,
@@ -104,6 +174,7 @@ export default function AgentDetailPage() {
 
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this agent? This action cannot be undone.')) {
+      console.log('[Client] Initiating agent deletion:', { agentId });
       deleteAgent.mutate({ id: agentId });
     }
   };
@@ -274,7 +345,7 @@ export default function AgentDetailPage() {
                   <Clock className="w-4 h-4 text-blue-500" />
                 </div>
                 <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  {analytics?.avgDuration ? `${(analytics.avgDuration / 1000).toFixed(1)}s` : '0s'}
+                  {analytics?.avgDurationMs ? `${(analytics.avgDurationMs / 1000).toFixed(1)}s` : '0s'}
                 </div>
               </div>
 
@@ -290,7 +361,7 @@ export default function AgentDetailPage() {
                   <DollarSign className="w-4 h-4 text-cyan-500" />
                 </div>
                 <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  ${analytics?.totalCost?.toFixed(2) || '0.00'}
+                  ${analytics?.totalCostUsd?.toFixed(2) || '0.00'}
                 </div>
               </div>
             </div>
@@ -520,7 +591,7 @@ export default function AgentDetailPage() {
             </h3>
             {executions && executions.length > 0 ? (
               <div className="space-y-3">
-                {executions.map((execution: any) => (
+                {executions.map((execution: typeof executions.$inferSelect) => (
                   <div
                     key={execution.id}
                     className={`p-4 rounded-lg border ${
@@ -603,7 +674,7 @@ export default function AgentDetailPage() {
                 <div className="text-center py-8">
                   <DollarSign className="w-12 h-12 mx-auto mb-2 text-cyan-500" />
                   <p className="text-3xl font-bold text-cyan-500">
-                    ${analytics?.totalCost?.toFixed(2) || '0.00'}
+                    ${analytics?.totalCostUsd?.toFixed(2) || '0.00'}
                   </p>
                   <p className={`text-sm mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     Total cost to date

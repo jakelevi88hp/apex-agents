@@ -115,8 +115,9 @@ async function testLimitEnforcement(userId: string) {
     // Trial limit for agents is 10, we already tracked 5
     await SubscriptionService.trackUsage(userId, 'agents', 6); // This should fail (5 + 6 = 11 > 10)
     console.log('❌ FAILED: Should have blocked agent creation');
-  } catch (error: any) {
-    console.log('✅ Correctly blocked: ' + error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.log('✅ Correctly blocked: ' + message);
   }
   console.log('');
 }
@@ -145,8 +146,9 @@ async function testTrialExpiration(userId: string) {
     } else {
       console.log('❌ FAILED: Should have blocked expired trial user');
     }
-  } catch (error: any) {
-    console.log('✅ Correctly blocked: ' + error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.log('✅ Correctly blocked: ' + message);
   }
   console.log('');
 }

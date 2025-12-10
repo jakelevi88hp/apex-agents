@@ -4,6 +4,8 @@
  * Handles real-time notifications for workflow completion and other events
  */
 
+import { getStorageJSON, setStorageJSON } from '@/lib/utils/storage';
+
 export type NotificationType = 'success' | 'error' | 'info' | 'warning';
 
 export interface Notification {
@@ -14,19 +16,34 @@ export interface Notification {
   timestamp: Date;
   read: boolean;
   actionUrl?: string;
-  metadata?: any;
+  metadata?: unknown;
 }
 
+type StoredNotification = Omit<Notification, 'timestamp'> & { timestamp: string };
+
 class NotificationSystem {
-  private listeners: Set<(notification: Notification) => void> = new Set();
+  private notificationListeners: Set<(notification: Notification) => void> = new Set();
+  private storeListeners: Set<() => void> = new Set();
   private notifications: Notification[] = [];
 
   /**
    * Subscribe to notifications
    */
-  subscribe(callback: (notification: Notification) => void) {
-    this.listeners.add(callback);
-    return () => this.listeners.delete(callback);
+  subscribe(callback: (notification: Notification) => void): () => void {
+    this.notificationListeners.add(callback);
+    return () => {
+      this.notificationListeners.delete(callback);
+    };
+  }
+
+  /**
+   * Subscribe to notification store updates (for UI synchronization).
+   */
+  subscribeToStore(callback: () => void): () => void {
+    this.storeListeners.add(callback);
+    return () => {
+      this.storeListeners.delete(callback);
+    };
   }
 
   /**
@@ -41,16 +58,9 @@ class NotificationSystem {
     };
 
     this.notifications.unshift(fullNotification);
-    this.listeners.forEach(listener => listener(fullNotification));
-
-    // Store in localStorage for persistence
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('notifications', JSON.stringify(this.notifications.slice(0, 50)));
-      } catch (e) {
-        console.error('Failed to store notifications:', e);
-      }
-    }
+    this.notificationListeners.forEach(listener => listener(fullNotification));
+    this.emitStoreChange();
+    this.persistNotifications();
 
     return fullNotification.id;
   }
@@ -69,7 +79,8 @@ class NotificationSystem {
     const notification = this.notifications.find(n => n.id === id);
     if (notification) {
       notification.read = true;
-      this.updateStorage();
+      this.persistNotifications();
+      this.emitStoreChange();
     }
   }
 
@@ -78,7 +89,8 @@ class NotificationSystem {
    */
   markAllAsRead() {
     this.notifications.forEach(n => n.read = true);
-    this.updateStorage();
+    this.persistNotifications();
+    this.emitStoreChange();
   }
 
   /**
@@ -86,7 +98,8 @@ class NotificationSystem {
    */
   clearAll() {
     this.notifications = [];
-    this.updateStorage();
+    this.persistNotifications();
+    this.emitStoreChange();
   }
 
   /**
@@ -95,25 +108,30 @@ class NotificationSystem {
   loadFromStorage() {
     if (typeof window !== 'undefined') {
       try {
-        const stored = localStorage.getItem('notifications');
-        if (stored) {
-          this.notifications = JSON.parse(stored).map((n: any) => ({
-            ...n,
-            timestamp: new Date(n.timestamp),
+        const parsed = getStorageJSON<StoredNotification[]>('notifications');
+        if (parsed) {
+          this.notifications = parsed.map((notification) => ({
+            ...notification,
+            timestamp: new Date(notification.timestamp),
           }));
+          this.emitStoreChange();
         }
       } catch (e) {
-        console.error('Failed to load notifications:', e);
+        // Silently fail - notifications are not critical
       }
     }
   }
 
-  private updateStorage() {
+  private emitStoreChange() {
+    this.storeListeners.forEach(listener => listener());
+  }
+
+  private persistNotifications() {
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem('notifications', JSON.stringify(this.notifications.slice(0, 50)));
+        setStorageJSON('notifications', this.notifications.slice(0, 50));
       } catch (e) {
-        console.error('Failed to update notifications:', e);
+        // Silently fail - notifications are not critical
       }
     }
   }

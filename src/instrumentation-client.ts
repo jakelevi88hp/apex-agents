@@ -4,11 +4,11 @@ Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   
   // Performance Monitoring
-  tracesSampleRate: 1.0, // Capture 100% of transactions for performance monitoring
+  tracesSampleRate: 1.0,
   
   // Session Replay
-  replaysSessionSampleRate: 0.1, // Sample 10% of sessions
-  replaysOnErrorSampleRate: 1.0, // Sample 100% of sessions with errors
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
   
   // Environment
   environment: process.env.NODE_ENV,
@@ -24,4 +24,3 @@ Sentry.init({
     }),
   ],
 });
-

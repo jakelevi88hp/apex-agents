@@ -24,13 +24,18 @@ export const settingsRouter = router({
       .where(eq(userSettings.userId, userId));
 
     if (!settings) {
+      // Fetch user to get email
+      const { users } = await import('@/lib/db/schema');
+      const { eq } = await import('drizzle-orm');
+      const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      
       // Create default settings if they don't exist
       const [newSettings] = await db
         .insert(userSettings)
         .values({
           userId,
           organizationName: 'My Organization',
-          email: ctx.user?.email || '',
+          email: user?.email || '',
           timezone: 'UTC-5',
           emailNotifications: true,
           realtimeMonitoring: true,

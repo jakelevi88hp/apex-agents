@@ -25,12 +25,13 @@ export async function GET() {
       version: process.env.npm_package_version || '1.0.0',
       environment: process.env.NODE_ENV || 'development',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
       {
         status: 'unhealthy',
         timestamp: new Date().toISOString(),
-        error: error.message,
+        error: message,
       },
       { status: 500 }
     );

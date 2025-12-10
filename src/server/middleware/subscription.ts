@@ -8,17 +8,17 @@ import { middleware } from '../trpc';
  */
 export const requireFeature = (feature: string) =>
   middleware(async ({ ctx, next }) => {
-    if (!ctx.user) {
+    if (!ctx.userId) {
       throw new TRPCError({
         code: 'UNAUTHORIZED',
         message: 'You must be logged in to perform this action',
       });
     }
 
-    const canUse = await SubscriptionService.canUseFeature(ctx.user.id, feature);
+    const canUse = await SubscriptionService.canUseFeature(ctx.userId, feature);
 
     if (!canUse) {
-      const subscription = await SubscriptionService.getUserSubscription(ctx.user.id);
+      const subscription = await SubscriptionService.getUserSubscription(ctx.userId);
       const requiredTier = feature === 'unlimited_agents' || feature === 'unlimited_workflows' ? 'pro' : 'premium';
       
       throw new TRPCError({
@@ -36,18 +36,18 @@ export const requireFeature = (feature: string) =>
  */
 export const checkUsageLimit = (feature: string, increment: number = 1) =>
   middleware(async ({ ctx, next }) => {
-    if (!ctx.user) {
+    if (!ctx.userId) {
       throw new TRPCError({
         code: 'UNAUTHORIZED',
         message: 'You must be logged in to perform this action',
       });
     }
 
-    const canUse = await SubscriptionService.canUseFeature(ctx.user.id, feature);
+    const canUse = await SubscriptionService.canUseFeature(ctx.userId, feature);
 
     if (!canUse) {
-      const usage = await SubscriptionService.getUsageStats(ctx.user.id);
-      const featureUsage = usage.find(u => u.feature === feature);
+      const usage = await SubscriptionService.getUsageStats(ctx.userId);
+      const featureUsage = usage.find((u: { feature: string; [key: string]: unknown }) => u.feature === feature);
       
       throw new TRPCError({
         code: 'FORBIDDEN',
@@ -59,7 +59,7 @@ export const checkUsageLimit = (feature: string, increment: number = 1) =>
     const result = await next({ ctx });
     
     // Increment usage after successful operation
-    await SubscriptionService.trackUsage(ctx.user.id, feature, increment);
+    await SubscriptionService.trackUsage(ctx.userId, feature, increment);
 
     return result;
   });
@@ -68,14 +68,14 @@ export const checkUsageLimit = (feature: string, increment: number = 1) =>
  * Middleware to check if trial has expired
  */
 export const requireActiveTrial = middleware(async ({ ctx, next }) => {
-  if (!ctx.user) {
+  if (!ctx.userId) {
     throw new TRPCError({
       code: 'UNAUTHORIZED',
       message: 'You must be logged in to perform this action',
     });
   }
 
-  const isExpired = await SubscriptionService.isTrialExpired(ctx.user.id);
+  const isExpired = await SubscriptionService.isTrialExpired(ctx.userId);
 
   if (isExpired) {
     throw new TRPCError({
@@ -93,14 +93,14 @@ export const requireActiveTrial = middleware(async ({ ctx, next }) => {
  */
 export const requireTier = (minTier: 'trial' | 'premium' | 'pro') =>
   middleware(async ({ ctx, next }) => {
-    if (!ctx.user) {
+    if (!ctx.userId) {
       throw new TRPCError({
         code: 'UNAUTHORIZED',
         message: 'You must be logged in to perform this action',
       });
     }
 
-    const subscription = await SubscriptionService.getUserSubscription(ctx.user.id);
+    const subscription = await SubscriptionService.getUserSubscription(ctx.userId);
     
     if (!subscription) {
       throw new TRPCError({
@@ -109,9 +109,9 @@ export const requireTier = (minTier: 'trial' | 'premium' | 'pro') =>
       });
     }
 
-    const tierHierarchy = { trial: 0, premium: 1, pro: 2 };
-    const userTierLevel = tierHierarchy[subscription.tier];
-    const requiredTierLevel = tierHierarchy[minTier];
+    const tierHierarchy: Record<string, number> = { trial: 0, premium: 1, pro: 2 };
+    const userTierLevel = tierHierarchy[subscription.plan] ?? 0;
+    const requiredTierLevel = tierHierarchy[minTier] ?? 0;
 
     if (userTierLevel < requiredTierLevel) {
       throw new TRPCError({

@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const canUse = await SubscriptionService.canUseFeature(user.userId, 'agi_messages');
     if (!canUse) {
       const usage = await SubscriptionService.getUsageStats(user.userId);
-      const agiUsage = usage.find(u => u.feature === 'agi_messages');
+      const agiUsage = usage.find((u: { feature: string; [key: string]: unknown }) => u.feature === 'agi_messages');
       
       return NextResponse.json(
         { 

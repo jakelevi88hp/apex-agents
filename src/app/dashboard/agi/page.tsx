@@ -1,148 +1,18 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Brain, Send, Loader2, Trash2 } from "lucide-react";
+import React, { useState } from 'react';
+import { Loading } from '@/components/ui/loading';
 
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-  timestamp: Date;
-}
+export default function AGIChatPage() {
+  const [loading, setLoading] = useState(false);
 
-interface AGIStatus {
-  available: boolean;
-  components?: Record<string, boolean>;
-  error?: string;
-}
-
-export default function AGIPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [agiStatus, setAgiStatus] = useState<AGIStatus>({ available: false });
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Check AGI status on mount
-    checkAGIStatus();
-  }, []);
-
-  useEffect(() => {
-    // Scroll to bottom when messages change
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  async function checkAGIStatus() {
-    try {
-      const response = await fetch("/api/agi/status");
-      const data = await response.json();
-      setAgiStatus(data);
-    } catch (error) {
-      console.error("Failed to check AGI status:", error);
-      setAgiStatus({ available: false, error: "Failed to connect to AGI system" });
-    }
-  }
-
-  async function handleSend() {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      role: "user",
-      content: input,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setIsLoading(true);
-
-    try {
-      // Get token from localStorage
-      const token = localStorage.getItem('token');
-      
-      console.log('[AGI Page] Token check:', {
-        hasToken: !!token,
-        tokenLength: token?.length,
-        tokenPreview: token?.substring(0, 20) + '...'
-      });
-      
-      if (!token) {
-        throw new Error('No authentication token found. Please log in again.');
-      }
-      
-      const response = await fetch("/api/agi/process", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({ input: input.trim() }),
-      });
-      
-      console.log('[AGI Page] Response status:', response.status);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('[AGI Page] API error:', errorData);
-        throw new Error(errorData.error || `Server error: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('[AGI Page] Success response:', result);
-
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: formatAGIResponse(result),
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("AGI processing error:", error);
-      const errorMessage: Message = {
-        role: "assistant",
-        content: "Sorry, I encountered an error processing your request. Please try again.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  function formatAGIResponse(result: any): string {
-    if (result.error) {
-      return `Error: ${result.error}`;
-    }
-
-    if (result.thoughts && Array.isArray(result.thoughts)) {
-      const thoughtsText = result.thoughts.map((t: any) => `- ${t.content || t}`).join("\n");
-      const emotionalState = result.emotionalState || result.emotional_state || "neutral";
-      
-      let response = `My thoughts on this are:\n${thoughtsText}\n\nI am experiencing ${emotionalState} about this.`;
-      
-      // Add creativity if present
-      if (result.creativity && Array.isArray(result.creativity) && result.creativity.length > 0) {
-        response += `\n\nCreative ideas:\n${result.creativity.map((c: any) => `- ${c.description || c}`).join("\n")}`;
-      }
-      
-      // Add reasoning conclusion if present
-      if (result.reasoning && result.reasoning.conclusion) {
-        response += `\n\nReasoning: ${result.reasoning.conclusion}`;
-      }
-      
-      return response;
-    }
-
-    return JSON.stringify(result, null, 2);
-  }
-
-  function handleKeyPress(e: React.KeyboardEvent) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  }
+  const handleChatRequest = async () => {
+    setLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+  };
 
   return (
     <div className="min-h-screen bg-gray-950 p-4 sm:p-6 md:p-8">
@@ -296,7 +166,12 @@ export default function AGIPage() {
           </div>
         </div>
       </div>
+    <div className='p-4'>
+      {loading ? (
+        <Loading text='Processing...' fullScreen={true} />
+      ) : (
+        <button onClick={handleChatRequest} className='btn btn-primary'>Start Chat</button>
+      )}
     </div>
   );
 }
-

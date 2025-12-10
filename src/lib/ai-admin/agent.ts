@@ -38,7 +38,7 @@ export interface PatchRecord {
 }
 
 interface CodebaseAnalysis {
-  structure: Record<string, any>;
+  structure: Record<string, unknown>;
   dependencies: string[];
   frameworks: string[];
   patterns: string[];
@@ -63,7 +63,7 @@ export class AIAdminAgent {
     this.isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
     
     // Use provided model, environment variable, or default
-    this.model = model || process.env.AI_ADMIN_MODEL || 'gpt-4o';
+    this.model = model || process.env.AI_ADMIN_MODEL || 'gpt-4-turbo';
     this.log(`AI Admin initialized with model: ${this.model}`);
     
     // Initialize context builder
@@ -152,8 +152,8 @@ export class AIAdminAgent {
     }
   }
 
-  private async analyzeDirectory(dirPath: string): Promise<Record<string, any>> {
-    const structure: Record<string, any> = {};
+  private async analyzeDirectory(dirPath: string): Promise<Record<string, unknown>> {
+    const structure: Record<string, unknown> = {};
 
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true });
@@ -399,7 +399,17 @@ Remember: Be action-oriented, make reasonable assumptions, and only ask question
         const existingPaths = new Set(context.files.map(f => f.path));
         for (const file of gatheredContext.files) {
           if (!existingPaths.has(file.path)) {
-            context.files.push(file);
+            const ext = file.path.split('.').pop() || '';
+            const languageMap: Record<string, string> = {
+              'ts': 'typescript', 'tsx': 'tsx', 'js': 'javascript', 'jsx': 'jsx',
+              'json': 'json', 'css': 'css', 'md': 'markdown', 'py': 'python',
+            };
+            context.files.push({
+              path: file.path,
+              content: file.content,
+              reason: 'Gathered from repository',
+              language: languageMap[ext.toLowerCase()] || ext,
+            });
           }
         }
         await this.log(`Enhanced context: ${context.files.length} total files after merging`);
@@ -458,10 +468,15 @@ Remember: Be action-oriented, make reasonable assumptions, and only ask question
             await this.log(`All ${patchData.files.length} files have valid path fields`);
           }
           
+          // Auto-fix Next.js client component issues
+          let fixedPatchData = this.patchValidator.autoFixNextJsClientComponents(patchData as PatchData);
+          
           // Validate immediately using PatchValidator
-          const validationResult = this.patchValidator.validate(patchData as PatchData, requestText);
+          const validationResult = this.patchValidator.validate(fixedPatchData as PatchData, requestText);
           
           if (validationResult.valid) {
+            // Use the fixed patch data
+            patchData = fixedPatchData;
             // Log warnings if any
             if (validationResult.warnings.length > 0) {
               await this.log(`Patch validation warnings: ${validationResult.warnings.join('; ')}`, 'warning');
@@ -1028,7 +1043,7 @@ Remember: Be action-oriented, make reasonable assumptions, and only ask question
         throw new Error('GitHub service not initialized');
       }
 
-      const pr = await this.githubService.createPullRequest(title, head, base, body);
+      const pr = await this.githubService.createPullRequest(head, title, body || '');
       await this.log(`Created PR: ${title}`);
       return pr;
     } catch (error) {
@@ -1052,3 +1067,4 @@ export function getAIAdminAgent(apiKey?: string): AIAdminAgent {
   return agentInstance;
 }
 
+// Deployment trigger: Sat Dec  6 03:31:43 EST 2025

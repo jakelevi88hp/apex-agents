@@ -32,7 +32,18 @@ export async function POST(request: NextRequest) {
     const results = await PineconeService.searchSimilar(query, userId, topK);
 
     // Group results by document
-    const documentResults = new Map<string, any>();
+    interface DocumentResult {
+      documentId: string;
+      documentName: string;
+      source: string;
+      maxScore: number;
+      chunks: Array<{
+        text: string;
+        score: number;
+        chunkIndex: number;
+      }>;
+    }
+    const documentResults = new Map<string, DocumentResult>();
 
     for (const result of results) {
       const docId = result.metadata.documentId;

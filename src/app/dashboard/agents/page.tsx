@@ -1,12 +1,18 @@
 'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
+import { useErrorStore } from '@/lib/stores/errorStore';
+import { createAppError, ErrorType } from '@/lib/errorHandler';
+import type { agents } from '@/lib/db/schema';
 import { 
   Search, BarChart3, PenTool, Code2, Target, Mail, 
   TrendingUp, Network, Plus, X, Loader2, Play, Settings, Send 
 } from 'lucide-react';
 import AgentWizard from '@/components/agent-wizard/AgentWizard';
+
+type Agent = typeof agents.$inferSelect;
 import AgentCardSkeleton from '@/components/AgentCardSkeleton';
 import EmptyState from '@/components/EmptyState';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -96,6 +102,7 @@ const defaultConfig = {
 export default function AgentsPage() {
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const { addError } = useErrorStore();
   
   // State declarations
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -134,6 +141,19 @@ export default function AgentsPage() {
       setFormData({ name: '', type: 'research', description: '' });
       refetch(); // Refresh the agents list
     },
+    onError: (error) => {
+      const appError = createAppError(
+        ErrorType.CLIENT_ERROR,
+        `Failed to create agent: ${error.message}`,
+        {
+          originalError: new Error(error.message),
+          context: { operation: 'create', agentType: formData.type },
+          recoverable: true,
+          retryable: true,
+        }
+      );
+      addError(appError);
+    },
   });
 
   // Execute agent mutation
@@ -141,20 +161,77 @@ export default function AgentsPage() {
     onSuccess: (data) => {
       setExecutionResult(data);
     },
+    onError: (error) => {
+      const appError = createAppError(
+        ErrorType.CLIENT_ERROR,
+        `Failed to execute agent: ${error.message}`,
+        {
+          originalError: new Error(error.message),
+          context: { operation: 'execute', agentId: selectedAgent?.id },
+          recoverable: true,
+          retryable: true,
+        }
+      );
+      addError(appError);
+    },
   });
 
   // Bulk operations mutations
   const bulkDeleteMutation = trpc.agents.bulkDelete.useMutation({
     onSuccess: (data) => {
       refetch();
-      alert(`Successfully deleted ${data.count} agent(s)${data.failed ? `. Failed: ${data.failed}` : ''}`);
+      const appError = createAppError(
+        ErrorType.CLIENT_ERROR,
+        `Successfully deleted ${data.count} agent(s)${data.failed ? `. Failed: ${data.failed}` : ''}`,
+        {
+          context: { operation: 'bulkDelete', count: data.count, failed: data.failed },
+          recoverable: true,
+          retryable: false,
+        }
+      );
+      addError(appError);
+    },
+    onError: (error) => {
+      const appError = createAppError(
+        ErrorType.CLIENT_ERROR,
+        `Failed to delete agents: ${error.message}`,
+        {
+          originalError: new Error(error.message),
+          context: { operation: 'bulkDelete', count: selectedAgents.size },
+          recoverable: true,
+          retryable: true,
+        }
+      );
+      addError(appError);
     },
   });
 
   const bulkUpdateStatusMutation = trpc.agents.bulkUpdateStatus.useMutation({
     onSuccess: (data) => {
       refetch();
-      alert(`Successfully updated ${data.count} agent(s)${data.failed ? `. Failed: ${data.failed}` : ''}`);
+      const appError = createAppError(
+        ErrorType.CLIENT_ERROR,
+        `Successfully updated ${data.count} agent(s)${data.failed ? `. Failed: ${data.failed}` : ''}`,
+        {
+          context: { operation: 'bulkUpdateStatus', count: data.count, failed: data.failed },
+          recoverable: true,
+          retryable: false,
+        }
+      );
+      addError(appError);
+    },
+    onError: (error) => {
+      const appError = createAppError(
+        ErrorType.CLIENT_ERROR,
+        `Failed to update agents: ${error.message}`,
+        {
+          originalError: new Error(error.message),
+          context: { operation: 'bulkUpdateStatus', count: selectedAgents.size },
+          recoverable: true,
+          retryable: true,
+        }
+      );
+      addError(appError);
     },
   });
 
@@ -164,7 +241,7 @@ export default function AgentsPage() {
     setShowCreateModal(true);
   };
 
-  const handleExecuteAgent = (agent: any) => {
+  const handleExecuteAgent = (agent: Agent) => {
     setSelectedAgent(agent);
     setExecuteData({ objective: '', context: {} });
     setExecutionResult(null);
@@ -174,31 +251,53 @@ export default function AgentsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    try {
-      await createAgentMutation.mutateAsync({
-        name: formData.name,
-        type: formData.type,
-        description: formData.description,
-        config: defaultConfig[formData.type],
-        capabilities: defaultCapabilities[formData.type],
-      });
-    } catch (error) {
-      console.error('Failed to create agent:', error);
+    // Validate form data
+    if (!formData.name.trim()) {
+      const validationError = createAppError(
+        ErrorType.VALIDATION_ERROR,
+        'Agent name is required',
+        {
+          context: { field: 'name' },
+          recoverable: true,
+          retryable: false,
+        }
+      );
+      addError(validationError);
+      return;
     }
+    
+    createAgentMutation.mutate({
+      name: formData.name,
+      type: formData.type,
+      description: formData.description,
+      config: defaultConfig[formData.type],
+      capabilities: defaultCapabilities[formData.type],
+    });
   };
 
   const handleExecuteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    try {
-      await executeAgentMutation.mutateAsync({
-        agentId: selectedAgent.id,
-        objective: executeData.objective,
-        context: executeData.context,
-      });
-    } catch (error) {
-      console.error('Failed to execute agent:', error);
+    // Validate form data
+    if (!executeData.objective.trim()) {
+      const validationError = createAppError(
+        ErrorType.VALIDATION_ERROR,
+        'Objective is required to execute an agent',
+        {
+          context: { field: 'objective' },
+          recoverable: true,
+          retryable: false,
+        }
+      );
+      addError(validationError);
+      return;
     }
+    
+    executeAgentMutation.mutate({
+      agentId: selectedAgent.id,
+      objective: executeData.objective,
+      context: executeData.context,
+    });
   };
 
   const selectedAgentType = agentTypes.find(t => t.id === formData.type);
@@ -215,7 +314,7 @@ export default function AgentsPage() {
   };
 
   const selectAllFiltered = () => {
-    const allIds = new Set(filteredAgents.map((a: any) => a.id));
+    const allIds = new Set(filteredAgents.map((a) => a.id));
     setSelectedAgents(allIds);
   };
 
@@ -279,13 +378,13 @@ export default function AgentsPage() {
   ]);
 
   // Filter and sort agents
-  const filteredAgents = userAgents?.filter((agent: any) => {
+  const filteredAgents = userAgents?.filter((agent: Agent) => {
     const matchesSearch = agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          agent.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === 'all' || agent.type === filterType;
     const matchesStatus = filterStatus === 'all' || agent.status === filterStatus;
     return matchesSearch && matchesType && matchesStatus;
-  }).sort((a: any, b: any) => {
+  }).sort((a: Agent, b: Agent) => {
     if (sortBy === 'name') return a.name.localeCompare(b.name);
     if (sortBy === 'created') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     return 0; // executions sort would need execution count data
@@ -479,7 +578,7 @@ export default function AgentsPage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAgents.map((agent: any) => {
+              {filteredAgents.map((agent) => {
               const agentType = agentTypes.find(t => t.id === agent.type);
               const IconComponent = agentType?.icon || Search;
               

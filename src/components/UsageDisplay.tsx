@@ -45,7 +45,7 @@ export function UsageDisplay() {
       </h3>
 
       <div className="space-y-4">
-        {usage.map((item) => {
+        {usage.map((item: { feature: string; current: number; limit: number; percentage: number; resetAt: string | Date }) => {
           const isNearLimit = item.percentage >= 80;
           const isAtLimit = item.percentage >= 100;
 
