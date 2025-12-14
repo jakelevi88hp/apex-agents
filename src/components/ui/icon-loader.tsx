@@ -21,13 +21,13 @@ export function IconLoader({ name, className, size = 24 }: IconLoaderProps) {
   // Dynamically import icon
   const IconComponent = lazy(() =>
     import('lucide-react').then((mod) => ({
-      default: (mod as Record<string, ComponentType>)[name] || mod.AlertCircle,
+      default: ((mod as unknown) as Record<string, ComponentType<any>>)[name] || (mod as any).AlertCircle,
     }))
   );
 
   return (
     <Suspense fallback={<Loader2 className={className} size={size} />}>
-      <IconComponent className={className} size={size} />
+      <IconComponent {...({ className, size } as any)} />
     </Suspense>
   );
 }

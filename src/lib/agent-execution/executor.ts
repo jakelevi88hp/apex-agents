@@ -76,7 +76,7 @@ export async function executeAgent(config: ExecutionConfig): Promise<ExecutionRe
     const completion = await openai.chat.completions.create({
       model,
       messages: [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: systemPrompt || '' },
         { role: 'user', content: config.input },
       ],
       temperature,
@@ -168,7 +168,7 @@ export async function* executeAgentStream(config: ExecutionConfig): AsyncGenerat
     const stream = await openai.chat.completions.create({
       model,
       messages: [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: systemPrompt || '' },
         { role: 'user', content: config.input },
       ],
       temperature,

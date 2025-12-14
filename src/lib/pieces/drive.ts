@@ -82,7 +82,7 @@ export class PiecesDrive {
         or(
           eq(piecesDriveMaterials.userId, userId),
           eq(piecesDriveMaterials.isPublic, true)
-        )
+        ) as any
       );
     } else {
       // If no userId, only public materials

@@ -26,7 +26,7 @@ export const db = new Proxy({} as NeonHttpDatabase<typeof schema>, {
   get(_target, prop) {
     const instance = initDb();
     // Type-safe proxy access
-    return (instance as Record<string | symbol, unknown>)[prop];
+    return (instance as unknown as Record<string | symbol, unknown>)[prop];
   }
 }) as NeonHttpDatabase<typeof schema>;
 

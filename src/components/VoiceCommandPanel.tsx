@@ -48,7 +48,7 @@ interface VoicePlaybackState {
  *
  * @returns {JSX.Element} Interactive panel for capturing and executing voice commands.
  */
-export function VoiceCommandPanel(): JSX.Element {
+export function VoiceCommandPanel() {
   // Track recording state to update the button label and styling.
   const [isRecording, setIsRecording] = useState(false);
   // Track when the API call is running to disable repeated submissions.

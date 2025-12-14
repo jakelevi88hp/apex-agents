@@ -160,17 +160,15 @@ export class ExternalServiceError extends AppError {
   }
 }
 
-export class StripeError extends ExternalServiceError {
+export class StripeError extends AppError {
   constructor(message: string, context?: ErrorContext) {
-    super('Stripe', message, context);
-    this.code = ErrorCode.STRIPE_ERROR;
+    super(`External service error (Stripe): ${message}`, ErrorCode.STRIPE_ERROR, 502, { service: 'Stripe', ...context });
   }
 }
 
-export class PineconeError extends ExternalServiceError {
+export class PineconeError extends AppError {
   constructor(message: string, context?: ErrorContext) {
-    super('Pinecone', message, context);
-    this.code = ErrorCode.PINECONE_ERROR;
+    super(`External service error (Pinecone): ${message}`, ErrorCode.PINECONE_ERROR, 502, { service: 'Pinecone', ...context });
   }
 }
 
