@@ -18,7 +18,7 @@ import { promisify } from 'util';
 import { createGitHubIntegration, GitHubIntegration } from './github';
 import { GitHubService, CommitFileChange } from './github-service';
 import { getSystemPrompt } from './system-prompt';
-import { getSystemPromptV2 } from './system-prompt-v2';
+import { getSystemPromptV2 } from './system-prompt-v2-clean';
 import { patchStorage } from './patch-storage';
 import { ContextBuilder } from './context-builder';
 import { ContextGatherer } from './context-gatherer';
