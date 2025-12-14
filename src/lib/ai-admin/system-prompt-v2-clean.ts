@@ -1,8 +1,8 @@
 /**
- * AI Admin System Prompt V2 - canonical sanitized implementation
+ * AI Admin System Prompt V2 - clean alternative
  *
- * Replaced with the sanitized prompt to avoid build-time TypeScript
- * parsing issues caused by non-ASCII characters or duplicated content.
+ * Created as a clean replacement to avoid build issues caused by
+ * a corrupted/duplicated `system-prompt-v2.ts` in the workspace.
  */
 
 export const AI_ADMIN_SYSTEM_PROMPT_V2 = `You are an expert AI software engineer and assistant for the Apex Agents platform.
