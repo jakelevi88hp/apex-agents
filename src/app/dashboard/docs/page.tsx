@@ -177,6 +177,53 @@ export default function DocsPage() {
           </div>
         </div>
       </div>
+
+      <div
+        className={`rounded-xl border p-6 shadow-lg ${
+          isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+        }`}
+      >
+        <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          How to Use Key Features
+        </h2>
+        <p className={`mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          Follow these quick steps to get the most out of each area of the app.
+        </p>
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className={`rounded-lg border p-4 ${isDarkMode ? 'border-gray-700 bg-gray-700/50' : 'border-gray-200 bg-gray-50'}`}>
+            <h3 className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Create Agents</h3>
+            <ol className={`mt-3 space-y-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              <li>Open the Agents page and select “New Agent.”</li>
+              <li>Choose a template, then customize goals and tools.</li>
+              <li>Save and run to start your first execution.</li>
+            </ol>
+          </div>
+          <div className={`rounded-lg border p-4 ${isDarkMode ? 'border-gray-700 bg-gray-700/50' : 'border-gray-200 bg-gray-50'}`}>
+            <h3 className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Build Workflows</h3>
+            <ol className={`mt-3 space-y-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              <li>Go to Workflows and create a new flow.</li>
+              <li>Add steps, connect tools, and set triggers.</li>
+              <li>Test the run to verify each step output.</li>
+            </ol>
+          </div>
+          <div className={`rounded-lg border p-4 ${isDarkMode ? 'border-gray-700 bg-gray-700/50' : 'border-gray-200 bg-gray-50'}`}>
+            <h3 className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Manage Knowledge</h3>
+            <ol className={`mt-3 space-y-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              <li>Upload PDFs or docs in the Knowledge hub.</li>
+              <li>Search for answers and review summaries.</li>
+              <li>Attach documents to agents and workflows.</li>
+            </ol>
+          </div>
+          <div className={`rounded-lg border p-4 ${isDarkMode ? 'border-gray-700 bg-gray-700/50' : 'border-gray-200 bg-gray-50'}`}>
+            <h3 className={`text-base font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Track Performance</h3>
+            <ol className={`mt-3 space-y-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              <li>Open Analytics to view system metrics.</li>
+              <li>Filter by time range to spot trends.</li>
+              <li>Use results to improve agent prompts.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
