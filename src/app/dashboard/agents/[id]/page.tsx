@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { useTheme } from '@/contexts/ThemeContext';
 import type { agents, executions } from '@/lib/db/schema';
+import { normalizeCapabilities } from '@/lib/utils/capabilities';
 import {
   ArrowLeft,
   Play,
@@ -36,6 +37,8 @@ export default function AgentDetailPage() {
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
   type AgentConfig = typeof agents.$inferSelect['config'];
   const [editedConfig, setEditedConfig] = useState<AgentConfig | null>(null);
 
@@ -96,12 +99,28 @@ export default function AgentDetailPage() {
   }
 
   const agentConfig = agent.config as any;
+  const normalizedCapabilities = normalizeCapabilities(agent.capabilities as unknown);
 
   const handleSaveConfig = () => {
     updateAgent.mutate({
       id: agentId,
       config: editedConfig,
     });
+  };
+
+  /**
+   * Persist an updated agent name.
+   */
+  const handleSaveName = () => {
+    if (!editedName.trim()) {
+      alert('Agent name cannot be empty.');
+      return;
+    }
+    updateAgent.mutate({
+      id: agentId,
+      name: editedName.trim(),
+    });
+    setIsEditingName(false);
   };
 
   const handleDelete = () => {
@@ -116,6 +135,12 @@ export default function AgentDetailPage() {
     { id: 'history', label: 'History', icon: History },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
   ];
+
+  useEffect(() => {
+    if (agent?.name) {
+      setEditedName(agent.name);
+    }
+  }, [agent?.name]);
 
   return (
     <div>
@@ -133,9 +158,52 @@ export default function AgentDetailPage() {
 
         <div className="flex items-start justify-between">
           <div>
-            <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              {agent.name}
-            </h1>
+            <div className="flex items-center gap-3">
+              {isEditingName ? (
+                <input
+                  value={editedName}
+                  onChange={(event) => setEditedName(event.target.value)}
+                  className={`rounded-lg px-3 py-2 text-3xl font-bold ${
+                    isDarkMode ? 'bg-gray-800 text-white border border-gray-700' : 'bg-white text-gray-900 border border-gray-200'
+                  }`}
+                />
+              ) : (
+                <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {agent.name}
+                </h1>
+              )}
+              {isEditingName ? (
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveName}
+                    className="px-3 py-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-700 text-sm font-medium"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditedName(agent.name);
+                      setIsEditingName(false);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+                      isDarkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-200 text-gray-900 hover:bg-gray-300'
+                    }`}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsEditingName(true)}
+                  title="Edit agent name"
+                  className={`p-2 rounded-lg ${
+                    isDarkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
             <p className={`mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               {agent.description}
             </p>
@@ -343,7 +411,7 @@ export default function AgentDetailPage() {
             </div>
 
             {/* Capabilities */}
-            {agentConfig?.capabilities && (
+            {normalizedCapabilities.length > 0 && (
               <div
                 className={`p-6 rounded-lg border ${
                   isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
@@ -353,7 +421,7 @@ export default function AgentDetailPage() {
                   Capabilities
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {agentConfig.capabilities.map((cap: string) => (
+                  {normalizedCapabilities.map((cap: string) => (
                     <span
                       key={cap}
                       className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm border border-purple-500/30"

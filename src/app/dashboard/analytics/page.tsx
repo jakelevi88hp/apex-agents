@@ -1,13 +1,15 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, type PieLabelRenderProps } from 'recharts';
-import { TrendingUp, Activity, DollarSign, Clock, CheckCircle, Bot, Workflow, Zap, Loader2 } from 'lucide-react';
+import { TrendingUp, Activity, DollarSign, Clock, CheckCircle, Bot, Workflow, Zap, Loader2, Download, HelpCircle } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { useTheme } from '@/contexts/ThemeContext';
 import AnimatedCounter from '@/components/AnimatedCounter';
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
+  const [activityFilter, setActivityFilter] = useState<'all' | 'completed' | 'running' | 'failed'>('all');
   const { isDarkMode } = useTheme();
   
   // Fetch dashboard metrics
@@ -52,6 +54,35 @@ export default function AnalyticsPage() {
     { name: 'Running', value: stats?.running || 0, color: '#3b82f6' },
   ];
 
+  const filteredActivity = activityFilter === 'all'
+    ? (recentActivity || [])
+    : (recentActivity || []).filter((activity) => activity.status === activityFilter);
+
+  /**
+   * Export analytics data as a JSON file.
+   */
+  const handleExport = () => {
+    const payload = {
+      metrics,
+      stats,
+      agentPerf,
+      workflowPerf,
+      executionTrend,
+      recentActivity: filteredActivity,
+      exportedAt: new Date().toISOString(),
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `analytics-export-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
   if (metricsLoading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -68,7 +99,28 @@ export default function AnalyticsPage() {
           <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>Performance metrics, insights, and system overview</p>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex flex-col items-end gap-3 md:flex-row md:items-center">
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/docs"
+              title="Open analytics documentation"
+              className="inline-flex items-center gap-2 text-sm text-purple-300 hover:text-purple-200 transition-colors"
+            >
+              <HelpCircle className="w-4 h-4" />
+              Docs
+            </Link>
+            <button
+              onClick={handleExport}
+              title="Export analytics data"
+              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                isDarkMode ? 'bg-gray-800 text-gray-200 hover:bg-gray-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </button>
+          </div>
+          <div className="flex gap-2">
           {(['7d', '30d', '90d'] as const).map((range) => (
             <button
               key={range}
@@ -84,6 +136,7 @@ export default function AnalyticsPage() {
               {range === '7d' ? 'Last 7 days' : range === '30d' ? 'Last 30 days' : 'Last 90 days'}
             </button>
           ))}
+          </div>
         </div>
       </div>
 
@@ -250,10 +303,24 @@ export default function AnalyticsPage() {
       <div className={`rounded-lg shadow-lg border p-6 mb-8 ${
         isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
       }`}>
-        <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Recent Activity</h2>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Recent Activity</h2>
+          <select
+            value={activityFilter}
+            onChange={(event) => setActivityFilter(event.target.value as 'all' | 'completed' | 'running' | 'failed')}
+            className={`rounded-lg px-3 py-2 text-sm ${
+              isDarkMode ? 'bg-gray-700 text-gray-200 border border-gray-600' : 'bg-gray-100 text-gray-700 border border-gray-200'
+            }`}
+          >
+            <option value="all">All statuses</option>
+            <option value="completed">Completed</option>
+            <option value="running">Running</option>
+            <option value="failed">Failed</option>
+          </select>
+        </div>
         <div className="space-y-3">
-          {recentActivity && recentActivity.length > 0 ? (
-            recentActivity.map((activity) => (
+          {filteredActivity.length > 0 ? (
+            filteredActivity.map((activity) => (
               <div
                 key={activity.id}
                 className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
@@ -294,8 +361,8 @@ export default function AnalyticsPage() {
           ) : (
             <div className={`text-center py-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
               <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p>No recent activity</p>
-              <p className="text-sm mt-1">Execute workflows or agents to see activity here</p>
+              <p>No activity for this filter</p>
+              <p className="text-sm mt-1">Try another status or run workflows to see updates</p>
             </div>
           )}
         </div>

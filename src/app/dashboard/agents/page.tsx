@@ -1,11 +1,12 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import type { agents } from '@/lib/db/schema';
 import { 
   Search, BarChart3, PenTool, Code2, Target, Mail, 
-  TrendingUp, Network, Plus, X, Loader2, Play, Settings, Send 
+  TrendingUp, Network, Plus, X, Loader2, Play, Settings, Send, HelpCircle 
 } from 'lucide-react';
 import AgentWizard from '@/components/agent-wizard/AgentWizard';
 
@@ -302,6 +303,7 @@ export default function AgentsPage() {
           {userAgents && userAgents.length > 0 && (
             <button
               onClick={() => setBulkActionMode(!bulkActionMode)}
+              title="Select multiple agents for bulk actions"
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 bulkActionMode
                   ? 'bg-purple-600 text-white'
@@ -312,6 +314,14 @@ export default function AgentsPage() {
             </button>
           )}
         </div>
+        <Link
+          href="/dashboard/docs"
+          title="Open documentation"
+          className="inline-flex items-center gap-2 text-sm text-purple-300 hover:text-purple-200 transition-colors"
+        >
+          <HelpCircle className="w-4 h-4" />
+          Docs
+        </Link>
       </div>
 
       {/* Bulk Actions Toolbar */}
@@ -573,7 +583,10 @@ export default function AgentsPage() {
                   </h3>
                   <p className="text-gray-300 text-sm mb-4">{agent.description}</p>
                   
-                  <button className="w-full px-4 py-2 bg-gray-700 text-white rounded hover:bg-gradient-to-r hover:from-purple-600 hover:to-blue-600 transition-all duration-300 flex items-center justify-center gap-2 group-hover:scale-105">
+                  <button
+                    title={`Create a ${agent.name}`}
+                    className="w-full px-4 py-2 bg-gray-700 text-white rounded hover:bg-gradient-to-r hover:from-purple-600 hover:to-blue-600 transition-all duration-300 flex items-center justify-center gap-2 group-hover:scale-105"
+                  >
                     <Plus className="w-4 h-4" />
                     Create Agent
                   </button>

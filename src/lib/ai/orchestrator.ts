@@ -2,7 +2,6 @@ import { ChatOpenAI } from '@langchain/openai';
 import { ChatAnthropic } from '@langchain/anthropic';
 import { HumanMessage, SystemMessage, AIMessage } from '@langchain/core/messages';
 import { StructuredOutputParser } from '@langchain/core/output_parsers';
-import { PromptTemplate } from '@langchain/core/prompts';
 import { z } from 'zod';
 
 // ============================================================================
@@ -124,31 +123,43 @@ export class AIOrchestrator {
     const parser = StructuredOutputParser.fromZodSchema(schema);
     const formatInstructions = parser.getFormatInstructions();
 
-    // Extract all variables from the prompt template (e.g., {objective}, {context})
-    const templateVars = prompt.match(/\{([^}]+)\}/g)?.map(v => v.slice(1, -1)) || [];
-    
-    // Filter out format_instructions from input variables since it's a partial variable
-    const inputVars = templateVars.filter(v => v !== 'format_instructions');
-    
-    // Ensure all required variables are provided, use empty string as fallback
-    const safeVariables: Record<string, any> = {};
-    for (const varName of inputVars) {
-      safeVariables[varName] = variables?.[varName] ?? '';
-    }
-    
-    const promptTemplate = new PromptTemplate({
-      template: `${prompt}\n\n{format_instructions}`,
-      inputVariables: inputVars,
-      partialVariables: { format_instructions: formatInstructions },
-    });
-
-    const input = await promptTemplate.format(safeVariables);
+    const input = buildStructuredPrompt(prompt, variables, formatInstructions);
     const model = this.getModel(modelName);
     const response = await model.invoke([new HumanMessage(input)]);
 
     return await parser.parse(response.content as string);
   }
 }
+
+const PLACEHOLDER_REGEX = /\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g;
+
+/**
+ * Build a structured prompt by replacing template variables safely.
+ * @param prompt - Prompt template containing placeholders.
+ * @param variables - Values for placeholder replacements.
+ * @param formatInstructions - Structured output format instructions.
+ * @returns Final prompt string with replacements applied.
+ */
+export const buildStructuredPrompt = (
+  prompt: string,
+  variables: Record<string, any> | undefined,
+  formatInstructions: string
+): string => {
+  let hasFormatPlaceholder = false;
+  const formattedPrompt = prompt.replace(PLACEHOLDER_REGEX, (_match, name) => {
+    if (name === 'format_instructions') {
+      hasFormatPlaceholder = true;
+      return formatInstructions;
+    }
+    return variables?.[name] ?? '';
+  });
+
+  if (hasFormatPlaceholder) {
+    return formattedPrompt;
+  }
+
+  return `${formattedPrompt}\n\n${formatInstructions}`;
+};
 
 // ============================================================================
 // AGENT TASK PLANNING

@@ -14,6 +14,16 @@ import {
 } from '@/lib/utils/storage';
 
 describe('Storage Utilities', () => {
+  let consoleErrorSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+  });
+
   beforeEach(() => {
     localStorage.clear();
   });

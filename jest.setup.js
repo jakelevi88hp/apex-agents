@@ -1,16 +1,16 @@
 // Polyfills for the Jest environment
 const { TextEncoder, TextDecoder } = require('util');
 const { ReadableStream, WritableStream } = require('stream/web');
-const { MessageChannel, MessagePort } = require('worker_threads');
+const { MessagePort } = require('worker_threads');
 globalThis.TextEncoder = TextEncoder;
 globalThis.TextDecoder = TextDecoder;
 globalThis.ReadableStream = ReadableStream;
 globalThis.WritableStream = WritableStream;
-globalThis.MessageChannel = MessageChannel;
 globalThis.MessagePort = MessagePort;
 
 const { fetch: undiciFetch, Headers: UndiciHeaders, Request: UndiciRequest, Response: UndiciResponse } = require('undici');
 require('@testing-library/jest-dom');
+const { cleanup } = require('@testing-library/react');
 
 // Assign fetch primitives if missing
 if (!globalThis.fetch) {
@@ -81,4 +81,9 @@ Object.defineProperty(window, 'localStorage', {
 // Reset localStorage before each test
 beforeEach(() => {
   localStorage.clear();
+});
+
+// Ensure React Testing Library cleans up between tests
+afterEach(() => {
+  cleanup();
 });
