@@ -155,7 +155,7 @@ export class SubscriptionMonitor {
     expiresAt: Date;
     hoursLeft: number;
   }>> {
-    const [results] = await db.execute(sql`
+    const results = await db.execute(sql`
       SELECT 
         s.user_id,
         u.email,

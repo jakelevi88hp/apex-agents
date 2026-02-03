@@ -1,8 +1,14 @@
 "use client";
 
+import { speakText, setGlobalTextToSpeechMutation, setGlobalSelectedVoiceId } from "@/lib/ai-admin/speak-text";
+
 import { useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc/client";
-import { Loader2, Send, Code, History, CheckCircle, XCircle, AlertCircle, RefreshCw, RotateCcw } from "lucide-react";
+import { Loader2, Send, Code, History, CheckCircle, XCircle, AlertCircle, RefreshCw, RotateCcw, Mic, Volume2 } from "lucide-react";
+import { AIAdminVoiceInput } from "@/components/AIAdminVoiceInput";
+import { AIAdminVoiceOutput } from "@/components/AIAdminVoiceOutput";
+import { VoiceSelector } from "@/components/VoiceSelector";
+import { useVoiceAdminStore } from "@/lib/stores/voiceAdminStore";
 
 interface Message {
   role: "user" | "assistant" | "system";
@@ -36,6 +42,8 @@ interface PatchRecord {
   error?: string;
 }
 
+
+
 // Force rebuild - using generatePatch endpoint
 export default function AIAdminPage() {
   const [messages, setMessages] = useState<Message[]>([
@@ -49,10 +57,25 @@ export default function AIAdminPage() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const isInitialScrollRef = useRef(true);
+  const lastSubmittedTranscriptRef = useRef<string>("");
+  const isSubmittingRef = useRef(false);
   const [activeTab, setActiveTab] = useState<"chat" | "patches" | "analysis">("chat");
+  
+  // Voice state and hooks
+  const { voiceMode, setVoiceMode, transcript, clearTranscript, isRecording, selectedVoiceId, setSelectedVoiceId } = useVoiceAdminStore();
 
   // tRPC mutations and queries
+  const chatMutation = trpc.aiAdmin.chat.useMutation();
   const generatePatchMutation = trpc.aiAdmin.generatePatch.useMutation();
+  const textToSpeechMutation = trpc.aiAdmin.textToSpeech.useMutation();
+  
+  useEffect(() => {
+    setGlobalTextToSpeechMutation(textToSpeechMutation);
+  }, [textToSpeechMutation]);
+
+  useEffect(() => {
+    setGlobalSelectedVoiceId(selectedVoiceId);
+  }, [selectedVoiceId]);
   const applyPatchMutation = trpc.aiAdmin.applyPatch.useMutation();
   const rollbackPatchMutation = trpc.aiAdmin.rollbackPatch.useMutation();
   const { data: patchHistory, refetch: refetchHistory } = trpc.aiAdmin.getPatchHistory.useQuery();
@@ -68,35 +91,77 @@ export default function AIAdminPage() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const messageText = input.trim();
     setInput("");
     setIsLoading(true);
 
     try {
-      // Generate patch from natural language request
-      const result = await generatePatchMutation.mutateAsync({
-        request: input.trim(),
-      });
+      // Check if user is asking to generate a patch
+      const isPatchRequest = /generate patch|create patch|make patch|apply changes|generate code|write code/i.test(messageText);
 
-      if (result.success && result.data) {
-        const files = Array.isArray(result.data.files) ? result.data.files : [];
-        const filesCount = files.length;
-        const description = typeof result.data.description === "string" ? result.data.description : "N/A";
-        const patchId = typeof result.data.id === "string" ? result.data.id : "";
+      if (isPatchRequest) {
+        // Generate patch from natural language request
+        const result = await generatePatchMutation.mutateAsync({
+          request: messageText,
+        });
 
-        const assistantMessage: Message = {
-          role: "assistant",
-          content: `Patch generated successfully!\n\n**Description:** ${description}\n\n**Files to be modified:** ${filesCount}\n\nWould you like me to apply this patch?`,
-          timestamp: new Date(),
-          patchId,
-        };
+        if (result.success && result.data) {
+          const files = Array.isArray(result.data.files) ? result.data.files : [];
+          const filesCount = files.length;
+          const description = typeof result.data.description === "string" ? result.data.description : "N/A";
+          const patchId = typeof result.data.id === "string" ? result.data.id : "";
 
-        setMessages((prev) => [...prev, assistantMessage]);
-        refetchHistory();
+          const assistantMessage: Message = {
+            role: "assistant",
+            content: `Patch generated successfully!\n\n**Description:** ${description}\n\n**Files to be modified:** ${filesCount}\n\nWould you like me to apply this patch?`,
+            timestamp: new Date(),
+            patchId,
+          };
+
+          setMessages((prev) => [...prev, assistantMessage]);
+          // Speak the patch response
+          speakText("Patch generated successfully!");
+          refetchHistory();
+        }
+      } else {
+        // Regular conversation - use chat endpoint
+        // Include the current message in conversation history for better context
+        const conversationHistory = messages
+          .filter(m => m.role !== 'system')
+          .map(m => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          }))
+          .concat([{ role: 'user' as const, content: messageText }]);
+
+        const result = await chatMutation.mutateAsync({
+          message: messageText,
+          conversationHistory,
+        });
+
+        if (result.success) {
+          const assistantMessage: Message = {
+            role: "assistant",
+            content: result.message,
+            timestamp: new Date(),
+          };
+
+          setMessages((prev) => [...prev, assistantMessage]);
+          // Speak the AI response for natural conversation
+          speakText(result.message);
+        } else {
+          const errorMessage: Message = {
+            role: "assistant",
+            content: "Failed to get response. Please try again.",
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+        }
       }
     } catch (error) {
       const errorMessage: Message = {
         role: "assistant",
-        content: `Error: ${error instanceof Error ? error.message : "Failed to generate patch"}`,
+        content: `Error: ${error instanceof Error ? error.message : "Failed to process message"}`,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -166,6 +231,98 @@ export default function AIAdminPage() {
         return null;
     }
   };
+
+  // Auto-submit voice input when recording stops
+  useEffect(() => {
+    if (!voiceMode || !transcript || isRecording) {
+      isSubmittingRef.current = false;
+      return;
+    }
+
+    const messageText = transcript.trim();
+    console.log('[Voice] Recording stopped, message ready:', messageText);
+    
+    // Prevent duplicate submissions
+    if (lastSubmittedTranscriptRef.current === messageText || isSubmittingRef.current) {
+      console.log('[Voice] Skipping duplicate submission');
+      return;
+    }
+    
+    // Mark as submitting to prevent re-triggers
+    isSubmittingRef.current = true;
+    lastSubmittedTranscriptRef.current = messageText;
+    console.log('[Voice] Starting message submission...');
+    
+    // Add user message
+    const userMessage: Message = {
+      role: "user",
+      content: messageText,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
+
+    // Send after a short delay
+    const timer = setTimeout(async () => {
+      try {
+        console.log('[Voice] Sending message:', messageText);
+        const isPatchRequest = /generate patch|create patch|make patch|apply changes|generate code|write code/i.test(messageText);
+
+        if (isPatchRequest) {
+          const result = await generatePatchMutation.mutateAsync({ request: messageText });
+          if (result.success && result.data) {
+            const files = Array.isArray(result.data.files) ? result.data.files : [];
+            const assistantMessage: Message = {
+              role: "assistant",
+              content: `Patch generated!\n\n**Description:** ${result.data.description}\n\n**Files:** ${files.length}`,
+              timestamp: new Date(),
+              patchId: String(result.data.id),
+            };
+            setMessages((prev) => [...prev, assistantMessage]);
+            // Speak the patch response
+            speakText("Patch generated successfully!");
+            refetchHistory();
+          }
+        } else {
+          // Build conversation history including current message
+          const conversationHistory = messages
+            .filter(m => m.role !== 'system')
+            .map(m => ({
+              role: m.role as 'user' | 'assistant',
+              content: m.content,
+            }))
+            .concat([{ role: 'user' as const, content: messageText }]);
+          
+          const result = await chatMutation.mutateAsync({ message: messageText, conversationHistory });
+          if (result.success) {
+            console.log('[Voice] Response received:', result.message);
+            setMessages((prev) => [...prev, { role: "assistant", content: result.message, timestamp: new Date() }]);
+            // Speak the AI response for natural conversation
+            speakText(result.message);
+          } else {
+            console.error('[Voice] Chat failed:', result);
+          }
+        }
+      } catch (error) {
+        console.error('[Voice] Error submitting message:', error);
+        const errorMessage: Message = { role: "assistant", content: `Error: ${error}`, timestamp: new Date() };
+        setMessages((prev) => [...prev, errorMessage]);
+      } finally {
+        console.log('[Voice] Submission complete, clearing state');
+        setIsLoading(false);
+        isSubmittingRef.current = false;
+        lastSubmittedTranscriptRef.current = "";
+        // Clear transcript AFTER all state updates are done
+        setTimeout(() => clearTranscript(), 0);
+      }
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      isSubmittingRef.current = false;
+    };
+  }, [voiceMode, isRecording, transcript])
 
   useEffect(() => {
     // Ensure the scroll container is available before attempting to scroll
@@ -292,6 +449,38 @@ export default function AIAdminPage() {
               )}
             </div>
 
+            {/* Voice Mode Toggle */}
+            <div className="mb-4 flex items-center gap-2">
+              <button
+                onClick={() => setVoiceMode(!voiceMode)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors ${
+                  voiceMode
+                    ? "bg-blue-500 text-white hover:bg-blue-600"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                <Mic className="h-4 w-4" />
+                {voiceMode ? "Voice Mode" : "Text Mode"}
+              </button>
+              {voiceMode && (
+                <>
+                  <VoiceSelector
+                    selectedVoiceId={selectedVoiceId}
+                    onVoiceChange={setSelectedVoiceId}
+                  />
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {isRecording ? "🎤 Listening..." : "Click microphone to start speaking"}
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Voice Input */}
+            {voiceMode && (
+              <div className="mb-4">
+                <AIAdminVoiceInput />
+              </div>
+            )}
             {/* Input */}
             <div className="flex gap-2">
               <input
@@ -364,6 +553,11 @@ export default function AIAdminPage() {
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           Created: {timestamp instanceof Date ? timestamp.toLocaleString() : new Date(timestamp).toLocaleString()}
                         </p>
+                        {(patchRecord as any).branchName && (
+                          <p className="text-sm text-blue-600 dark:text-blue-400 font-mono">
+                            Branch: <code className="bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded">{(patchRecord as any).branchName}</code>
+                          </p>
+                        )}
                       </div>
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded ${

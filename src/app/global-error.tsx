@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import * as Sentry from '@sentry/nextjs';
 
 /**
@@ -17,7 +18,9 @@ interface GlobalErrorProps {
  * @returns A fallback UI for unexpected errors.
  */
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
-  Sentry.captureException(error);
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
 
   return (
     <html lang="en">
@@ -27,6 +30,9 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           <p className="text-sm text-gray-300">
             We hit an unexpected error. Please try again, or come back in a few minutes.
           </p>
+          {error.digest && (
+            <p className="text-xs text-gray-400">Error ID: {error.digest}</p>
+          )}
           <button
             type="button"
             onClick={reset}

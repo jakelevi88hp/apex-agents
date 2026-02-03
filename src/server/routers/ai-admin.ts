@@ -233,9 +233,21 @@ export const aiAdminRouter = router({
         
         const patch = await agent.generatePatch(input.request, fileContextText);
         
+        // Create a git branch for this patch
+        let branchName: string | undefined;
+        try {
+          const { generateBranchName, createPatchBranch, pushBranch } = await import('@/lib/ai-admin/git-utils');
+          branchName = generateBranchName(patch.patch);
+          await createPatchBranch(branchName);
+          console.log('[generatePatch] Created git branch:', branchName);
+        } catch (error) {
+          console.warn('[generatePatch] Failed to create git branch:', error);
+          // Continue without branch creation - it's not critical
+        }
+        
         // Save patch to database for persistence across serverless instances
         console.log('[generatePatch] Original agent patch ID:', patch.id, 'Type:', typeof patch.id);
-        const savedPatch = await patchStorage.savePatch(ctx.userId, patch);
+        const savedPatch = await patchStorage.savePatch(ctx.userId, patch, branchName);
         console.log('[generatePatch] Saved patch to database with UUID:', savedPatch.id, 'Type:', typeof savedPatch.id);
         
         // Return the saved patch with database UUID, not the original agent patch
@@ -250,6 +262,7 @@ export const aiAdminRouter = router({
           risks: savedPatch.risks || [],
           generatedAt: savedPatch.createdAt ? savedPatch.createdAt.toISOString() : new Date().toISOString(), // Convert Date to ISO string with fallback
           status: savedPatch.status,
+          branchName: savedPatch.branchName || undefined,
         };
         console.log('[generatePatch] savedPatch.createdAt:', savedPatch.createdAt, 'Type:', typeof savedPatch.createdAt);
         console.log('[generatePatch] Returning patch ID to frontend:', responseData.id, 'Type:', typeof responseData.id);
@@ -1229,5 +1242,53 @@ export const aiAdminRouter = router({
         });
       }
     }),
-});
 
+  textToSpeech: adminProcedure
+    .input(
+      z.object({
+        text: z.string().min(1).max(5000),
+        voiceId: z.string().optional(),
+        stability: z.number().optional().default(0.5),
+        similarityBoost: z.number().optional().default(0.75),
+      })
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const { textToSpeech } = await import('@/server/services/elevenlabs');
+        const audioBase64 = await textToSpeech({
+          text: input.text,
+          voiceId: input.voiceId,
+          stability: input.stability,
+          similarityBoost: input.similarityBoost,
+        });
+        return {
+          success: true,
+          audio: audioBase64,
+          mimeType: 'audio/mpeg',
+        };
+      } catch (error) {
+        console.error('[AI Admin] Text-to-speech error:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to generate speech: ${error}`,
+        });
+      }
+    }),
+
+  getVoices: protectedProcedure.query(async () => {
+    try {
+      const { getAvailableVoices } = await import('@/server/services/elevenlabs');
+      
+      return {
+        success: true,
+        voices: getAvailableVoices(),
+      };
+    } catch (error) {
+      console.error('[AI Admin] Error getting voices:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to get voices',
+      });
+    }
+  }),
+});

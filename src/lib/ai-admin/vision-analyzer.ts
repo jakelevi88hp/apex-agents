@@ -51,7 +51,7 @@ Provide a detailed description and extract specific elements that would be usefu
         : `Analyze this image and identify any UI components, code patterns, design elements, or other relevant information for software development.`;
 
       const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: 'gpt-4-turbo',
         messages: [
           {
             role: 'system',

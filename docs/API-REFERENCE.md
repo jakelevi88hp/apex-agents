@@ -91,7 +91,7 @@ SSE events emit `{ type: "chunk" | "patch" | "status" | "done" }`.
 ### 4.4 Voice Commands
 | Method | Path | Description |
 | --- | --- | --- |
-| `POST` | `/api/voice` | Accepts `FormData` field `audio` (WebM/MP4). Pipeline: Whisper → GPT command → execute (`respond`, `get_dashboard_metrics`, `run_agent`). |
+| `POST` | `/api/voice` | Accepts `FormData` field `audio` (WebM/MP4). Pipeline: Whisper → GPT command → execute (`respond`, `get_dashboard_metrics`, `run_agent`) → GPT-crafted spoken summary via TTS. |
 
 Response example:
 ```json
@@ -109,6 +109,11 @@ Response example:
       "executionsToday": 19,
       "executionsTrend": { "change": 12.5, "direction": "up" }
     }
+  },
+  "voice": {
+    "text": "You ran 19 workflows today, which is up 12% from yesterday. Want me to dig into any agent?",
+    "audioBase64": "<base64 audio>",
+    "mimeType": "audio/mpeg"
   }
 }
 ```
