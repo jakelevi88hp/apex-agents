@@ -1,5 +1,6 @@
 import { aiOrchestrator, taskPlanner, MemorySystem, TaskPlan } from './orchestrator';
 import { z } from 'zod';
+import { normalizeCapabilities } from '@/lib/utils/capabilities';
 
 // ============================================================================
 // BASE AGENT CLASS
@@ -46,7 +47,10 @@ export abstract class BaseAgent {
   protected currentExecution?: AgentExecution;
 
   constructor(config: AgentConfig) {
-    this.config = config;
+    this.config = {
+      ...config,
+      capabilities: normalizeCapabilities(config.capabilities as unknown),
+    };
     this.memory = new MemorySystem();
   }
 
@@ -65,7 +69,7 @@ export abstract class BaseAgent {
     const fullPrompt = `
 You are ${this.config.name}, a ${this.config.type} agent.
 
-Your capabilities: ${this.config.capabilities.join(', ')}
+Your capabilities: ${this.config.capabilities.length > 0 ? this.config.capabilities.join(', ') : 'None specified'}
 
 Relevant memories:
 ${memoryContext}

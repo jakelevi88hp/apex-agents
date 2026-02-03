@@ -12,6 +12,7 @@ import {
   Workflow,
   BookOpen,
   BarChart3,
+  FileText,
   Settings,
   Brain,
   Wrench,
@@ -69,6 +70,7 @@ export default function Sidebar() {
 
   const secondaryItems = [
     { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
+    { href: '/dashboard/docs', icon: FileText, label: 'Docs' },
   ];
 
   const specializedItems = [

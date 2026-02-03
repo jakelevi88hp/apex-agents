@@ -1,65 +1,47 @@
 'use client';
 
-import * as Sentry from '@sentry/nextjs';
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
-export default function GlobalError({
-  error,
-  reset,
-}: {
+/**
+ * Props for the global error boundary.
+ */
+interface GlobalErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
-}) {
+}
+
+/**
+ * Global error boundary for App Router with Sentry reporting.
+ * @param error - The error thrown during rendering.
+ * @param reset - Callback to retry rendering.
+ * @returns A fallback UI for unexpected errors.
+ */
+export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
-    // Log the error to Sentry
     Sentry.captureException(error);
   }, [error]);
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      backgroundColor: '#f3f4f6',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '2rem',
-        borderRadius: '0.5rem',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-        maxWidth: '500px',
-        textAlign: 'center',
-      }}>
-        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '1rem', color: '#1f2937' }}>
-          Something went wrong!
-        </h1>
-        <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
-          We've been notified about this error and are working to fix it.
-        </p>
-        {error.digest && (
-          <p style={{ fontSize: '0.875rem', color: '#9ca3af', marginBottom: '1.5rem' }}>
-            Error ID: {error.digest}
+    <html lang="en">
+      <body className="min-h-screen bg-gray-950 text-white flex items-center justify-center p-6">
+        <div className="max-w-lg space-y-4 text-center">
+          <h1 className="text-3xl font-semibold">Something went wrong</h1>
+          <p className="text-sm text-gray-300">
+            We hit an unexpected error. Please try again, or come back in a few minutes.
           </p>
-        )}
-        <button
-          onClick={() => reset()}
-          style={{
-            backgroundColor: '#3b82f6',
-            color: 'white',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.375rem',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '1rem',
-            fontWeight: '500',
-          }}
-        >
-          Try again
-        </button>
-      </div>
-    </div>
+          {error.digest && (
+            <p className="text-xs text-gray-400">Error ID: {error.digest}</p>
+          )}
+          <button
+            type="button"
+            onClick={reset}
+            className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-700 transition"
+          >
+            Try again
+          </button>
+        </div>
+      </body>
+    </html>
   );
 }

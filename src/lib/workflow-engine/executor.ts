@@ -7,8 +7,9 @@
 
 import { db } from '@/lib/db';
 import { executions, executionSteps, workflows, agents } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { OpenAI } from 'openai';
+import { validateWorkflowSteps } from './validator';
 
 interface WorkflowStep {
   id: string;
@@ -62,6 +63,34 @@ export class WorkflowExecutor {
       }
 
       const workflowData = workflow[0];
+      const steps = workflowData.steps as WorkflowStep[];
+
+      const validation = validateWorkflowSteps(steps);
+      if (!validation.valid) {
+        throw new Error(`Workflow validation failed: ${validation.errors.join(' ')}`);
+      }
+
+      if (workflowData.status === 'draft') {
+        throw new Error('Workflow is in draft status. Activate it before execution.');
+      }
+
+      const agentIds = steps
+        .filter((step) => step.type === 'agent' && step.agentId)
+        .map((step) => step.agentId as string);
+
+      if (agentIds.length > 0) {
+        const existingAgents = await db
+          .select({ id: agents.id })
+          .from(agents)
+          .where(and(inArray(agents.id, agentIds), eq(agents.userId, context.userId)));
+
+        const existingIds = new Set(existingAgents.map((agent) => agent.id));
+        const missingAgents = agentIds.filter((id) => !existingIds.has(id));
+
+        if (missingAgents.length > 0) {
+          throw new Error(`Workflow references missing agents: ${missingAgents.join(', ')}`);
+        }
+      }
 
       // Create execution record
       const execution = await db
@@ -78,7 +107,6 @@ export class WorkflowExecutor {
       const executionId = execution[0].id;
 
       // Execute steps
-      const steps = workflowData.steps as WorkflowStep[];
       const results: any[] = [];
 
       for (let i = 0; i < steps.length; i++) {
@@ -213,7 +241,7 @@ export class WorkflowExecutor {
     const agentData = agent[0];
 
     // Build prompt from step config and previous results
-    const prompt = this.buildAgentPrompt(step.config, context.previousResults);
+    const prompt = this.buildAgentPrompt(step, context.previousResults);
 
     // Execute agent using OpenAI
     const response = await this.openai.chat.completions.create({
@@ -257,14 +285,21 @@ export class WorkflowExecutor {
   /**
    * Build agent prompt from config and previous results
    */
-  private buildAgentPrompt(config: any, previousResults: any[]): string {
-    let prompt = config.prompt || config.instruction || '';
+  private buildAgentPrompt(step: WorkflowStep, previousResults: any[]): string {
+    const config = step.config || {};
+    let prompt =
+      config.prompt ||
+      config.instruction ||
+      (step as { prompt?: string }).prompt ||
+      (step as { instruction?: string }).instruction ||
+      (step as { action?: string }).action ||
+      '';
 
     // Replace variables with previous results
     if (previousResults.length > 0) {
       prompt += '\n\nContext from previous steps:\n';
       previousResults.forEach((result, index) => {
-        prompt += `\nStep ${index + 1}: ${JSON.stringify(result, null, 2)}`;
+      prompt += `\nStep ${index + 1}: ${JSON.stringify(result, null, 2)}`;
       });
     }
 
@@ -278,7 +313,7 @@ export class WorkflowExecutor {
     step: WorkflowStep,
     context: ExecutionContext & { previousResults: any[] }
   ): Promise<any> {
-    const condition = step.config.condition;
+    const condition = step.config?.condition ?? (step as { condition?: any }).condition;
     const previousResult = context.previousResults[context.previousResults.length - 1];
 
     // Simple condition evaluation

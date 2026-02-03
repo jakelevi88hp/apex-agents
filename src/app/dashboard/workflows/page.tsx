@@ -1,15 +1,17 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
 import WorkflowCanvas from '@/components/WorkflowCanvas';
-import { LayoutGrid, List } from 'lucide-react';
+import { LayoutGrid, List, HelpCircle } from 'lucide-react';
 
 interface WorkflowStep {
   id: string;
   type: 'agent' | 'condition' | 'loop' | 'parallel';
-  agentType?: string;
+  agentId?: string;
   action?: string;
   condition?: string;
+  iterations?: number;
   children?: WorkflowStep[];
 }
 
@@ -26,6 +28,7 @@ export default function WorkflowsPage() {
 
   // Fetch workflows from database
   const { data: workflows, isLoading, refetch } = trpc.workflows.list.useQuery();
+  const { data: agents } = trpc.agents.list.useQuery();
   const { data: selectedWorkflow } = trpc.workflows.get.useQuery(
     { id: selectedWorkflowId! },
     { enabled: !!selectedWorkflowId }
@@ -51,6 +54,9 @@ export default function WorkflowsPage() {
       }
       refetch();
     },
+    onError: (error) => {
+      alert(`Workflow execution failed: ${error.message}`);
+    },
   });
 
   const updateWorkflow = trpc.workflows.update.useMutation({
@@ -75,6 +81,17 @@ export default function WorkflowsPage() {
     };
     setSteps([...steps, newStep]);
     setShowAddStep(false);
+  };
+
+  /**
+   * Update a workflow step by id.
+   * @param stepId - Step identifier to update.
+   * @param updates - Partial updates for the step.
+   */
+  const updateStep = (stepId: string, updates: Partial<WorkflowStep>) => {
+    setSteps((current) =>
+      current.map((step) => (step.id === stepId ? { ...step, ...updates } : step))
+    );
   };
 
   const removeStep = (stepId: string) => {
@@ -107,6 +124,17 @@ export default function WorkflowsPage() {
       return;
     }
 
+    const missingAgentSteps = steps.filter((step) => step.type === 'agent' && !step.agentId);
+    if (missingAgentSteps.length > 0) {
+      alert('Please select an agent for every agent step before saving.');
+      return;
+    }
+
+    if (steps.length === 0) {
+      alert('Please add at least one step to your workflow.');
+      return;
+    }
+
     createWorkflow.mutate({
       name: newWorkflowName,
       description: newWorkflowDescription,
@@ -114,9 +142,16 @@ export default function WorkflowsPage() {
       steps: steps.map(step => ({
         id: step.id,
         type: step.type,
-        agentType: step.agentType,
+        agentId: step.agentId,
         action: step.action,
         condition: step.condition,
+        iterations: step.iterations,
+        config: {
+          prompt: step.action,
+          condition: step.condition,
+          iterations: step.iterations,
+          steps: step.children,
+        },
       })),
       agents: [],
     });
@@ -160,12 +195,23 @@ export default function WorkflowsPage() {
             </button>
           </div>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-        >
-          Create Workflow
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/docs"
+            title="Open workflow documentation"
+            className="inline-flex items-center gap-2 text-sm text-purple-300 hover:text-purple-200 transition-colors"
+          >
+            <HelpCircle className="w-4 h-4" />
+            Docs
+          </Link>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            title="Create a new workflow"
+            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Create Workflow
+          </button>
+        </div>
       </div>
 
       {viewMode === 'visual' ? (
@@ -190,14 +236,15 @@ export default function WorkflowsPage() {
           
           <div className="space-y-4">
             {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center gap-4 p-4 border border-gray-700 rounded-lg">
+              <div key={step.id} className="flex flex-col gap-3 p-4 border border-gray-700 rounded-lg">
+                <div className="flex items-center gap-4">
                 <div className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
                   {index + 1}
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold text-white capitalize">{step.type}</div>
                   <div className="text-sm text-gray-400">
-                    {step.agentType && `Agent: ${step.agentType}`}
+                    {step.agentId && `Agent: ${agents?.find((agent) => agent.id === step.agentId)?.name || 'Selected'}`}
                     {step.action && ` - ${step.action}`}
                   </div>
                 </div>
@@ -207,6 +254,61 @@ export default function WorkflowsPage() {
                 >
                   ×
                 </button>
+                </div>
+
+                {step.type === 'agent' && (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <label className="text-xs text-gray-400">Agent</label>
+                      <select
+                        value={step.agentId || ''}
+                        onChange={(event) => updateStep(step.id, { agentId: event.target.value || undefined })}
+                        className="mt-1 w-full rounded-lg border border-gray-600 bg-gray-900 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"
+                      >
+                        <option value="">Select an agent</option>
+                        {agents?.map((agent) => (
+                          <option key={agent.id} value={agent.id}>
+                            {agent.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400">Instruction</label>
+                      <input
+                        value={step.action || ''}
+                        onChange={(event) => updateStep(step.id, { action: event.target.value })}
+                        placeholder="Describe what this agent should do"
+                        className="mt-1 w-full rounded-lg border border-gray-600 bg-gray-900 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {step.type === 'condition' && (
+                  <div>
+                    <label className="text-xs text-gray-400">Condition</label>
+                    <input
+                      value={step.condition || ''}
+                      onChange={(event) => updateStep(step.id, { condition: event.target.value })}
+                      placeholder="e.g. output.confidence > 0.8"
+                      className="mt-1 w-full rounded-lg border border-gray-600 bg-gray-900 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"
+                    />
+                  </div>
+                )}
+
+                {step.type === 'loop' && (
+                  <div>
+                    <label className="text-xs text-gray-400">Iterations</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={step.iterations || 1}
+                      onChange={(event) => updateStep(step.id, { iterations: Number(event.target.value) })}
+                      className="mt-1 w-full rounded-lg border border-gray-600 bg-gray-900 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none"
+                    />
+                  </div>
+                )}
               </div>
             ))}
 
@@ -219,6 +321,7 @@ export default function WorkflowsPage() {
 
           <button
             onClick={() => setShowAddStep(true)}
+            title="Add a new step to your workflow"
             className="mt-4 w-full px-4 py-2 border-2 border-dashed border-gray-600 rounded-lg hover:border-purple-500 hover:bg-gray-700 transition text-gray-300"
           >
             + Add Step
@@ -315,8 +418,8 @@ export default function WorkflowsPage() {
               setNewWorkflowName('Data Analysis Workflow');
               setNewWorkflowDescription('Automated data collection and analysis');
               setSteps([
-                { id: crypto.randomUUID(), type: 'agent', agentType: 'data-collector' },
-                { id: crypto.randomUUID(), type: 'agent', agentType: 'data-analyzer' },
+                { id: crypto.randomUUID(), type: 'agent', action: 'Collect data from the specified sources.' },
+                { id: crypto.randomUUID(), type: 'agent', action: 'Analyze the collected data and summarize findings.' },
               ]);
               setShowCreateModal(true);
             }}
@@ -331,8 +434,8 @@ export default function WorkflowsPage() {
               setNewWorkflowName('Content Generation Workflow');
               setNewWorkflowDescription('Research and create content');
               setSteps([
-                { id: crypto.randomUUID(), type: 'agent', agentType: 'researcher' },
-                { id: crypto.randomUUID(), type: 'agent', agentType: 'writer' },
+                { id: crypto.randomUUID(), type: 'agent', action: 'Research the topic and gather key points.' },
+                { id: crypto.randomUUID(), type: 'agent', action: 'Draft the final content using the research.' },
               ]);
               setShowCreateModal(true);
             }}
@@ -347,8 +450,8 @@ export default function WorkflowsPage() {
               setNewWorkflowName('Market Research Workflow');
               setNewWorkflowDescription('Comprehensive market analysis');
               setSteps([
-                { id: crypto.randomUUID(), type: 'agent', agentType: 'market-researcher' },
-                { id: crypto.randomUUID(), type: 'agent', agentType: 'report-generator' },
+                { id: crypto.randomUUID(), type: 'agent', action: 'Collect market data and competitor insights.' },
+                { id: crypto.randomUUID(), type: 'agent', action: 'Generate a concise market report.' },
               ]);
               setShowCreateModal(true);
             }}
@@ -425,6 +528,11 @@ export default function WorkflowsPage() {
               </div>
             </div>
 
+            {executeWorkflow.error && (
+              <div className="mb-3 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {executeWorkflow.error.message}
+              </div>
+            )}
             <div className="flex gap-3">
               <button
                 onClick={handleCreateWorkflow}

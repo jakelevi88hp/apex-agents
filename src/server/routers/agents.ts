@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { agents, executions } from '@/lib/db/schema';
 import { eq, desc, inArray } from 'drizzle-orm';
 import { AgentFactory, type AgentType } from '@/lib/ai/agents';
+import { normalizeCapabilities } from '@/lib/utils/capabilities';
 import { checkUsageLimit } from '../middleware/subscription';
 import { TRPCError } from '@trpc/server';
 import { and } from 'drizzle-orm';
@@ -119,14 +120,14 @@ export const agentsRouter = router({
       if (!agent) throw new Error('Agent not found');
 
       const agentConfig = agent.config as { model?: string; tools?: string[] } | null;
-      const capabilities = agent.capabilities as string[] | null;
+      const capabilities = normalizeCapabilities(agent.capabilities as unknown);
       const agentInstance = AgentFactory.createAgent({
         id: agent.id,
         name: agent.name,
         type: agent.type as AgentType,
         model: agentConfig?.model || 'gpt-4-turbo',
         tools: agentConfig?.tools || [],
-        capabilities: capabilities || [],
+        capabilities,
       });
 
       const [execution] = await ctx.db.insert(executions).values({

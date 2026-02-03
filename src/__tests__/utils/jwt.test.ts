@@ -23,6 +23,16 @@ const createMockToken = (payload: Record<string, unknown>): string => {
 };
 
 describe('JWT Utilities', () => {
+  let consoleErrorSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+  });
+
   beforeEach(() => {
     localStorage.clear();
   });
