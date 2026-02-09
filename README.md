@@ -2,6 +2,8 @@
 
 AI agent operations platform built with Next.js 14 (App Router), TypeScript, tRPC, Drizzle ORM, Neon Postgres, Pinecone, OpenAI, and Stripe. Apex Agents lets teams design autonomous agents, orchestrate workflows, ingest knowledge, monitor executions, and manage billing in one control plane.
 
+👉 **Need the fast tour?** Read [`docs/overview.md`](docs/overview.md) for the operator narrative, screenshots, and the first-ten-minutes script.
+
 ## Platform Features
 - **Agent lifecycle**: create typed agents with capabilities, constraints, and toolkits; inspect execution history.
 - **Workflow builder**: drag-and-drop orchestration with branching, retries, and monitoring.
