@@ -13,7 +13,6 @@ import {
   BookOpen,
   BarChart3,
   Settings,
-  Brain,
   Wrench,
   LogOut,
   User,
@@ -72,7 +71,6 @@ export default function Sidebar() {
   ];
 
   const specializedItems = [
-    { href: '/dashboard/agi', icon: Brain, label: 'AGI' },
     ...(isAdmin ? [{ href: '/dashboard/ai-admin', icon: Wrench, label: 'AI Admin' }] : []),
   ];
 

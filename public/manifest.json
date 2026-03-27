@@ -1,7 +1,7 @@
 {
   "name": "Apex Agents - Autonomous AI Platform",
   "short_name": "Apex Agents",
-  "description": "Advanced autonomous AI agent platform with AGI consciousness, creative thinking, and self-upgrading capabilities",
+  "description": "Build, run, and manage autonomous AI agents and multi-step workflows to automate complex tasks.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
@@ -64,24 +64,23 @@
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "Open the main dashboard",
-      "url": "/dashboard",
-      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
+      "url": "/dashboard/agents",
+      "icons": [{ "src": "/icon-96x96.svg", "sizes": "96x96", "type": "image/svg+xml" }]
     },
     {
-      "name": "AGI Chat",
-      "short_name": "AGI",
-      "description": "Chat with the AGI system",
-      "url": "/dashboard/agi",
-      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
+      "name": "Workflows",
+      "short_name": "Workflows",
+      "description": "Build and run automated workflows",
+      "url": "/dashboard/workflows",
+      "icons": [{ "src": "/icon-96x96.svg", "sizes": "96x96", "type": "image/svg+xml" }]
     },
     {
-      "name": "AI Admin",
-      "short_name": "Admin",
-      "description": "Access AI Admin panel",
-      "url": "/admin/ai",
-      "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
+      "name": "Analytics",
+      "short_name": "Analytics",
+      "description": "View performance metrics",
+      "url": "/dashboard/analytics",
+      "icons": [{ "src": "/icon-96x96.svg", "sizes": "96x96", "type": "image/svg+xml" }]
     }
   ],
   "prefer_related_applications": false
 }
-

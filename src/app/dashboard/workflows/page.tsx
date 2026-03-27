@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import WorkflowCanvas from '@/components/WorkflowCanvas';
-import { LayoutGrid, List } from 'lucide-react';
+import { LayoutGrid, List, CheckCircle, XCircle, X } from 'lucide-react';
 
 interface WorkflowStep {
   id: string;
@@ -11,6 +11,39 @@ interface WorkflowStep {
   action?: string;
   condition?: string;
   children?: WorkflowStep[];
+}
+
+type ToastType = 'success' | 'error';
+interface Toast {
+  id: string;
+  message: string;
+  type: ToastType;
+}
+
+function ToastBanner({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: string) => void }) {
+  if (toasts.length === 0) return null;
+  return (
+    <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 w-80">
+      {toasts.map((t) => (
+        <div
+          key={t.id}
+          className={`flex items-start gap-3 p-4 rounded-lg shadow-lg text-white text-sm ${
+            t.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+          }`}
+        >
+          {t.type === 'success' ? (
+            <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          ) : (
+            <XCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          )}
+          <span className="flex-1">{t.message}</span>
+          <button onClick={() => onDismiss(t.id)} aria-label="Dismiss">
+            <X className="w-4 h-4 opacity-70 hover:opacity-100" />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function WorkflowsPage() {
@@ -22,7 +55,16 @@ export default function WorkflowsPage() {
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'visual'>('list');
-  const [showVisualBuilder, setShowVisualBuilder] = useState(false);
+  const [nameError, setNameError] = useState('');
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const addToast = (message: string, type: ToastType) => {
+    const id = crypto.randomUUID();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000);
+  };
+
+  const dismissToast = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
   // Fetch workflows from database
   const { data: workflows, isLoading, refetch } = trpc.workflows.list.useQuery();
@@ -39,33 +81,38 @@ export default function WorkflowsPage() {
       setNewWorkflowName('');
       setNewWorkflowDescription('');
       setSteps([]);
+      addToast('Workflow created successfully!', 'success');
     },
+    onError: (err) => addToast(`Failed to create workflow: ${err.message}`, 'error'),
   });
 
   const executeWorkflow = trpc.workflows.execute.useMutation({
     onSuccess: (result) => {
       if (result.success) {
-        alert(`Workflow executed successfully! Execution ID: ${result.executionId}`);
+        addToast(`Workflow executed successfully! ID: ${result.executionId}`, 'success');
       } else {
-        alert(`Workflow execution failed: ${result.error}`);
+        addToast(`Workflow execution failed: ${result.error}`, 'error');
       }
       refetch();
     },
+    onError: (err) => addToast(`Execution error: ${err.message}`, 'error'),
   });
 
   const updateWorkflow = trpc.workflows.update.useMutation({
     onSuccess: () => {
       refetch();
-      alert('Workflow updated successfully!');
+      addToast('Workflow updated successfully!', 'success');
     },
+    onError: (err) => addToast(`Update failed: ${err.message}`, 'error'),
   });
 
   const deleteWorkflow = trpc.workflows.delete.useMutation({
     onSuccess: () => {
       refetch();
       setShowWorkflowModal(false);
-      alert('Workflow deleted successfully!');
+      addToast('Workflow deleted.', 'success');
     },
+    onError: (err) => addToast(`Delete failed: ${err.message}`, 'error'),
   });
 
   const addStep = (type: WorkflowStep['type']) => {
@@ -78,7 +125,7 @@ export default function WorkflowsPage() {
   };
 
   const removeStep = (stepId: string) => {
-    setSteps(steps.filter(step => step.id !== stepId));
+    setSteps(steps.filter((step) => step.id !== stepId));
   };
 
   const handleWorkflowClick = (workflowId: string) => {
@@ -91,7 +138,8 @@ export default function WorkflowsPage() {
   };
 
   const handleDeleteWorkflow = (workflowId: string) => {
-    if (confirm('Are you sure you want to delete this workflow?')) {
+    // Use state-based confirmation instead of native confirm()
+    if (window.confirm('Are you sure you want to delete this workflow?')) {
       deleteWorkflow.mutate({ id: workflowId });
     }
   };
@@ -103,15 +151,16 @@ export default function WorkflowsPage() {
 
   const handleCreateWorkflow = () => {
     if (!newWorkflowName.trim()) {
-      alert('Please enter a workflow name');
+      setNameError('Please enter a workflow name');
       return;
     }
+    setNameError('');
 
     createWorkflow.mutate({
       name: newWorkflowName,
       description: newWorkflowDescription,
       trigger: { type: 'manual' },
-      steps: steps.map(step => ({
+      steps: steps.map((step) => ({
         id: step.id,
         type: step.type,
         agentType: step.agentType,
@@ -132,6 +181,8 @@ export default function WorkflowsPage() {
 
   return (
     <div>
+      <ToastBanner toasts={toasts} onDismiss={dismissToast} />
+
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-4">
           <h1 className="text-3xl font-bold text-white">Workflows</h1>
@@ -173,142 +224,146 @@ export default function WorkflowsPage() {
           <WorkflowCanvas
             workflowId={selectedWorkflowId || undefined}
             onSave={(nodes, edges) => {
-              console.log('Saving workflow:', { nodes, edges });
-              // TODO: Convert nodes/edges to workflow steps and save
+              // Visual builder save — implement step conversion when needed
+              console.log('Visual builder save:', { nodes, edges });
+              addToast('Visual save is not yet connected to a workflow. Use List mode to save.', 'error');
             }}
             onExecute={() => {
-              console.log('Executing workflow');
-              // TODO: Execute the workflow
+              if (selectedWorkflowId) {
+                handleExecuteWorkflow(selectedWorkflowId);
+              } else {
+                addToast('Select a workflow from the List view first, then switch to Visual.', 'error');
+              }
             }}
           />
         </div>
       ) : (
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Workflow Builder */}
-        <div className="bg-gray-800 p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold text-white mb-4">Workflow Builder</h2>
-          
-          <div className="space-y-4">
-            {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center gap-4 p-4 border border-gray-700 rounded-lg">
-                <div className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                  {index + 1}
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-white capitalize">{step.type}</div>
-                  <div className="text-sm text-gray-400">
-                    {step.agentType && `Agent: ${step.agentType}`}
-                    {step.action && ` - ${step.action}`}
-                  </div>
-                </div>
-                <button
-                  onClick={() => removeStep(step.id)}
-                  className="text-red-500 hover:text-red-700 text-xl"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Workflow Builder */}
+          <div className="bg-gray-800 p-6 rounded-lg shadow">
+            <h2 className="text-xl font-bold text-white mb-4">Workflow Builder</h2>
 
-            {steps.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                No steps added yet. Click "Add Step" to begin.
+            <div className="space-y-4">
+              {steps.map((step, index) => (
+                <div key={step.id} className="flex items-center gap-4 p-4 border border-gray-700 rounded-lg">
+                  <div className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-white capitalize">{step.type}</div>
+                    <div className="text-sm text-gray-400">
+                      {step.agentType && `Agent: ${step.agentType}`}
+                      {step.action && ` - ${step.action}`}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => removeStep(step.id)}
+                    className="text-red-500 hover:text-red-700 text-xl"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+
+              {steps.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  No steps added yet. Click &ldquo;Add Step&rdquo; to begin.
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowAddStep(true)}
+              className="mt-4 w-full px-4 py-2 border-2 border-dashed border-gray-600 rounded-lg hover:border-purple-500 hover:bg-gray-700 transition text-gray-300"
+            >
+              + Add Step
+            </button>
+
+            {showAddStep && (
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => addStep('agent')}
+                  className="p-4 border border-gray-700 rounded-lg hover:bg-gray-700 text-white"
+                >
+                  <div className="text-2xl mb-2">🤖</div>
+                  <div className="font-semibold">Agent</div>
+                </button>
+                <button
+                  onClick={() => addStep('condition')}
+                  className="p-4 border border-gray-700 rounded-lg hover:bg-gray-700 text-white"
+                >
+                  <div className="text-2xl mb-2">🔀</div>
+                  <div className="font-semibold">Condition</div>
+                </button>
+                <button
+                  onClick={() => addStep('loop')}
+                  className="p-4 border border-gray-700 rounded-lg hover:bg-gray-700 text-white"
+                >
+                  <div className="text-2xl mb-2">🔁</div>
+                  <div className="font-semibold">Loop</div>
+                </button>
+                <button
+                  onClick={() => addStep('parallel')}
+                  className="p-4 border border-gray-700 rounded-lg hover:bg-gray-700 text-white"
+                >
+                  <div className="text-2xl mb-2">⚡</div>
+                  <div className="font-semibold">Parallel</div>
+                </button>
               </div>
             )}
           </div>
 
-          <button
-            onClick={() => setShowAddStep(true)}
-            className="mt-4 w-full px-4 py-2 border-2 border-dashed border-gray-600 rounded-lg hover:border-purple-500 hover:bg-gray-700 transition text-gray-300"
-          >
-            + Add Step
-          </button>
+          {/* Saved Workflows */}
+          <div className="bg-gray-800 p-6 rounded-lg shadow">
+            <h2 className="text-xl font-bold text-white mb-4">Saved Workflows</h2>
 
-          {showAddStep && (
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <button
-                onClick={() => addStep('agent')}
-                className="p-4 border border-gray-700 rounded-lg hover:bg-gray-700 text-white"
-              >
-                <div className="text-2xl mb-2">🤖</div>
-                <div className="font-semibold">Agent</div>
-              </button>
-              <button
-                onClick={() => addStep('condition')}
-                className="p-4 border border-gray-700 rounded-lg hover:bg-gray-700 text-white"
-              >
-                <div className="text-2xl mb-2">🔀</div>
-                <div className="font-semibold">Condition</div>
-              </button>
-              <button
-                onClick={() => addStep('loop')}
-                className="p-4 border border-gray-700 rounded-lg hover:bg-gray-700 text-white"
-              >
-                <div className="text-2xl mb-2">🔁</div>
-                <div className="font-semibold">Loop</div>
-              </button>
-              <button
-                onClick={() => addStep('parallel')}
-                className="p-4 border border-gray-700 rounded-lg hover:bg-gray-700 text-white"
-              >
-                <div className="text-2xl mb-2">⚡</div>
-                <div className="font-semibold">Parallel</div>
-              </button>
-            </div>
-          )}
+            {workflows && workflows.length > 0 ? (
+              <div className="space-y-4">
+                {workflows.map((workflow) => (
+                  <div
+                    key={workflow.id}
+                    onClick={() => handleWorkflowClick(workflow.id)}
+                    className="p-4 border border-gray-700 rounded-lg hover:shadow-lg transition cursor-pointer hover:border-purple-500 hover:shadow-purple-500/20 hover:-translate-y-1 bg-gradient-to-br from-gray-800 to-gray-900"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="font-semibold text-white">{workflow.name}</div>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs flex items-center gap-1 ${
+                          workflow.status === 'active'
+                            ? 'bg-green-500/20 text-green-400'
+                            : 'bg-gray-700 text-gray-300'
+                        }`}
+                      >
+                        {workflow.status === 'active' && (
+                          <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                        )}
+                        {workflow.status === 'active' ? 'Active' : 'Draft'}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-400 mb-2">
+                      {workflow.description || 'No description'}
+                    </div>
+                    <div className="flex gap-2 text-xs text-gray-500">
+                      <span>{Array.isArray(workflow.steps) ? workflow.steps.length : 0} steps</span>
+                      <span>•</span>
+                      <span>{((workflow.trigger as { type?: string })?.type) || 'Manual'} trigger</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                No workflows yet. Create your first workflow!
+              </div>
+            )}
+          </div>
         </div>
-
-        {/* Saved Workflows */}
-        <div className="bg-gray-800 p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold text-white mb-4">Saved Workflows</h2>
-          
-          {workflows && workflows.length > 0 ? (
-            <div className="space-y-4">
-              {workflows.map((workflow) => (
-                <div
-                  key={workflow.id}
-                  onClick={() => handleWorkflowClick(workflow.id)}
-                  className="p-4 border border-gray-700 rounded-lg hover:shadow-lg transition cursor-pointer hover:border-purple-500 hover:shadow-purple-500/20 hover:-translate-y-1 bg-gradient-to-br from-gray-800 to-gray-900"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="font-semibold text-white">{workflow.name}</div>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs flex items-center gap-1 ${
-                        workflow.status === 'active'
-                          ? 'bg-green-500/20 text-green-400'
-                          : 'bg-gray-700 text-gray-300'
-                      }`}
-                    >
-                      {workflow.status === 'active' && (
-                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                      )}
-                      {workflow.status === 'active' ? 'Active' : 'Draft'}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-400 mb-2">
-                    {workflow.description || 'No description'}
-                  </div>
-                  <div className="flex gap-2 text-xs text-gray-500">
-                    <span>{Array.isArray(workflow.steps) ? workflow.steps.length : 0} steps</span>
-                    <span>•</span>
-                    <span>{((workflow.trigger as { type?: string })?.type) || 'Manual'} trigger</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-gray-500">
-              No workflows yet. Create your first workflow!
-            </div>
-          )}
-        </div>
-      </div>
       )}
 
       {/* Workflow Templates */}
       <div className="mt-8 bg-gray-800 p-6 rounded-lg shadow">
         <h2 className="text-xl font-bold text-white mb-4">Workflow Templates</h2>
-        
+
         <div className="grid md:grid-cols-3 gap-4">
           <div
             onClick={() => {
@@ -383,10 +438,16 @@ export default function WorkflowsPage() {
                 <input
                   type="text"
                   value={newWorkflowName}
-                  onChange={(e) => setNewWorkflowName(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                  onChange={(e) => {
+                    setNewWorkflowName(e.target.value);
+                    if (e.target.value.trim()) setNameError('');
+                  }}
+                  className={`w-full px-4 py-2 bg-gray-700 border rounded-lg text-white focus:outline-none focus:border-purple-500 ${
+                    nameError ? 'border-red-500' : 'border-gray-600'
+                  }`}
                   placeholder="Enter workflow name"
                 />
+                {nameError && <p className="mt-1 text-sm text-red-400">{nameError}</p>}
               </div>
 
               <div>
@@ -536,4 +597,3 @@ export default function WorkflowsPage() {
     </div>
   );
 }
-
