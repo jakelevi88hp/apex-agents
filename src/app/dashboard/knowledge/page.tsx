@@ -223,16 +223,28 @@ export default function KnowledgePage() {
               <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
             </div>
           ) : documents.length === 0 ? (
-            <div className="bg-gray-800 rounded-lg p-12 text-center border border-gray-700">
-              <FileText className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-white mb-2">No documents yet</h3>
-              <p className="text-gray-400 mb-6">Upload your first document to get started</p>
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-3xl animate-pulse" />
+                <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-2xl border border-gray-700 shadow-xl">
+                  <FileText className="w-14 h-14 text-gray-400" strokeWidth={1.5} />
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">No documents yet</h3>
+              <p className="text-sm text-gray-400 text-center max-w-sm mb-6">
+                Upload PDFs, text files, or other documents to give your agents context and knowledge to work with.
+              </p>
               <button
                 onClick={() => setActiveTab('upload')}
-                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-all hover:scale-105 shadow-lg hover:shadow-purple-500/30 font-medium"
               >
-                Upload Document
+                Upload Your First Document
               </button>
+              <div className="mt-6 flex gap-2">
+                <div className="w-2 h-2 rounded-full bg-purple-500/40 animate-pulse" style={{ animationDelay: '0ms' }} />
+                <div className="w-2 h-2 rounded-full bg-blue-500/40 animate-pulse" style={{ animationDelay: '200ms' }} />
+                <div className="w-2 h-2 rounded-full bg-cyan-500/40 animate-pulse" style={{ animationDelay: '400ms' }} />
+              </div>
             </div>
           ) : (
             <div className="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { useErrorStore } from '@/lib/stores/errorStore';
@@ -8,7 +8,8 @@ import { createAppError, ErrorType } from '@/lib/errorHandler';
 import type { agents } from '@/lib/db/schema';
 import { 
   Search, BarChart3, PenTool, Code2, Target, Mail, 
-  TrendingUp, Network, Plus, X, Loader2, Play, Settings, Send 
+  TrendingUp, Network, Plus, X, Loader2, Play, Settings, Send,
+  Headphones, Users, CalendarCheck, ChevronRight, Zap
 } from 'lucide-react';
 import AgentWizard from '@/components/agent-wizard/AgentWizard';
 
@@ -98,6 +99,58 @@ const defaultConfig = {
   monitoring: { model: 'gpt-4-turbo', tools: ['system_monitor', 'log_analyzer'] },
   orchestrator: { model: 'gpt-4-turbo', tools: ['task_planner', 'agent_coordinator'] },
 };
+
+const STARTER_TEMPLATES = [
+  {
+    id: 'customer_support',
+    name: 'Customer Support Bot',
+    agentType: 'communication' as const,
+    description: 'Handle customer queries, FAQs, and support tickets automatically',
+    icon: Headphones,
+    gradient: 'from-blue-500 to-cyan-500',
+    blurb: 'Answer FAQs and handle customer queries 24/7',
+  },
+  {
+    id: 'lead_qualifier',
+    name: 'Lead Qualifier',
+    agentType: 'decision' as const,
+    description: 'Score and qualify inbound leads based on your criteria automatically',
+    icon: Users,
+    gradient: 'from-green-500 to-emerald-500',
+    blurb: 'Score and qualify inbound leads automatically',
+  },
+  {
+    id: 'content_writer',
+    name: 'Content Writer',
+    agentType: 'writing' as const,
+    description: 'Generate blog posts, emails, social media copy, and marketing content',
+    icon: PenTool,
+    gradient: 'from-purple-500 to-pink-500',
+    blurb: 'Generate blog posts, emails, and marketing copy',
+  },
+  {
+    id: 'meeting_summarizer',
+    name: 'Meeting Summarizer',
+    agentType: 'analysis' as const,
+    description: 'Turn meeting notes into summaries, action items, and follow-ups',
+    icon: CalendarCheck,
+    gradient: 'from-yellow-500 to-orange-500',
+    blurb: 'Turn meeting notes into action items and summaries',
+  },
+  {
+    id: 'email_responder',
+    name: 'Email Responder',
+    agentType: 'communication' as const,
+    description: 'Draft contextual, professional email replies based on context',
+    icon: Mail,
+    gradient: 'from-indigo-500 to-purple-500',
+    blurb: 'Draft and send contextual email replies',
+  },
+] as const;
+
+type StarterTemplate = (typeof STARTER_TEMPLATES)[number];
+
+
 
 export default function AgentsPage() {
   const router = useRouter();
@@ -377,6 +430,31 @@ export default function AgentsPage() {
     },
   ]);
 
+
+  // Handle onboarding pending — auto-fill form if wizard selected a use case
+  useEffect(() => {
+    try {
+      const pending = localStorage.getItem('apex_onboarding_pending');
+      if (pending) {
+        const { name, type, description } = JSON.parse(pending);
+        localStorage.removeItem('apex_onboarding_pending');
+        setFormData({ name, type, description });
+        setSelectedType(type);
+        setShowCreateModal(true);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  const handleUseTemplate = (template: StarterTemplate) => {
+    setFormData({
+      name: template.name,
+      type: template.agentType,
+      description: template.description,
+    });
+    setSelectedType(template.agentType);
+    setShowCreateModal(true);
+  };
+
   // Filter and sort agents
   const filteredAgents = userAgents?.filter((agent: Agent) => {
     const matchesSearch = agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -640,6 +718,123 @@ export default function AgentsPage() {
             })}
           </div>
           )}
+        </div>
+      )}
+
+      {/* Starter Templates — shown when user has no agents */}
+      {!agentsLoading && (!userAgents || userAgents.length === 0) && (
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Start with a Template</h2>
+              <p className="text-gray-400 text-sm">Pre-configured agents ready in seconds</p>
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {STARTER_TEMPLATES.map((template) => {
+              const IconComponent = template.icon;
+              return (
+                <div
+                  key={template.id}
+                  className="group bg-gray-800 border border-gray-700 hover:border-purple-500/60 rounded-xl p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-purple-500/10"
+                >
+                  <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${template.gradient} mb-4`}>
+                    <IconComponent className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="text-base font-semibold text-white mb-1">{template.name}</h3>
+                  <p className="text-gray-400 text-sm mb-4 leading-snug">{template.blurb}</p>
+                  <button
+                    onClick={() => handleUseTemplate(template)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-purple-600/20 hover:bg-gradient-to-r hover:from-purple-600 hover:to-blue-600 text-purple-300 hover:text-white border border-purple-500/40 hover:border-transparent rounded-lg text-sm font-medium transition-all duration-200"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                    Use Template
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Starter Templates — shown when user has no agents */}
+      {!agentsLoading && (!userAgents || userAgents.length === 0) && (
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Start with a Template</h2>
+              <p className="text-gray-400 text-sm">Pre-configured agents ready in seconds</p>
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {STARTER_TEMPLATES.map((template) => {
+              const IconComponent = template.icon;
+              return (
+                <div
+                  key={template.id}
+                  className="group bg-gray-800 border border-gray-700 hover:border-purple-500/60 rounded-xl p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-purple-500/10"
+                >
+                  <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${template.gradient} mb-4`}>
+                    <IconComponent className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="text-base font-semibold text-white mb-1">{template.name}</h3>
+                  <p className="text-gray-400 text-sm mb-4 leading-snug">{template.blurb}</p>
+                  <button
+                    onClick={() => handleUseTemplate(template)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-purple-600/20 hover:bg-gradient-to-r hover:from-purple-600 hover:to-blue-600 text-purple-300 hover:text-white border border-purple-500/40 hover:border-transparent rounded-lg text-sm font-medium transition-all duration-200"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                    Use Template
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Starter Templates — shown when user has no agents */}
+      {!agentsLoading && (!userAgents || userAgents.length === 0) && (
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Start with a Template</h2>
+              <p className="text-gray-400 text-sm">Pre-configured agents ready in seconds</p>
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {STARTER_TEMPLATES.map((template) => {
+              const IconComponent = template.icon;
+              return (
+                <div
+                  key={template.id}
+                  className="group bg-gray-800 border border-gray-700 hover:border-purple-500/60 rounded-xl p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-purple-500/10"
+                >
+                  <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${template.gradient} mb-4`}>
+                    <IconComponent className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="text-base font-semibold text-white mb-1">{template.name}</h3>
+                  <p className="text-gray-400 text-sm mb-4 leading-snug">{template.blurb}</p>
+                  <button
+                    onClick={() => handleUseTemplate(template)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/40 hover:border-transparent rounded-lg text-sm font-medium transition-all duration-200"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                    Use Template
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

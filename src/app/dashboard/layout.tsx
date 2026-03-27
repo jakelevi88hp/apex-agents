@@ -2,6 +2,7 @@
 
 import Sidebar from '@/components/Sidebar';
 import { useTheme } from '@/contexts/ThemeContext';
+import OnboardingWizard from '@/components/OnboardingWizard';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isDarkMode } = useTheme();
@@ -15,6 +16,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="flex-1 ml-0 md:ml-64 p-4 md:p-8 pt-20 md:pt-8">
         {children}
       </main>
+
+      {/* Onboarding wizard — only shows once for new users */}
+      <OnboardingWizard />
     </div>
   );
 }

@@ -2,12 +2,25 @@
 
 import { useState } from 'react';
 import { AgentTemplate, AVAILABLE_MODELS, AVAILABLE_TOOLS } from '@/lib/agent-templates';
-import { ChevronLeft, Save } from 'lucide-react';
+import { ChevronLeft, Save, HelpCircle } from 'lucide-react';
 
 interface ConfigurationFormProps {
   template: AgentTemplate;
   onComplete: (config: any) => void;
   onBack: () => void;
+}
+
+/** Small inline tooltip that shows on hover */
+function Tooltip({ text }: { text: string }) {
+  return (
+    <span className="relative group inline-flex items-center ml-1.5">
+      <HelpCircle className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help transition-colors" />
+      <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 px-3 py-2 bg-gray-700 border border-gray-600 text-gray-200 text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-50 leading-snug">
+        {text}
+        <span className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-700" />
+      </span>
+    </span>
+  );
 }
 
 export default function ConfigurationForm({ template, onComplete, onBack }: ConfigurationFormProps) {
@@ -98,8 +111,9 @@ export default function ConfigurationForm({ template, onComplete, onBack }: Conf
         <h3 className="text-lg font-semibold text-white mb-4">Model Configuration</h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="inline-flex items-center text-sm font-medium text-gray-300 mb-2">
               Language Model
+              <Tooltip text="The AI brain powering your agent. GPT-4 is most capable for complex reasoning; GPT-3.5 is faster and cheaper for simpler tasks." />
             </label>
             <select
               value={config.model}
@@ -148,7 +162,7 @@ export default function ConfigurationForm({ template, onComplete, onBack }: Conf
               step="100"
             />
             <p className="text-xs text-gray-400 mt-1">
-              Maximum length of the agent's response (100-8000)
+              Maximum length of the agent&apos;s response (100-8000)
             </p>
           </div>
         </div>
@@ -156,7 +170,10 @@ export default function ConfigurationForm({ template, onComplete, onBack }: Conf
 
       {/* Tools & Capabilities */}
       <section>
-        <h3 className="text-lg font-semibold text-white mb-4">Tools & Capabilities</h3>
+        <h3 className="inline-flex items-center text-lg font-semibold text-white mb-4">
+          Tools &amp; Capabilities
+          <Tooltip text="Capabilities you grant your agent, like web search or code execution. Only enable what the agent actually needs." />
+        </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {AVAILABLE_TOOLS.map(tool => (
             <button
@@ -178,7 +195,10 @@ export default function ConfigurationForm({ template, onComplete, onBack }: Conf
 
       {/* Prompt Template */}
       <section>
-        <h3 className="text-lg font-semibold text-white mb-4">System Prompt</h3>
+        <h3 className="inline-flex items-center text-lg font-semibold text-white mb-4">
+          System Prompt
+          <Tooltip text="Instructions that define how your agent behaves. Be specific about its role, tone, and boundaries. The more detailed, the better it performs." />
+        </h3>
         <textarea
           value={config.promptTemplate}
           onChange={(e) => setConfig({ ...config, promptTemplate: e.target.value })}
@@ -186,7 +206,7 @@ export default function ConfigurationForm({ template, onComplete, onBack }: Conf
           placeholder="Enter the system prompt for your agent..."
         />
         <p className="text-xs text-gray-400 mt-2">
-          Use {'{task}'} as a placeholder for the user's input
+          Use {'{task}'} as a placeholder for the user&apos;s input
         </p>
       </section>
 
@@ -211,4 +231,3 @@ export default function ConfigurationForm({ template, onComplete, onBack }: Conf
     </form>
   );
 }
-

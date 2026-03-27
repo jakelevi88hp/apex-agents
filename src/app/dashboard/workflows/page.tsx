@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import WorkflowCanvas from '@/components/WorkflowCanvas';
-import { LayoutGrid, List, CheckCircle, XCircle, X } from 'lucide-react';
+import { LayoutGrid, List, CheckCircle, XCircle, X, Network, GitBranch, Plus } from 'lucide-react';
 
 interface WorkflowStep {
   id: string;
