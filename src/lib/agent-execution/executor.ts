@@ -40,7 +40,9 @@ export interface ExecutionResult {
  */
 export async function executeAgent(config: ExecutionConfig): Promise<ExecutionResult> {
   const startTime = Date.now();
-  
+  // Track execution ID outside the try so the catch block can update the record
+  let executionId: string | undefined;
+
   try {
     // Fetch agent configuration from database
     const [agent] = await db.select().from(agents).where(eq(agents.id, config.agentId)).limit(1);
@@ -70,6 +72,8 @@ export async function executeAgent(config: ExecutionConfig): Promise<ExecutionRe
       status: 'running',
       startedAt: new Date(),
     }).returning();
+
+    executionId = execution.id;
 
     // Call OpenAI API
     const openai = getOpenAI();
@@ -109,22 +113,24 @@ export async function executeAgent(config: ExecutionConfig): Promise<ExecutionRe
     const duration = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-    // Try to update execution record with error
-    try {
-      await db.update(executions)
-        .set({
-          status: 'failed',
-          errorMessage,
-          durationMs: duration,
-          completedAt: new Date(),
-        })
-        .where(eq(executions.agentId, config.agentId));
-    } catch (dbError) {
-      console.error('Failed to update execution record:', dbError);
+    // Only update the execution record if it was successfully created
+    if (executionId) {
+      try {
+        await db.update(executions)
+          .set({
+            status: 'failed',
+            errorMessage,
+            durationMs: duration,
+            completedAt: new Date(),
+          })
+          .where(eq(executions.id, executionId));
+      } catch (dbError) {
+        console.error('Failed to update execution record:', dbError);
+      }
     }
 
     return {
-      id: '',
+      id: executionId || '',
       output: '',
       tokensUsed: 0,
       duration,
@@ -139,7 +145,8 @@ export async function executeAgent(config: ExecutionConfig): Promise<ExecutionRe
  */
 export async function* executeAgentStream(config: ExecutionConfig): AsyncGenerator<string> {
   const startTime = Date.now();
-  
+  let executionId: string | undefined;
+
   try {
     // Fetch agent configuration
     const [agent] = await db.select().from(agents).where(eq(agents.id, config.agentId)).limit(1);
@@ -149,10 +156,10 @@ export async function* executeAgentStream(config: ExecutionConfig): AsyncGenerat
     }
 
     const agentConfig = agent.config as any;
-    const model = agentConfig.model || 'gpt-4';
-    const temperature = agentConfig.temperature || 0.7;
-    const maxTokens = agentConfig.maxTokens || 2000;
-    const systemPrompt = agentConfig.systemPrompt || agent.description;
+    const model = agentConfig?.model || 'gpt-4';
+    const temperature = agentConfig?.temperature || 0.7;
+    const maxTokens = agentConfig?.maxTokens || 2000;
+    const systemPrompt = agentConfig?.systemPrompt || agent.description;
 
     // Create execution record
     const [execution] = await db.insert(executions).values({
@@ -162,6 +169,8 @@ export async function* executeAgentStream(config: ExecutionConfig): AsyncGenerat
       status: 'running',
       startedAt: new Date(),
     }).returning();
+
+    executionId = execution.id;
 
     // Stream from OpenAI
     const openai = getOpenAI();
@@ -202,6 +211,21 @@ export async function* executeAgentStream(config: ExecutionConfig): AsyncGenerat
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    if (executionId) {
+      try {
+        await db.update(executions)
+          .set({
+            status: 'failed',
+            errorMessage,
+            completedAt: new Date(),
+          })
+          .where(eq(executions.id, executionId));
+      } catch (dbError) {
+        console.error('Failed to update execution record:', dbError);
+      }
+    }
+
     yield `\n\nError: ${errorMessage}`;
   }
 }
@@ -224,4 +248,3 @@ export async function getExecution(executionId: string) {
   const [execution] = await db.select().from(executions).where(eq(executions.id, executionId)).limit(1);
   return execution;
 }
-

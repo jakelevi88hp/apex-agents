@@ -1,6 +1,6 @@
 /**
  * Workflow Execution Engine
- * 
+ *
  * Executes workflows by running steps sequentially or in parallel,
  * evaluating conditions, and tracking execution status.
  */
@@ -33,14 +33,21 @@ interface ExecutionResult {
 }
 
 export class WorkflowExecutor {
-  private openai: OpenAI;
+  // Lazily initialised — avoids throwing at construction/module-load time
+  // when OPENAI_API_KEY is missing
+  private _openai: OpenAI | null = null;
 
-  constructor(apiKey?: string) {
-    const key = apiKey || process.env.OPENAI_API_KEY;
-    if (!key) {
-      throw new Error('OpenAI API key is required for workflow execution');
+  private get openai(): OpenAI {
+    if (!this._openai) {
+      const key = process.env.OPENAI_API_KEY;
+      if (!key) {
+        throw new Error(
+          'OPENAI_API_KEY environment variable is required for workflow execution'
+        );
+      }
+      this._openai = new OpenAI({ apiKey: key });
     }
-    this.openai = new OpenAI({ apiKey: key });
+    return this._openai;
   }
 
   /**
@@ -48,6 +55,7 @@ export class WorkflowExecutor {
    */
   async executeWorkflow(context: ExecutionContext): Promise<ExecutionResult> {
     const startTime = Date.now();
+    let executionId = '';
 
     try {
       // Get workflow details
@@ -75,10 +83,10 @@ export class WorkflowExecutor {
         })
         .returning();
 
-      const executionId = execution[0].id;
+      executionId = execution[0].id;
 
       // Execute steps
-      const steps = workflowData.steps as WorkflowStep[];
+      const steps = (workflowData.steps as WorkflowStep[]) || [];
       const results: any[] = [];
 
       for (let i = 0; i < steps.length; i++) {
@@ -104,7 +112,7 @@ export class WorkflowExecutor {
             outputData: stepResult,
             startedAt: new Date(),
             completedAt: new Date(),
-            durationMs: 0, // Will be calculated
+            durationMs: 0,
           });
         } catch (error: any) {
           // Record failed step
@@ -154,8 +162,20 @@ export class WorkflowExecutor {
     } catch (error: any) {
       const durationMs = Date.now() - startTime;
 
+      // Update execution record to failed if it was created
+      if (executionId) {
+        try {
+          await db
+            .update(executions)
+            .set({ status: 'failed', errorMessage: error.message, completedAt: new Date(), durationMs })
+            .where(eq(executions.id, executionId));
+        } catch (_) {
+          // ignore secondary DB error
+        }
+      }
+
       return {
-        executionId: '', // May not have been created
+        executionId,
         status: 'failed',
         errorMessage: error.message,
         durationMs,
@@ -184,7 +204,7 @@ export class WorkflowExecutor {
         return await this.executeParallel(step, context);
 
       default:
-        throw new Error(`Unknown step type: ${step.type}`);
+        throw new Error(`Unknown step type: ${(step as any).type}`);
     }
   }
 
@@ -215,7 +235,7 @@ export class WorkflowExecutor {
     // Build prompt from step config and previous results
     const prompt = this.buildAgentPrompt(step.config, context.previousResults);
 
-    // Execute agent using OpenAI
+    // Execute agent using OpenAI (lazy getter will throw clearly if key missing)
     const response = await this.openai.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages: [
@@ -258,9 +278,9 @@ export class WorkflowExecutor {
    * Build agent prompt from config and previous results
    */
   private buildAgentPrompt(config: any, previousResults: any[]): string {
-    let prompt = config.prompt || config.instruction || '';
+    let prompt = config?.prompt || config?.instruction || '';
 
-    // Replace variables with previous results
+    // Append context from previous steps
     if (previousResults.length > 0) {
       prompt += '\n\nContext from previous steps:\n';
       previousResults.forEach((result, index) => {
@@ -278,25 +298,23 @@ export class WorkflowExecutor {
     step: WorkflowStep,
     context: ExecutionContext & { previousResults: any[] }
   ): Promise<any> {
-    const condition = step.config.condition;
+    const condition = step.config?.condition;
     const previousResult = context.previousResults[context.previousResults.length - 1];
 
-    // Simple condition evaluation
-    // In production, use a proper expression evaluator
     let result = false;
 
-    if (condition.type === 'contains') {
+    if (condition?.type === 'contains') {
       const value = JSON.stringify(previousResult).toLowerCase();
       result = value.includes(condition.value.toLowerCase());
-    } else if (condition.type === 'equals') {
+    } else if (condition?.type === 'equals') {
       result = previousResult === condition.value;
-    } else if (condition.type === 'greater_than') {
+    } else if (condition?.type === 'greater_than') {
       result = Number(previousResult) > Number(condition.value);
     }
 
     return {
-      condition: condition.type,
-      value: condition.value,
+      condition: condition?.type,
+      value: condition?.value,
       result,
     };
   }
@@ -308,7 +326,7 @@ export class WorkflowExecutor {
     step: WorkflowStep,
     context: ExecutionContext & { executionId: string; stepIndex: number; previousResults: any[] }
   ): Promise<any> {
-    const iterations = step.config.iterations || 1;
+    const iterations = step.config?.iterations || 1;
     const results: any[] = [];
 
     for (let i = 0; i < iterations; i++) {
@@ -320,8 +338,7 @@ export class WorkflowExecutor {
         },
       };
 
-      // Execute nested steps
-      if (step.config.steps) {
+      if (step.config?.steps) {
         for (const nestedStep of step.config.steps) {
           const result = await this.executeStep(nestedStep, {
             ...loopContext,
@@ -345,14 +362,11 @@ export class WorkflowExecutor {
     step: WorkflowStep,
     context: ExecutionContext & { executionId: string; stepIndex: number; previousResults: any[] }
   ): Promise<any> {
-    const parallelSteps = step.config.steps || [];
+    const parallelSteps: WorkflowStep[] = step.config?.steps || [];
 
-    // Execute all steps in parallel
-    const promises = parallelSteps.map((parallelStep: WorkflowStep) =>
-      this.executeStep(parallelStep, context)
+    const results = await Promise.all(
+      parallelSteps.map((parallelStep) => this.executeStep(parallelStep, context))
     );
-
-    const results = await Promise.all(promises);
 
     return {
       parallelCount: parallelSteps.length,
@@ -361,13 +375,12 @@ export class WorkflowExecutor {
   }
 }
 
-// Export singleton instance
+// Export singleton instance — constructed lazily so missing env vars don't crash at import time
 let executorInstance: WorkflowExecutor | null = null;
 
-export function getWorkflowExecutor(apiKey?: string): WorkflowExecutor {
+export function getWorkflowExecutor(): WorkflowExecutor {
   if (!executorInstance) {
-    executorInstance = new WorkflowExecutor(apiKey);
+    executorInstance = new WorkflowExecutor();
   }
   return executorInstance;
 }
-

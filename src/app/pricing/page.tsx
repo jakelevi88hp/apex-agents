@@ -1,12 +1,24 @@
 'use client';
 import { useState } from 'react';
-import { Check, Zap, Crown, Rocket } from 'lucide-react';
+import { Check, Zap, Crown, Rocket, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 
 export default function PricingPage() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
+  const [checkoutError, setCheckoutError] = useState('');
   const { data: plans } = trpc.subscription.getPlans.useQuery();
   const { data: currentSub } = trpc.subscription.getCurrent.useQuery();
+
+  const createCheckoutSession = trpc.subscription.createCheckoutSession.useMutation({
+    onSuccess: (data) => {
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    },
+    onError: (err) => {
+      setCheckoutError(err.message || 'Failed to start checkout. Please try again.');
+    },
+  });
 
   const tiers = [
     {
@@ -34,7 +46,7 @@ export default function PricingPage() {
     {
       name: 'Pro',
       icon: Rocket,
-      price: billingPeriod === 'monthly' ? 99 : 82.50,
+      price: billingPeriod === 'monthly' ? 99 : 82.5,
       period: billingPeriod === 'monthly' ? '/month' : '/month (billed yearly)',
       description: 'For power users and growing businesses',
       features: plans?.pro.features || [],
@@ -45,8 +57,8 @@ export default function PricingPage() {
   ];
 
   const handleUpgrade = (plan: 'premium' | 'pro') => {
-    // Navigate to checkout (will be implemented in Phase 4)
-    alert(`Upgrading to ${plan} - Stripe integration coming in Phase 4!`);
+    setCheckoutError('');
+    createCheckoutSession.mutate({ plan, billingPeriod });
   };
 
   return (
@@ -54,12 +66,8 @@ export default function PricingPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-white mb-4">
-            Choose Your Plan
-          </h1>
-          <p className="text-xl text-gray-300 mb-8">
-            Start with a 3-day free trial. Upgrade anytime.
-          </p>
+          <h1 className="text-5xl font-bold text-white mb-4">Choose Your Plan</h1>
+          <p className="text-xl text-gray-300 mb-8">Start with a 3-day free trial. Upgrade anytime.</p>
 
           {/* Billing Toggle */}
           <div className="inline-flex items-center bg-gray-800 rounded-lg p-1">
@@ -89,11 +97,19 @@ export default function PricingPage() {
           </div>
         </div>
 
+        {/* Checkout error banner */}
+        {checkoutError && (
+          <div className="mb-8 max-w-2xl mx-auto bg-red-900/50 border border-red-500 rounded-lg px-4 py-3 text-red-300 text-sm text-center">
+            {checkoutError}
+          </div>
+        )}
+
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-8">
           {tiers.map((tier) => {
             const Icon = tier.icon;
             const isCurrentPlan = currentSub?.subscription?.plan === tier.plan;
+            const isLoading = createCheckoutSession.isPending && tier.plan !== 'trial';
 
             return (
               <div
@@ -135,15 +151,16 @@ export default function PricingPage() {
 
                 <button
                   onClick={() => tier.plan !== 'trial' && handleUpgrade(tier.plan)}
-                  disabled={isCurrentPlan || tier.plan === 'trial'}
-                  className={`w-full py-3 rounded-lg font-semibold transition-all mb-6 ${
+                  disabled={isCurrentPlan || tier.plan === 'trial' || createCheckoutSession.isPending}
+                  className={`w-full py-3 rounded-lg font-semibold transition-all mb-6 flex items-center justify-center gap-2 ${
                     isCurrentPlan || tier.plan === 'trial'
                       ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                       : tier.highlighted
-                      ? 'bg-white text-purple-600 hover:bg-gray-100'
-                      : 'bg-purple-600 text-white hover:bg-purple-700'
+                      ? 'bg-white text-purple-600 hover:bg-gray-100 disabled:opacity-60'
+                      : 'bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-60'
                   }`}
                 >
+                  {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                   {isCurrentPlan ? 'Current Plan' : tier.cta}
                 </button>
 
@@ -162,14 +179,10 @@ export default function PricingPage() {
 
         {/* FAQ Section */}
         <div className="mt-20 text-center">
-          <h2 className="text-3xl font-bold text-white mb-8">
-            Frequently Asked Questions
-          </h2>
+          <h2 className="text-3xl font-bold text-white mb-8">Frequently Asked Questions</h2>
           <div className="grid md:grid-cols-2 gap-6 text-left max-w-4xl mx-auto">
             <div className="bg-gray-800 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-white mb-2">
-                Can I cancel anytime?
-              </h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Can I cancel anytime?</h3>
               <p className="text-gray-300">
                 Yes! Cancel anytime from your account settings. No questions asked.
               </p>
@@ -179,7 +192,8 @@ export default function PricingPage() {
                 What happens after my trial ends?
               </h3>
               <p className="text-gray-300">
-                You&apos;ll be prompted to upgrade to a paid plan. Your data is safe and you can upgrade anytime.
+                You&apos;ll be prompted to upgrade to a paid plan. Your data is safe and you can upgrade
+                anytime.
               </p>
             </div>
             <div className="bg-gray-800 p-6 rounded-lg">
@@ -191,9 +205,7 @@ export default function PricingPage() {
               </p>
             </div>
             <div className="bg-gray-800 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-white mb-2">
-                Do you offer refunds?
-              </h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Do you offer refunds?</h3>
               <p className="text-gray-300">
                 Yes, we offer a 30-day money-back guarantee on all paid plans.
               </p>
@@ -204,4 +216,3 @@ export default function PricingPage() {
     </div>
   );
 }
-
