@@ -203,6 +203,13 @@ export function MyComponent() {
 
 You are now ready to provide expert guidance on any feature, bug fix, or architecture question about the Apex Agents platform.`;
 
-export function getEnhancedSystemPrompt(): string {
-  return AI_ADMIN_SYSTEM_PROMPT_ENHANCED;
+export function getEnhancedSystemPrompt(analysis?: { frameworks?: string[]; patterns?: string[]; structure?: Record<string, any>; }): string {
+  let prompt = AI_ADMIN_SYSTEM_PROMPT_ENHANCED;
+  if (analysis) {
+    prompt += '\n\n# CURRENT CODEBASE ANALYSIS\n';
+    if (analysis.frameworks) prompt += 'Frameworks: ' + analysis.frameworks.join(', ') + '\n';
+    if (analysis.patterns) prompt += 'Patterns: ' + analysis.patterns.join(', ') + '\n';
+    if (analysis.structure) prompt += 'Structure:\n' + JSON.stringify(analysis.structure, null, 2) + '\n';
+  }
+  return prompt;
 }
