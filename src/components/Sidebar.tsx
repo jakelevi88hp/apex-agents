@@ -21,6 +21,7 @@ import {
   Plus,
   Menu,
   X,
+  FileText,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -68,6 +69,7 @@ export default function Sidebar() {
 
   const secondaryItems = [
     { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
+    { href: '/dashboard/docs', icon: FileText, label: 'Docs' },
   ];
 
   const specializedItems = [
