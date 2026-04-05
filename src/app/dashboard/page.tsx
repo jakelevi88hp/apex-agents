@@ -5,6 +5,7 @@ import { trpc } from '@/lib/trpc/client';
 import AnimatedCounter from '@/components/AnimatedCounter';
 import { VoiceCommandPanel } from '@/components/VoiceCommandPanel';
 import { UserSuggestionsPanel } from '@/components/dashboard/UserSuggestions';
+import OnboardingProgress from '@/components/OnboardingProgress';
 
 export default function DashboardPage() {
   // Fetch real metrics from database
@@ -43,6 +44,9 @@ export default function DashboardPage() {
             <p className="text-gray-300">Manage your AI agents, workflows, and knowledge base</p>
           </div>
         </div>
+
+        {/* Post-onboarding checklist — shows after wizard, disappears when done */}
+        <OnboardingProgress />
 
         {/* Voice Command Panel */}
         <VoiceCommandPanel />

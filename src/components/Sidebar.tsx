@@ -22,6 +22,8 @@ import {
   Menu,
   X,
   FileText,
+  Link2,
+  Command,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -69,6 +71,7 @@ export default function Sidebar() {
 
   const secondaryItems = [
     { href: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
+    { href: '/dashboard/integrations', icon: Link2, label: 'Integrations' },
     { href: '/dashboard/docs', icon: FileText, label: 'Docs' },
   ];
 
@@ -288,6 +291,32 @@ export default function Sidebar() {
             </div>
           )}
         </nav>
+
+        {/* Command Palette hint */}
+        {!isCollapsed && (
+          <div className="px-3 pb-2">
+            <button
+              onClick={() => {
+                const evt = new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true });
+                window.dispatchEvent(evt);
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all border
+                ${isDarkMode
+                  ? 'text-gray-500 border-gray-700 hover:border-gray-600 hover:text-gray-400'
+                  : 'text-gray-400 border-gray-200 hover:border-gray-300 hover:text-gray-600'
+                }`}
+            >
+              <div className="flex items-center gap-2">
+                <Command className="w-3.5 h-3.5" />
+                <span>Command palette</span>
+              </div>
+              <div className="flex items-center gap-0.5">
+                <kbd className={`px-1 py-0.5 rounded text-[10px] ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>⌘</kbd>
+                <kbd className={`px-1 py-0.5 rounded text-[10px] ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>K</kbd>
+              </div>
+            </button>
+          </div>
+        )}
 
         {/* Bottom Section */}
         <div className={`border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} p-3 space-y-2`}>

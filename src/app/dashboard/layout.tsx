@@ -3,6 +3,8 @@
 import Sidebar from '@/components/Sidebar';
 import { useTheme } from '@/contexts/ThemeContext';
 import OnboardingWizard from '@/components/OnboardingWizard';
+import CommandPalette from '@/components/CommandPalette';
+import KeyboardShortcutsHelp from '@/components/KeyboardShortcutsHelp';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isDarkMode } = useTheme();
@@ -19,6 +21,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Onboarding wizard — only shows once for new users */}
       <OnboardingWizard />
+
+      {/* Global command palette — ⌘K / Ctrl+K */}
+      <CommandPalette />
+
+      {/* Keyboard shortcuts help — press ? */}
+      <KeyboardShortcutsHelp />
     </div>
   );
 }
