@@ -1,5 +1,5 @@
 'use client';
-import { Bot, Workflow, Zap, TrendingUp, CheckCircle, Clock, Loader2 } from 'lucide-react';
+import { Bot, Workflow, Zap, TrendingUp, CheckCircle, Clock, Loader2, Lightbulb, ArrowRight } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { trpc } from '@/lib/trpc/client';
 import AnimatedCounter from '@/components/AnimatedCounter';
@@ -37,11 +37,20 @@ export default function DashboardPage() {
       <div>
         {/* Hero Section with Gradient */}
         <div className="mb-8 p-8 rounded-lg bg-gradient-to-r from-purple-900/50 to-blue-900/50 border border-purple-500/30 relative overflow-hidden">
-          {/* Animated background effect */}
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 animate-pulse"></div>
-          <div className="relative z-10">
-            <h1 className="text-4xl font-bold text-white mb-2">Welcome to Apex Agents</h1>
-            <p className="text-gray-300">Manage your AI agents, workflows, and knowledge base</p>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-2">Welcome to Apex Agents</h1>
+              <p className="text-gray-300">Your AI workforce is ready. Create an agent, give it a task, and watch it work.</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+              <a href="/dashboard/agents?action=new" className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-semibold text-sm transition-all hover:scale-105 text-center">
+                + New Agent
+              </a>
+              <a href="/dashboard/docs" className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium text-sm transition-all text-center border border-white/20">
+                View Docs
+              </a>
+            </div>
           </div>
         </div>
 
@@ -156,6 +165,31 @@ export default function DashboardPage() {
               </span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Quick Tips */}
+      <div className="mb-8 rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Lightbulb className="w-4 h-4 text-yellow-400" />
+          <span className="text-sm font-semibold text-yellow-400">Quick Tips</span>
+        </div>
+        <div className="grid md:grid-cols-3 gap-3">
+          {[
+            { tip: 'Press ⌘K anywhere to search agents, workflows, and navigate the app instantly.', href: null },
+            { tip: 'Use templates when creating agents — they pre-fill everything so you can launch in seconds.', href: '/dashboard/agents' },
+            { tip: 'Upload a PDF or doc to the Knowledge Base so your agents can reference it automatically.', href: '/dashboard/knowledge' },
+          ].map((item, i) => (
+            <div key={i} className="flex items-start gap-2 bg-gray-800/50 rounded-lg p-3">
+              <span className="text-yellow-500/60 text-xs font-bold mt-0.5">{i + 1}</span>
+              <p className="text-xs text-gray-300 leading-relaxed flex-1">{item.tip}</p>
+              {item.href && (
+                <a href={item.href} className="flex-shrink-0 text-yellow-400 hover:text-yellow-300 transition-colors">
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </a>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 

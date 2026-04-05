@@ -22,11 +22,13 @@ export default function OnboardingProgress() {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  const { data: agentsData } = trpc.agents.list.useQuery({ page: 1, limit: 1 });
+  const { data: agentsData } = trpc.agents.list.useQuery(undefined as any);
   const { data: workflowsData } = trpc.workflows.list.useQuery(undefined);
 
-  const hasAgent = (agentsData?.agents?.length ?? 0) > 0;
-  const hasWorkflow = ((workflowsData as any)?.workflows?.length ?? (Array.isArray(workflowsData) ? workflowsData.length : 0)) > 0;
+  const hasAgent =
+    (Array.isArray(agentsData) ? agentsData.length : agentsData?.agents?.length ?? 0) > 0;
+  const hasWorkflow =
+    (Array.isArray(workflowsData) ? workflowsData.length : (workflowsData as any)?.workflows?.length ?? 0) > 0;
 
   const steps: Step[] = [
     {
