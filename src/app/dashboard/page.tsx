@@ -3,6 +3,8 @@ import { Bot, Workflow, Zap, TrendingUp, CheckCircle, Clock, Loader2 } from 'luc
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { trpc } from '@/lib/trpc/client';
 import AnimatedCounter from '@/components/AnimatedCounter';
+import { VoiceCommandPanel } from '@/components/VoiceCommandPanel';
+import { UserSuggestionsPanel } from '@/components/dashboard/UserSuggestions';
 
 export default function DashboardPage() {
   // Fetch real metrics from database

@@ -8,6 +8,7 @@ import { executionRouter } from './execution';
 import { settingsRouter } from './settings';
 import { subscriptionRouter } from './subscription';
 import { searchRouter } from './search';
+import { suggestionsRouter } from './suggestions';
 
 export const appRouter = router({
   auth: authRouter,
@@ -19,6 +20,7 @@ export const appRouter = router({
   settings: settingsRouter,
   subscription: subscriptionRouter,
   search: searchRouter,
+  suggestions: suggestionsRouter,
 });
 
 export type AppRouter = typeof appRouter;
