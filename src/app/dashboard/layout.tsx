@@ -5,6 +5,8 @@ import { useTheme } from '@/contexts/ThemeContext';
 import OnboardingWizard from '@/components/OnboardingWizard';
 import CommandPalette from '@/components/CommandPalette';
 import KeyboardShortcutsHelp from '@/components/KeyboardShortcutsHelp';
+import ProductTour from '@/components/ProductTour';
+import LiveChatWidget from '@/components/LiveChatWidget';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isDarkMode } = useTheme();
@@ -27,6 +29,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Keyboard shortcuts help — press ? */}
       <KeyboardShortcutsHelp />
+
+      {/* Product tour — shows once after onboarding wizard */}
+      <ProductTour />
+
+      {/* Live chat / support widget — fixed bottom-right */}
+      <LiveChatWidget />
     </div>
   );
 }

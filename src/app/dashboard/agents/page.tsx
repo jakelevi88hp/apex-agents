@@ -9,9 +9,11 @@ import type { agents } from '@/lib/db/schema';
 import { 
   Search, BarChart3, PenTool, Code2, Target, Mail, 
   TrendingUp, Network, Plus, X, Loader2, Play, Settings, Send,
-  Headphones, Users, CalendarCheck, ChevronRight, Zap
+  Headphones, Users, CalendarCheck, ChevronRight, Zap, CheckCircle, Clock, Star
 } from 'lucide-react';
 import AgentWizard from '@/components/agent-wizard/AgentWizard';
+import HelpTooltip from '@/components/ui/HelpTooltip';
+import GlossaryBadge from '@/components/ui/GlossaryBadge';
 
 type Agent = typeof agents.$inferSelect;
 import AgentCardSkeleton from '@/components/AgentCardSkeleton';
@@ -25,56 +27,64 @@ const agentTypes = [
     name: 'Research Agent', 
     icon: Search, 
     description: 'Gather and analyze information from multiple sources',
-    gradient: 'from-blue-500 to-cyan-500'
+    gradient: 'from-blue-500 to-cyan-500',
+    badge: null,
   },
   { 
     id: 'analysis', 
     name: 'Analysis Agent', 
     icon: BarChart3, 
     description: 'Analyze data and identify patterns and insights',
-    gradient: 'from-purple-500 to-pink-500'
+    gradient: 'from-purple-500 to-pink-500',
+    badge: null,
   },
   { 
     id: 'writing', 
     name: 'Writing Agent', 
     icon: PenTool, 
     description: 'Generate high-quality content and documentation',
-    gradient: 'from-green-500 to-emerald-500'
+    gradient: 'from-green-500 to-emerald-500',
+    badge: '⭐ Best for beginners',
   },
   { 
     id: 'code', 
     name: 'Code Agent', 
     icon: Code2, 
     description: 'Write, debug, and refactor code',
-    gradient: 'from-orange-500 to-red-500'
+    gradient: 'from-orange-500 to-red-500',
+    badge: null,
   },
   { 
     id: 'decision', 
     name: 'Decision Agent', 
     icon: Target, 
     description: 'Make strategic decisions based on criteria',
-    gradient: 'from-yellow-500 to-orange-500'
+    gradient: 'from-yellow-500 to-orange-500',
+    badge: null,
   },
   { 
     id: 'communication', 
     name: 'Communication Agent', 
     icon: Mail, 
-    description: 'Handle external communications',
-    gradient: 'from-indigo-500 to-purple-500'
+    description: 'Handle customer queries, emails and messaging',
+    gradient: 'from-indigo-500 to-purple-500',
+    badge: '⭐ Best for beginners',
   },
   { 
     id: 'monitoring', 
     name: 'Monitoring Agent', 
     icon: TrendingUp, 
     description: 'Monitor systems and alert on anomalies',
-    gradient: 'from-teal-500 to-cyan-500'
+    gradient: 'from-teal-500 to-cyan-500',
+    badge: null,
   },
   { 
     id: 'orchestrator', 
     name: 'Orchestrator Agent', 
     icon: Network, 
     description: 'Coordinate multiple agents for complex tasks',
-    gradient: 'from-pink-500 to-rose-500'
+    gradient: 'from-pink-500 to-rose-500',
+    badge: '🔧 Advanced',
   },
 ];
 
@@ -173,6 +183,8 @@ export default function AgentsPage() {
     context: {},
   });
   const [executionResult, setExecutionResult] = useState<any>(null);
+  const [justCreatedAgent, setJustCreatedAgent] = useState<string | null>(null);
+  const [executionElapsed, setExecutionElapsed] = useState(0);
   
   // Filter and search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -187,12 +199,25 @@ export default function AgentsPage() {
   // Fetch user's created agents
   const { data: userAgents, isLoading: agentsLoading, refetch } = trpc.agents.list.useQuery();
 
+  // Execution timer — counts up while agent is running
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (executeAgentMutation?.isPending) {
+      setExecutionElapsed(0);
+      interval = setInterval(() => setExecutionElapsed((s) => s + 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [executeAgentMutation?.isPending]);
+
   // Create agent mutation
   const createAgentMutation = trpc.agents.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       setShowCreateModal(false);
+      const createdName = formData.name;
       setFormData({ name: '', type: 'research', description: '' });
-      refetch(); // Refresh the agents list
+      setJustCreatedAgent(createdName);
+      setTimeout(() => setJustCreatedAgent(null), 8000);
+      refetch();
     },
     onError: (error) => {
       const appError = createAppError(
@@ -612,6 +637,24 @@ export default function AgentsPage() {
         </div>
       )}
 
+      {/* Post-create success banner */}
+      {justCreatedAgent && (
+        <div className="mb-6 flex items-center justify-between p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
+          <div className="flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+            <div>
+              <p className="text-white font-medium text-sm">
+                ✅ <strong>{justCreatedAgent}</strong> was created!
+              </p>
+              <p className="text-gray-400 text-xs mt-0.5">Ready to run. Click <strong>Execute</strong> on the card below to give it a task.</p>
+            </div>
+          </div>
+          <button onClick={() => setJustCreatedAgent(null)} className="text-gray-500 hover:text-gray-300 p-1">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Loading State */}
       {agentsLoading && (
         <div className="mb-12">
@@ -855,8 +898,19 @@ export default function AgentsPage() {
                 <div className={`absolute inset-0 bg-gradient-to-br ${agent.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}></div>
                 
                 <div className="relative z-10">
-                  <div className={`inline-flex p-4 rounded-lg bg-gradient-to-br ${agent.gradient} mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
-                    <IconComponent className="w-8 h-8 text-white" />
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`inline-flex p-4 rounded-lg bg-gradient-to-br ${agent.gradient} group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
+                      <IconComponent className="w-8 h-8 text-white" />
+                    </div>
+                    {agent.badge && (
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                        agent.badge.includes('beginners')
+                          ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                          : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                      }`}>
+                        {agent.badge}
+                      </span>
+                    )}
                   </div>
                   
                   <h3 className="text-lg font-bold text-white mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-blue-400 transition-all duration-300">
@@ -899,22 +953,26 @@ export default function AgentsPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-300 mb-1.5">
                   Agent Name
+                  <HelpTooltip text="Give your agent a clear, descriptive name. You can always rename it later. Example: 'Customer Support Bot' or 'Blog Writer'." position="right" />
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                  placeholder="e.g., Market Research Assistant"
+                  placeholder="e.g., My Customer Support Bot"
+                  autoFocus
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">Keep it descriptive so you can identify it later.</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-300 mb-1.5">
                   Agent Type
+                  <GlossaryBadge term="agent type" position="right" />
                 </label>
                 <select
                   value={formData.type}
@@ -923,28 +981,36 @@ export default function AgentsPage() {
                 >
                   {agentTypes.map((type) => (
                     <option key={type.id} value={type.id}>
-                      {type.name}
+                      {type.name}{type.badge ? ` — ${type.badge}` : ''}
                     </option>
                   ))}
                 </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Not sure? <span className="text-purple-400">Communication</span> or <span className="text-purple-400">Writing</span> are easiest to start with.
+                </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Description
+                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-300 mb-1.5">
+                  What should this agent do?
+                  <HelpTooltip text="Describe the agent's purpose in plain English. This becomes its built-in instructions. Be specific — the more detail you give, the better it performs." position="right" />
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
                   rows={3}
-                  placeholder="Describe what this agent will do..."
+                  placeholder="e.g., Answer customer questions about our products, handle refund requests, and escalate complex issues to a human."
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">Think of this as a job description for your AI employee.</p>
               </div>
 
               <div className="bg-gray-700/50 p-4 rounded-lg">
-                <h4 className="font-semibold text-white mb-2">Included Capabilities:</h4>
+                <h4 className="flex items-center gap-1.5 font-semibold text-white mb-2 text-sm">
+                  Included Capabilities
+                  <GlossaryBadge term="capabilities" position="right" />
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {defaultCapabilities[formData.type].map((cap) => (
                     <span
@@ -955,11 +1021,13 @@ export default function AgentsPage() {
                     </span>
                   ))}
                 </div>
+                <p className="text-xs text-gray-500 mt-2">These are automatically set based on the agent type you chose.</p>
               </div>
 
               {createAgentMutation.error && (
-                <div className="p-3 bg-red-900/50 border border-red-500/50 rounded text-red-300 text-sm">
-                  Error creating agent: {createAgentMutation.error.message}
+                <div className="p-3 bg-red-900/30 border border-red-500/40 rounded-lg text-sm">
+                  <p className="text-red-300 font-medium mb-0.5">⚠️ Couldn&apos;t create the agent</p>
+                  <p className="text-red-400/80 text-xs">Something went wrong on our end. Please try again — your settings are still saved.</p>
                 </div>
               )}
 
@@ -1019,29 +1087,56 @@ export default function AgentsPage() {
 
             <form onSubmit={handleExecuteSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Objective / Command
+                <label className="flex items-center gap-1.5 text-sm font-medium text-gray-300 mb-1.5">
+                  What should the agent do right now?
+                  <GlossaryBadge term="objective" position="right" />
                 </label>
                 <textarea
                   value={executeData.objective}
                   onChange={(e) => setExecuteData({ ...executeData, objective: e.target.value })}
                   className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
                   rows={4}
-                  placeholder="What do you want this agent to do? e.g., Research the latest AI trends in 2024..."
+                  placeholder="Describe the task in plain English. e.g., Write a short blog post about the benefits of AI automation for small businesses."
+                  autoFocus
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">Be specific — the more detail you give, the better the result.</p>
               </div>
 
+              {/* Running indicator with elapsed timer */}
+              {executeAgentMutation.isPending && (
+                <div className="p-4 bg-purple-900/20 border border-purple-500/30 rounded-xl">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Loader2 className="w-5 h-5 text-purple-400 animate-spin flex-shrink-0" />
+                    <div>
+                      <p className="text-purple-300 font-medium text-sm">Agent is working…</p>
+                      <p className="text-purple-400/70 text-xs">This usually takes 5–20 seconds</p>
+                    </div>
+                    <div className="ml-auto flex items-center gap-1 text-xs text-gray-500">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>{executionElapsed}s</span>
+                    </div>
+                  </div>
+                  <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-pulse" style={{ width: `${Math.min(executionElapsed * 5, 90)}%`, transition: 'width 1s linear' }} />
+                  </div>
+                </div>
+              )}
+
               {executeAgentMutation.error && (
-                <div className="p-3 bg-red-900/50 border border-red-500/50 rounded text-red-300 text-sm">
-                  Error executing agent: {executeAgentMutation.error.message}
+                <div className="p-3 bg-red-900/30 border border-red-500/40 rounded-lg text-sm">
+                  <p className="text-red-300 font-medium mb-0.5">⚠️ The agent couldn&apos;t complete that task</p>
+                  <p className="text-red-400/80 text-xs">Try rephrasing your objective, or check that your agent is configured correctly in Settings.</p>
                 </div>
               )}
 
               {executionResult && (
-                <div className="p-4 bg-green-900/20 border border-green-500/50 rounded">
-                  <h4 className="font-semibold text-green-300 mb-2">Execution Result:</h4>
-                  <pre className="text-gray-300 text-sm whitespace-pre-wrap overflow-auto max-h-64">
+                <div className="p-4 bg-green-900/20 border border-green-500/50 rounded-xl">
+                  <div className="flex items-center gap-2 mb-3">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <h4 className="font-semibold text-green-300 text-sm">Task completed!</h4>
+                  </div>
+                  <pre className="text-gray-300 text-sm whitespace-pre-wrap overflow-auto max-h-64 bg-gray-800 rounded-lg p-3">
                     {JSON.stringify(executionResult, null, 2)}
                   </pre>
                 </div>
@@ -1064,12 +1159,12 @@ export default function AgentsPage() {
                   {executeAgentMutation.isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Executing...
+                      Running…
                     </>
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
-                      Execute
+                      Run Agent
                     </>
                   )}
                 </button>
