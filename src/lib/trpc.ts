@@ -1,11 +1,11 @@
 /**
  * tRPC Client Configuration
- * 
- * This file sets up the tRPC client for use in React components
+ *
+ * Re-exports the canonical tRPC instance so that every component in the app
+ * shares the same React context, regardless of whether they import from
+ * '@/lib/trpc' or '@/lib/trpc/client'.  Previously this file created a
+ * *second* independent createTRPCReact instance which broke context for any
+ * component that imported from this path (settings, workflows, pricing,
+ * SubscriptionBanner, UsageDisplay, WorkflowBuilder).
  */
-
-import { createTRPCReact } from '@trpc/react-query';
-import type { AppRouter } from '@/server/routers/_app';
-
-export const trpc = createTRPCReact<AppRouter>();
-
+export { trpc, TRPCProvider } from '@/lib/trpc/client';
