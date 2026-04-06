@@ -22,11 +22,10 @@ export default function OnboardingProgress() {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
-  const { data: agentsData } = trpc.agents.list.useQuery(undefined as any);
+  const { data: agentsData } = trpc.agents.list.useQuery();
   const { data: workflowsData } = trpc.workflows.list.useQuery(undefined);
 
-  const hasAgent =
-    (Array.isArray(agentsData) ? agentsData.length : agentsData?.agents?.length ?? 0) > 0;
+  const hasAgent = (agentsData?.length ?? 0) > 0;
   const hasWorkflow =
     (Array.isArray(workflowsData) ? workflowsData.length : (workflowsData as any)?.workflows?.length ?? 0) > 0;
 

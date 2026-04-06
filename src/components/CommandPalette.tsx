@@ -63,7 +63,7 @@ export default function CommandPalette() {
   const listRef = useRef<HTMLDivElement>(null);
 
   const { data: agentsData } = trpc.agents.list.useQuery(
-    { page: 1, limit: 50 },
+    undefined,
     { enabled: open, staleTime: 30_000 }
   );
   const { data: workflowsData } = trpc.workflows.list.useQuery(
@@ -105,7 +105,7 @@ export default function CommandPalette() {
     })),
   [router]);
 
-  const agentItems: ResultItem[] = (agentsData?.agents ?? []).map((a: any) => ({
+  const agentItems: ResultItem[] = (Array.isArray(agentsData) ? agentsData : []).map((a: any) => ({
     id: `agent-${a.id}`,
     label: a.name,
     sublabel: `${a.type} agent · ${a.status ?? 'idle'}`,
@@ -114,7 +114,7 @@ export default function CommandPalette() {
     action: () => { router.push(`/dashboard/agents`); setOpen(false); },
   }));
 
-  const workflowItems: ResultItem[] = (workflowsData?.workflows ?? workflowsData ?? []).map((w: any) => ({
+  const workflowItems: ResultItem[] = (Array.isArray(workflowsData) ? workflowsData : (workflowsData as any)?.workflows ?? []).map((w: any) => ({
     id: `workflow-${w.id}`,
     label: w.name,
     sublabel: `Workflow · ${w.status ?? 'draft'}`,

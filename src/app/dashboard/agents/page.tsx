@@ -199,6 +199,26 @@ export default function AgentsPage() {
   // Fetch user's created agents
   const { data: userAgents, isLoading: agentsLoading, refetch } = trpc.agents.list.useQuery();
 
+  // Execute agent mutation — declared BEFORE useEffect so it's in scope for the dependency array
+  const executeAgentMutation = trpc.agents.execute.useMutation({
+    onSuccess: (data) => {
+      setExecutionResult(data);
+    },
+    onError: (error) => {
+      const appError = createAppError(
+        ErrorType.CLIENT_ERROR,
+        `Failed to execute agent: ${error.message}`,
+        {
+          originalError: new Error(error.message),
+          context: { operation: 'execute', agentId: selectedAgent?.id },
+          recoverable: true,
+          retryable: true,
+        }
+      );
+      addError(appError);
+    },
+  });
+
   // Execution timer — counts up while agent is running
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -226,26 +246,6 @@ export default function AgentsPage() {
         {
           originalError: new Error(error.message),
           context: { operation: 'create', agentType: formData.type },
-          recoverable: true,
-          retryable: true,
-        }
-      );
-      addError(appError);
-    },
-  });
-
-  // Execute agent mutation
-  const executeAgentMutation = trpc.agents.execute.useMutation({
-    onSuccess: (data) => {
-      setExecutionResult(data);
-    },
-    onError: (error) => {
-      const appError = createAppError(
-        ErrorType.CLIENT_ERROR,
-        `Failed to execute agent: ${error.message}`,
-        {
-          originalError: new Error(error.message),
-          context: { operation: 'execute', agentId: selectedAgent?.id },
           recoverable: true,
           retryable: true,
         }
