@@ -49,7 +49,7 @@ export class AIOrchestrator {
     // Initialize Anthropic models
     if (process.env.ANTHROPIC_API_KEY) {
       const sonnet = new ChatAnthropic({
-        modelName: 'claude-3-5-sonnet-20241022',
+        modelName: 'claude-3-5-sonnet-20250219',
         temperature: 0.7,
         maxTokens: 8192,
       });
@@ -64,6 +64,8 @@ export class AIOrchestrator {
       this.models.set('claude-3-sonnet', sonnet);
       this.models.set('claude-3-5-sonnet', sonnet);
       this.models.set('claude-3-5-sonnet-20241022', sonnet);
+      this.models.set('claude-3-5-sonnet-20250219', sonnet);
+      this.models.set('claude-sonnet-4-5', sonnet);
     }
   }
 
