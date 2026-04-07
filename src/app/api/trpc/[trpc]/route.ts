@@ -20,3 +20,6 @@ const handler = (req: Request) =>
 
 export { handler as GET, handler as POST };
 
+// Allow up to 5 minutes for long-running agent executions
+export const maxDuration = 300;
+
