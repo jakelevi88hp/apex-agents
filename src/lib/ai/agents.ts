@@ -281,9 +281,29 @@ export class ResearchAgent extends BaseAgent {
 
     // Execute research steps (no reflect() — avoids a redundant LLM call per step)
     for (const step of plan.steps) {
-      const thought = await this.think(`In one concise sentence, what is the key insight or approach for this step: ${step.description}`);
+      const rawThought = await this.think(`In one concise sentence (no markdown, no headers, no bullets), what is the single most important insight for this step: ${step.description}`);
+      // Strip markdown headers/bullets so the thought renders cleanly as prose
+      const thought = rawThought
+        .replace(/^#+\s.*$/gm, '')          // remove ## headers
+        .replace(/^\s*[-*]\s+/gm, '')        // remove bullet points
+        .replace(/\*\*(.*?)\*\*/g, '$1')     // remove bold
+        .replace(/\*(.*?)\*/g, '$1')         // remove italic
+        .replace(/`(.*?)`/g, '$1')           // remove inline code
+        .replace(/\n{2,}/g, ' ')             // collapse blank lines
+        .replace(/\n/g, ' ')                 // collapse newlines
+        .trim();
+
       // Prefer step.tool (the exact tool identifier) over step.action (descriptive text)
       const result = await this.act(step.tool || step.action, step.input);
+
+      // Collect any URLs from web search results into sources
+      if (result?.results && Array.isArray(result.results)) {
+        for (const r of result.results) {
+          if (r.url && !research.sources.includes(r.url)) {
+            research.sources.push(r.url);
+          }
+        }
+      }
 
       research.findings.push({
         step: step.description,
