@@ -143,18 +143,16 @@ export class ResearchAgent extends BaseAgent {
       confidence: 0,
     };
 
-    // Execute research steps
+    // Execute research steps (no reflect() — avoids a redundant LLM call per step)
     for (const step of plan.steps) {
       const thought = await this.think(`How should I approach: ${step.description}`);
       const result = await this.act(step.action, step.input);
-      
+
       research.findings.push({
         step: step.description,
         result,
         thought,
       });
-
-      await this.reflect(result);
     }
 
     // Generate summary

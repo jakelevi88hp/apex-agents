@@ -1032,7 +1032,13 @@ export default function AgentsPage() {
                     <Loader2 className="w-5 h-5 text-purple-400 animate-spin flex-shrink-0" />
                     <div>
                       <p className="text-purple-300 font-medium text-sm">Agent is working…</p>
-                      <p className="text-purple-400/70 text-xs">This usually takes 5–20 seconds</p>
+                      <p className="text-purple-400/70 text-xs">
+                        {executionElapsed < 15
+                          ? 'Simple tasks finish in 10–30 seconds'
+                          : executionElapsed < 60
+                          ? 'Multi-step agents take 30–90 seconds — almost there'
+                          : 'Complex research agents may take up to 2 minutes'}
+                      </p>
                     </div>
                     <div className="ml-auto flex items-center gap-1 text-xs text-gray-500">
                       <Clock className="w-3.5 h-3.5" />
@@ -1040,7 +1046,7 @@ export default function AgentsPage() {
                     </div>
                   </div>
                   <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-pulse" style={{ width: `${Math.min(executionElapsed * 5, 90)}%`, transition: 'width 1s linear' }} />
+                    <div className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-pulse" style={{ width: `${Math.min(executionElapsed * 2, 90)}%`, transition: 'width 1s linear' }} />
                   </div>
                 </div>
               )}
@@ -1052,26 +1058,83 @@ export default function AgentsPage() {
                 </div>
               )}
 
-              {executionResult && (
-                <div className="p-4 bg-green-900/20 border border-green-500/50 rounded-xl">
-                  <div className="flex items-center gap-2 mb-3">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
-                    <h4 className="font-semibold text-green-300 text-sm">Task completed!</h4>
+              {executionResult && (() => {
+                // Pull the agent's actual output — strip the wrapper executionId
+                const payload = (executionResult as any)?.result ?? executionResult;
+
+                // Recursive readable renderer
+                const renderValue = (val: any, depth = 0): React.ReactNode => {
+                  if (val === null || val === undefined) return null;
+                  if (typeof val === 'boolean') return <span className="text-blue-300 text-sm">{val ? 'Yes' : 'No'}</span>;
+                  if (typeof val === 'number') return <span className="text-yellow-300 text-sm">{val}</span>;
+                  if (typeof val === 'string') {
+                    return val.length > 200
+                      ? <p className="text-gray-300 text-sm whitespace-pre-wrap leading-relaxed">{val}</p>
+                      : <span className="text-gray-200 text-sm">{val}</span>;
+                  }
+                  if (Array.isArray(val)) {
+                    if (val.length === 0) return <span className="text-gray-500 text-xs italic">none</span>;
+                    return (
+                      <ul className="space-y-1 mt-1">
+                        {val.map((item: any, i: number) => (
+                          <li key={i} className="flex gap-2 text-sm text-gray-300">
+                            <span className="text-purple-400 flex-shrink-0">•</span>
+                            <span>{typeof item === 'object' ? <span className="font-mono text-xs text-gray-400">{JSON.stringify(item)}</span> : String(item)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    );
+                  }
+                  if (typeof val === 'object') {
+                    return (
+                      <div className={`space-y-2 ${depth > 0 ? 'pl-3 border-l border-gray-700' : ''}`}>
+                        {Object.entries(val).map(([k, v]) => {
+                          if (k === 'executionId') return null;
+                          const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase());
+                          return (
+                            <div key={k}>
+                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">{label}</p>
+                              {renderValue(v, depth + 1)}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  }
+                  return <span className="text-gray-300 text-sm">{String(val)}</span>;
+                };
+
+                return (
+                  <div className="p-4 bg-green-900/20 border border-green-500/50 rounded-xl">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        <h4 className="font-semibold text-green-300 text-sm">
+                          Task completed{executionElapsed > 0 ? ` in ${executionElapsed}s` : ''}!
+                        </h4>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard?.writeText(JSON.stringify(payload, null, 2))}
+                        className="text-xs text-gray-400 hover:text-gray-200 px-2 py-1 rounded border border-gray-600 hover:border-gray-500 transition-colors"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                    <div className="max-h-72 overflow-y-auto space-y-3 pr-1">
+                      {renderValue(payload)}
+                    </div>
                   </div>
-                  <pre className="text-gray-300 text-sm whitespace-pre-wrap overflow-auto max-h-64 bg-gray-800 rounded-lg p-3">
-                    {JSON.stringify(executionResult, null, 2)}
-                  </pre>
-                </div>
-              )}
+                );
+              })()}
 
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => setShowExecuteModal(false)}
                   className="flex-1 px-6 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 hover:scale-105 transition-all duration-200"
-                  disabled={executeAgentMutation.isPending}
                 >
-                  Close
+                  {executeAgentMutation.isPending ? 'Cancel' : 'Close'}
                 </button>
                 <button
                   type="submit"

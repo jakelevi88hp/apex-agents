@@ -210,25 +210,26 @@ export class TaskPlanner {
           expectedOutput: z.string(),
           dependencies: z.array(z.string()),
         })
-      ),
+      ).max(2),
       estimatedDuration: z.number(),
       requiredTools: z.array(z.string()),
       dependencies: z.array(z.string()),
     });
 
     const prompt = `
-You are an AI task planner. Given an objective, break it down into a detailed step-by-step plan.
+You are an AI task planner. Given an objective, break it down into a concise 1-2 step plan.
 
 Objective: {objective}
 
 Context: {context}
 
-Create a comprehensive plan that:
-1. Breaks the objective into clear, actionable steps
-2. Identifies required tools for each step
-3. Specifies dependencies between steps
-4. Estimates duration in minutes
-5. Defines expected outputs
+Create a focused plan with AT MOST 2 steps that:
+1. Covers the most critical actions to achieve the objective
+2. Identifies the key tool for each step
+3. Estimates duration in minutes
+4. Defines the expected output
+
+Keep it tight — 1-2 steps only. Avoid splitting into unnecessary sub-tasks.
 
 Available tools:
 - web_search: Search the internet for information
