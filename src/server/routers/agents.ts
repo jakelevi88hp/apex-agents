@@ -120,18 +120,37 @@ export const agentsRouter = router({
 
       const agentConfig = agent.config as { model?: string; tools?: string[] } | null;
       const capabilities = agent.capabilities as string[] | null;
+      const resolvedModel = process.env.ANTHROPIC_API_KEY
+        ? 'claude-sonnet-4-6'
+        : (agentConfig?.model || 'gpt-4o');
       const agentInstance = AgentFactory.createAgent({
         id: agent.id,
         name: agent.name,
         type: agent.type as AgentType,
         // Always prefer Anthropic when available — stored model may reference
         // a deprecated OpenAI model name (e.g. gpt-4-turbo-preview).
-        model: process.env.ANTHROPIC_API_KEY
-          ? 'claude-sonnet-4-6'
-          : (agentConfig?.model || 'gpt-4o'),
+        model: resolvedModel,
         tools: agentConfig?.tools || [],
         capabilities: capabilities || [],
       });
+
+      // OrchestratorAgent delegates to typed sub-agents; register them all.
+      if (agent.type === 'orchestrator') {
+        const orchestrator = agentInstance as any;
+        if (typeof orchestrator.registerAgent === 'function') {
+          const subTypes: AgentType[] = ['research', 'analysis', 'writing', 'code', 'decision', 'communication', 'monitoring'];
+          for (const subType of subTypes) {
+            orchestrator.registerAgent(subType, AgentFactory.createAgent({
+              id: `${agent.id}-${subType}`,
+              name: `${subType} sub-agent`,
+              type: subType,
+              model: resolvedModel,
+              tools: [],
+              capabilities: [],
+            }));
+          }
+        }
+      }
 
       const [execution] = await ctx.db.insert(executions).values({
         agentId: agent.id,
