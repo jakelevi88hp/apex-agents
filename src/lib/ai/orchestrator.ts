@@ -49,18 +49,19 @@ export class AIOrchestrator {
     // Initialize Anthropic models
     if (process.env.ANTHROPIC_API_KEY) {
       const sonnet = new ChatAnthropic({
-        modelName: 'claude-3-5-sonnet-20250219',
+        modelName: 'claude-sonnet-4-6',
         temperature: 0.7,
         maxTokens: 8192,
       });
 
       this.models.set('claude-3-opus', new ChatAnthropic({
-        modelName: 'claude-3-opus-20240229',
+        modelName: 'claude-opus-4-6',
         temperature: 0.7,
         maxTokens: 4096,
       }));
 
       // Register under multiple keys so any reference hits a valid model
+      this.models.set('claude-sonnet-4-6', sonnet);
       this.models.set('claude-3-sonnet', sonnet);
       this.models.set('claude-3-5-sonnet', sonnet);
       this.models.set('claude-3-5-sonnet-20241022', sonnet);
