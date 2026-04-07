@@ -124,7 +124,8 @@ export const agentsRouter = router({
         id: agent.id,
         name: agent.name,
         type: agent.type as AgentType,
-        model: agentConfig?.model || 'claude-3-sonnet',
+        // Pick whichever model is available based on configured API keys
+        model: agentConfig?.model || (process.env.ANTHROPIC_API_KEY ? 'claude-3-sonnet' : 'gpt-4-turbo'),
         tools: agentConfig?.tools || [],
         capabilities: capabilities || [],
       });
