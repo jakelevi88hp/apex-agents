@@ -48,26 +48,42 @@ export class AIOrchestrator {
 
     // Initialize Anthropic models
     if (process.env.ANTHROPIC_API_KEY) {
+      const sonnet = new ChatAnthropic({
+        modelName: 'claude-3-5-sonnet-20241022',
+        temperature: 0.7,
+        maxTokens: 8192,
+      });
+
       this.models.set('claude-3-opus', new ChatAnthropic({
         modelName: 'claude-3-opus-20240229',
         temperature: 0.7,
         maxTokens: 4096,
       }));
 
-      this.models.set('claude-3-sonnet', new ChatAnthropic({
-        modelName: 'claude-3-5-sonnet-20241022',
-        temperature: 0.7,
-        maxTokens: 8192,
-      }));
+      // Register under multiple keys so any reference hits a valid model
+      this.models.set('claude-3-sonnet', sonnet);
+      this.models.set('claude-3-5-sonnet', sonnet);
+      this.models.set('claude-3-5-sonnet-20241022', sonnet);
     }
   }
 
   getModel(modelName: string): ChatOpenAI | ChatAnthropic {
+    // Try exact match first
     const model = this.models.get(modelName);
-    if (!model) {
-      throw new Error(`Model ${modelName} not found or not configured`);
+    if (model) return model;
+
+    // Fallback: return the first registered model so execution never hard-crashes
+    // due to a missing API key for a specific provider
+    const fallback = this.models.values().next().value;
+    if (fallback) {
+      console.warn(`[AIOrchestrator] Model "${modelName}" not registered — falling back to first available model`);
+      return fallback;
     }
-    return model;
+
+    throw new Error(
+      `Model "${modelName}" not found and no fallback model is configured. ` +
+      `Ensure ANTHROPIC_API_KEY or OPENAI_API_KEY is set in your environment.`
+    );
   }
 
   async generateCompletion(
@@ -225,8 +241,10 @@ Available tools:
 - data_analyze: Analyze data and generate insights
 `;
 
+    // Use claude-3-sonnet; the orchestrator will fall back to whatever model is available
+    const modelName = process.env.ANTHROPIC_API_KEY ? 'claude-3-sonnet' : 'gpt-4-turbo';
     return await this.orchestrator.generateStructuredOutput(
-      'gpt-4-turbo',
+      modelName,
       prompt,
       schema,
       {

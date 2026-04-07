@@ -124,7 +124,7 @@ export const agentsRouter = router({
         id: agent.id,
         name: agent.name,
         type: agent.type as AgentType,
-        model: agentConfig?.model || 'gpt-4-turbo',
+        model: agentConfig?.model || 'claude-3-sonnet',
         tools: agentConfig?.tools || [],
         capabilities: capabilities || [],
       });
