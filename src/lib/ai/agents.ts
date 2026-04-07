@@ -281,7 +281,7 @@ export class ResearchAgent extends BaseAgent {
 
     // Execute research steps (no reflect() — avoids a redundant LLM call per step)
     for (const step of plan.steps) {
-      const thought = await this.think(`How should I approach: ${step.description}`);
+      const thought = await this.think(`In one concise sentence, what is the key insight or approach for this step: ${step.description}`);
       // Prefer step.tool (the exact tool identifier) over step.action (descriptive text)
       const result = await this.act(step.tool || step.action, step.input);
 
@@ -316,7 +316,7 @@ Provide:
       })
     );
 
-    research.summary = JSON.stringify(summary);
+    research.summary = summary as any;
     research.confidence = summary.confidence;
 
     return research;
