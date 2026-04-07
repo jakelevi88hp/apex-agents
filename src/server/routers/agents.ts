@@ -124,8 +124,11 @@ export const agentsRouter = router({
         id: agent.id,
         name: agent.name,
         type: agent.type as AgentType,
-        // Pick whichever model is available based on configured API keys
-        model: agentConfig?.model || (process.env.ANTHROPIC_API_KEY ? 'claude-3-sonnet' : 'gpt-4-turbo'),
+        // Always prefer Anthropic when available — stored model may reference
+        // a deprecated OpenAI model name (e.g. gpt-4-turbo-preview).
+        model: process.env.ANTHROPIC_API_KEY
+          ? 'claude-sonnet-4-6'
+          : (agentConfig?.model || 'gpt-4o'),
         tools: agentConfig?.tools || [],
         capabilities: capabilities || [],
       });

@@ -27,11 +27,16 @@ export class AIOrchestrator {
   private initializeModels() {
     // Initialize OpenAI models
     if (process.env.OPENAI_API_KEY) {
-      this.models.set('gpt-4-turbo', new ChatOpenAI({
-        modelName: 'gpt-4-turbo-preview',
+      const gpt4o = new ChatOpenAI({
+        modelName: 'gpt-4o',
         temperature: 0.7,
         maxTokens: 4096,
-      }));
+      });
+
+      // Register under all legacy keys so stored agent configs still resolve
+      this.models.set('gpt-4o', gpt4o);
+      this.models.set('gpt-4-turbo', gpt4o);
+      this.models.set('gpt-4-turbo-preview', gpt4o);
 
       this.models.set('gpt-4', new ChatOpenAI({
         modelName: 'gpt-4',
