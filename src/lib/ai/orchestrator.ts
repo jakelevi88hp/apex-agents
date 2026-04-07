@@ -143,27 +143,21 @@ export class AIOrchestrator {
     const parser = StructuredOutputParser.fromZodSchema(schema);
     const formatInstructions = parser.getFormatInstructions();
 
-    // Extract all variables from the prompt template (e.g., {objective}, {context})
-    const templateVars = prompt.match(/\{([^}]+)\}/g)?.map(v => v.slice(1, -1)) || [];
-    
-    // Filter out format_instructions from input variables since it's a partial variable
-    const inputVars = templateVars.filter(v => v !== 'format_instructions');
-    
-    // Ensure all required variables are provided, use empty string as fallback
-    const safeVariables: Record<string, any> = {};
-    for (const varName of inputVars) {
-      safeVariables[varName] = variables?.[varName] ?? '';
+    // Manually substitute {variable} placeholders to avoid PromptTemplate
+    // choking on the JSON-schema braces inside formatInstructions.
+    let filledPrompt = prompt;
+    if (variables) {
+      for (const [key, value] of Object.entries(variables)) {
+        filledPrompt = filledPrompt.replace(
+          new RegExp(`\\{${key}\\}`, 'g'),
+          String(value ?? '')
+        );
+      }
     }
-    
-    const promptTemplate = new PromptTemplate({
-      template: `${prompt}\n\n{format_instructions}`,
-      inputVariables: inputVars,
-      partialVariables: { format_instructions: formatInstructions },
-    });
 
-    const input = await promptTemplate.format(safeVariables);
+    const fullPrompt = `${filledPrompt}\n\n${formatInstructions}`;
     const model = this.getModel(modelName);
-    const response = await model.invoke([new HumanMessage(input)]);
+    const response = await model.invoke([new HumanMessage(fullPrompt)]);
 
     return await parser.parse(response.content as string);
   }
