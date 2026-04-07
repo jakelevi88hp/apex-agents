@@ -93,16 +93,152 @@ Think through this step by step and provide your reasoning.
   }
 
   protected async act(action: string, input: Record<string, any>): Promise<any> {
-    // This would integrate with actual tools
-    // For now, simulate tool execution
     this.memory.addMemory({
       type: 'episodic',
-      content: `Executed action: ${action} with input: ${JSON.stringify(input)}`,
+      content: `Executing action: ${action}`,
       metadata: { action, input },
       importance: 0.7,
     });
 
-    return { success: true, result: `Simulated ${action}` };
+    switch (action) {
+      case 'web_search':
+        return this.toolWebSearch(input);
+      case 'web_scrape':
+        return this.toolWebScrape(input);
+      case 'api_call':
+        return this.toolApiCall(input);
+      case 'data_analyze':
+        return this.toolDataAnalyze(input);
+      case 'code_execute':
+        return this.toolCodeExecute(input);
+      default:
+        return this.toolGenericAI(action, input);
+    }
+  }
+
+  private async toolWebSearch(input: Record<string, any>): Promise<any> {
+    const query = input.query ?? input.search ?? input.q ?? input.keywords ?? JSON.stringify(input);
+
+    // Try Brave Search API if configured
+    if (process.env.BRAVE_SEARCH_API_KEY) {
+      try {
+        const resp = await fetch(
+          `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(String(query))}&count=5`,
+          { headers: { 'X-Subscription-Token': process.env.BRAVE_SEARCH_API_KEY, Accept: 'application/json' } }
+        );
+        if (resp.ok) {
+          const data = await resp.json();
+          const results = ((data.web?.results as any[]) || []).slice(0, 5).map((r: any) => ({
+            title: r.title,
+            url: r.url,
+            snippet: r.description,
+          }));
+          return { success: true, query, results, source: 'brave_search' };
+        }
+      } catch {
+        // fall through to AI fallback
+      }
+    }
+
+    // Fallback: synthesize research from model knowledge
+    const response = await aiOrchestrator.generateStructuredOutput(
+      this.config.model,
+      `Search query: "{query}"\n\nUsing your knowledge, provide the most relevant and accurate findings for this query. Be specific and factual.`,
+      z.object({
+        results: z.array(z.object({
+          title: z.string(),
+          snippet: z.string(),
+          relevance: z.string(),
+        })).max(5),
+        summary: z.string(),
+      }),
+      { query: String(query) }
+    );
+
+    return { success: true, query, ...response, source: 'ai_knowledge' };
+  }
+
+  private async toolWebScrape(input: Record<string, any>): Promise<any> {
+    const url = input.url ?? input.target ?? input.link;
+    if (!url) return { success: false, error: 'No URL provided' };
+
+    try {
+      const resp = await fetch(String(url), {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ApexAgent/1.0)' },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!resp.ok) return { success: false, url, error: `HTTP ${resp.status}` };
+      const html = await resp.text();
+      const text = html
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 4000);
+      return { success: true, url, content: text, length: text.length };
+    } catch (e: any) {
+      return { success: false, url, error: e.message };
+    }
+  }
+
+  private async toolApiCall(input: Record<string, any>): Promise<any> {
+    const { url, method = 'GET', headers = {}, body } = input;
+    if (!url) return { success: false, error: 'No URL provided' };
+
+    try {
+      const resp = await fetch(String(url), {
+        method: String(method),
+        headers: { 'Content-Type': 'application/json', ...(headers as Record<string, string>) },
+        body: body ? JSON.stringify(body) : undefined,
+        signal: AbortSignal.timeout(8000),
+      });
+      const isJson = resp.headers.get('content-type')?.includes('json');
+      const data = isJson ? await resp.json() : await resp.text();
+      return { success: resp.ok, status: resp.status, data };
+    } catch (e: any) {
+      return { success: false, error: e.message };
+    }
+  }
+
+  private async toolDataAnalyze(input: Record<string, any>): Promise<any> {
+    const response = await aiOrchestrator.generateStructuredOutput(
+      this.config.model,
+      `Analyze the following data and provide actionable insights:\n\n{data}`,
+      z.object({
+        insights: z.array(z.string()).max(5),
+        patterns: z.array(z.string()).max(4),
+        recommendations: z.array(z.string()).max(4),
+        summary: z.string(),
+      }),
+      { data: JSON.stringify(input) }
+    );
+    return { success: true, ...response };
+  }
+
+  private async toolCodeExecute(input: Record<string, any>): Promise<any> {
+    // Code execution is sandboxed — analyze instead of running
+    const code = input.code ?? input.script ?? input.snippet ?? '';
+    const response = await aiOrchestrator.generateStructuredOutput(
+      this.config.model,
+      `Analyze this code and predict what it does:\n\n\`\`\`\n{code}\n\`\`\``,
+      z.object({
+        predictedOutput: z.string(),
+        explanation: z.string(),
+        potentialIssues: z.array(z.string()),
+      }),
+      { code: String(code) }
+    );
+    return { success: true, sandboxed: true, ...response };
+  }
+
+  private async toolGenericAI(action: string, input: Record<string, any>): Promise<any> {
+    const result = await aiOrchestrator.generateCompletion(
+      this.config.model,
+      [{ role: 'user', content: `Perform this task: ${action}\n\nInput: ${JSON.stringify(input)}\n\nProvide a detailed, helpful response.` }],
+      { temperature: this.config.temperature ?? 0.7 }
+    );
+    return { success: true, action, result };
   }
 
   protected async reflect(result: any): Promise<void> {

@@ -1074,12 +1074,77 @@ export default function AgentsPage() {
                   }
                   if (Array.isArray(val)) {
                     if (val.length === 0) return <span className="text-gray-500 text-xs italic">none</span>;
+
+                    // Detect research findings: objects with step/thought/result shape
+                    const isFindingsArray = typeof val[0] === 'object' && val[0] !== null &&
+                      ('step' in val[0] || 'thought' in val[0]);
+
+                    if (isFindingsArray) {
+                      return (
+                        <div className="space-y-3 mt-1">
+                          {val.map((item: any, i: number) => (
+                            <div key={i} className="bg-gray-800/60 rounded-lg p-3 border border-gray-700">
+                              <p className="text-purple-300 text-xs font-semibold uppercase tracking-wider mb-2">
+                                Step {i + 1}{item.step ? `: ${item.step}` : ''}
+                              </p>
+                              {item.thought && (
+                                <p className="text-gray-300 text-sm leading-relaxed mb-2">{item.thought}</p>
+                              )}
+                              {item.result && (() => {
+                                const r = item.result;
+                                // Real web search results
+                                if (r.results && Array.isArray(r.results)) {
+                                  return (
+                                    <div className="mt-1 space-y-1">
+                                      {r.results.slice(0, 4).map((sr: any, j: number) => (
+                                        <div key={j} className="text-xs text-gray-400 flex gap-2">
+                                          <span className="text-cyan-400 flex-shrink-0">→</span>
+                                          <span>{sr.title ? <><span className="text-gray-200">{sr.title}</span> — {sr.snippet || sr.relevance}</> : String(sr)}</span>
+                                        </div>
+                                      ))}
+                                      {r.summary && <p className="text-gray-500 text-xs italic mt-1">{r.summary}</p>}
+                                    </div>
+                                  );
+                                }
+                                // AI generic result
+                                if (r.result && typeof r.result === 'string') {
+                                  return <p className="text-gray-400 text-xs mt-1">{r.result}</p>;
+                                }
+                                // Structured tool output (insights, patterns, etc.)
+                                const keys = Object.keys(r).filter(k => k !== 'success' && k !== 'source' && k !== 'simulated');
+                                if (keys.length > 0) {
+                                  return (
+                                    <div className="mt-1 space-y-1">
+                                      {keys.map(k => {
+                                        const v = r[k];
+                                        if (Array.isArray(v)) return v.slice(0, 3).map((s: any, j: number) => (
+                                          <div key={`${k}-${j}`} className="text-xs text-gray-400 flex gap-2">
+                                            <span className="text-cyan-400 flex-shrink-0">→</span>
+                                            <span>{typeof s === 'string' ? s : JSON.stringify(s)}</span>
+                                          </div>
+                                        ));
+                                        if (typeof v === 'string' && v.length > 0) return (
+                                          <p key={k} className="text-gray-400 text-xs">{v}</p>
+                                        );
+                                        return null;
+                                      })}
+                                    </div>
+                                  );
+                                }
+                                return <span className="text-gray-600 text-xs italic">{r.success ? '✓ Completed' : '✗ Failed'}</span>;
+                              })()}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+
                     return (
                       <ul className="space-y-1 mt-1">
                         {val.map((item: any, i: number) => (
                           <li key={i} className="flex gap-2 text-sm text-gray-300">
                             <span className="text-purple-400 flex-shrink-0">•</span>
-                            <span>{typeof item === 'object' ? <span className="font-mono text-xs text-gray-400">{JSON.stringify(item)}</span> : String(item)}</span>
+                            <span>{typeof item === 'object' ? renderValue(item, depth + 1) : String(item)}</span>
                           </li>
                         ))}
                       </ul>
