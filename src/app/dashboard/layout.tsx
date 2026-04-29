@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import { useTheme } from '@/contexts/ThemeContext';
 import OnboardingWizard from '@/components/OnboardingWizard';
@@ -10,6 +12,19 @@ import LiveChatWidget from '@/components/LiveChatWidget';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isDarkMode } = useTheme();
+  const router = useRouter();
+
+  // Redirect to login if no auth token found
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.replace('/login');
+      }
+    } catch {
+      router.replace('/login');
+    }
+  }, [router]);
 
   return (
     <div className={`flex min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>

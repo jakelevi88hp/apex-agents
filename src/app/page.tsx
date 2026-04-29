@@ -240,6 +240,8 @@ export default function HomePage() {
           </div>
           <p className="text-gray-600 text-sm">&copy; {new Date().getFullYear()} Apex Advantage. All rights reserved.</p>
           <div className="flex items-center gap-6 text-sm text-gray-500">
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
             <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>
             <Link href="/signup" className="hover:text-white transition-colors">Get Started</Link>
           </div>
