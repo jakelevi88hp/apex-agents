@@ -38,12 +38,41 @@ const features = [
 const stats = [
   { value: '147+', label: 'Leads Normalized' },
   { value: '5', label: 'Active AI Agents' },
-  { value: '4', label: 'Live Niches' },
+  { value: '30+', label: 'Supported Niches' },
   { value: '91', label: 'High-Priority Prospects' },
 ];
 
 // ── Niche pills ─────────────────────────────────────────────────────────────────
-const niches = ['Law Firms', 'HVAC Contractors', 'Dental Clinics', 'Auto Repair', 'Local SEO', 'Google Reviews'];
+const nicheCategories = [
+  {
+    label: 'Legal & Finance',
+    niches: ['Law Firms', 'Accountants / CPAs', 'Insurance Agents', 'Financial Advisors', 'Mortgage Brokers'],
+  },
+  {
+    label: 'Home Services',
+    niches: ['HVAC Contractors', 'Plumbing', 'Roofing', 'Electricians', 'Landscaping', 'Pest Control', 'Pool Service', 'Painting / Remodeling'],
+  },
+  {
+    label: 'Health & Wellness',
+    niches: ['Dental Clinics', 'Chiropractors', 'Physical Therapy', 'Med Spas', 'Optometry', 'Veterinarians'],
+  },
+  {
+    label: 'Automotive',
+    niches: ['Auto Repair Shops', 'Auto Detailing', 'Tire Shops', 'Towing Services'],
+  },
+  {
+    label: 'Beauty & Personal Care',
+    niches: ['Hair Salons', 'Barbershops', 'Nail Salons', 'Tattoo Studios', 'Spas & Massage'],
+  },
+  {
+    label: 'Professional Services',
+    niches: ['Real Estate Agents', 'Property Management', 'Staffing Agencies', 'IT & Tech Support'],
+  },
+  {
+    label: 'Food & Hospitality',
+    niches: ['Restaurants', 'Catering Services', 'Food Trucks', 'Bakeries', 'Coffee Shops'],
+  },
+];
 
 export default function HomePage() {
   return (
@@ -179,27 +208,38 @@ export default function HomePage() {
 
       {/* ── Niches ────────────────────────────────────────────────────── */}
       <section id="niches" className="py-24 px-6">
-        <div className="max-w-5xl mx-auto text-center">
+        <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-black mb-4">
             Built for Your{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-              Market
+              Industry
             </span>
           </h2>
-          <p className="text-gray-400 text-lg mb-12 max-w-xl mx-auto">
-            Apex Agents is pre-tuned for the highest-value local business niches — with niche-specific scripts, scoring, and outreach.
+          <p className="text-gray-400 text-lg mb-16 max-w-2xl mx-auto">
+            30+ local business niches supported out of the box — with industry-specific messaging, lead scoring, and outreach that sounds like it was written for your market.
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {niches.map((niche) => (
-              <span
-                key={niche}
-                className="px-5 py-2.5 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-200 text-sm font-medium"
-              >
-                {niche}
-              </span>
+          <div className="space-y-10 text-left max-w-5xl mx-auto">
+            {nicheCategories.map((cat) => (
+              <div key={cat.label}>
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4 text-center">
+                  {cat.label}
+                </p>
+                <div className="flex flex-wrap justify-center gap-3">
+                  {cat.niches.map((niche) => (
+                    <span
+                      key={niche}
+                      className="px-5 py-2.5 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-200 text-sm font-medium hover:border-purple-400/50 hover:bg-purple-500/20 transition-colors"
+                    >
+                      {niche}
+                    </span>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
-          <p className="text-gray-600 text-sm mt-8">More niches added every quarter.</p>
+          <p className="text-gray-600 text-sm mt-12">
+            Don&apos;t see your niche? Apex Agents works for any local service business.
+          </p>
         </div>
       </section>
 
