@@ -19,6 +19,7 @@ import { createGitHubIntegration, GitHubIntegration } from './github';
 import { GitHubService, CommitFileChange } from './github-service';
 import { getSystemPrompt } from './system-prompt';
 import { getSystemPromptV2 } from './system-prompt-v2';
+import { getEnhancedSystemPrompt } from './system-prompt-enhanced';
 import { patchStorage } from './patch-storage';
 import { ContextBuilder } from './context-builder';
 import { ContextGatherer } from './context-gatherer';
@@ -282,8 +283,8 @@ ${f.content}
       await this.log(`Context gathered: ${context.files.length} files`);
 
       // Build conversation messages
-      // Use V2 system prompt (action-oriented, natural conversation)
-      const systemPrompt = getSystemPromptV2(analysis);
+      // Use Enhanced system prompt (comprehensive codebase knowledge)
+      const systemPrompt = getEnhancedSystemPrompt(analysis);
       
       const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
         {
@@ -422,8 +423,8 @@ Remember: Be action-oriented, make reasonable assumptions, and only ask question
       }
 
       // Generate patch using LLM with comprehensive knowledge base
-      // Use V2 system prompt (action-oriented, natural conversation)
-      const systemPrompt = getSystemPromptV2(analysis);
+      // Use Enhanced system prompt (comprehensive codebase knowledge)
+      const systemPrompt = getEnhancedSystemPrompt(analysis);
 
       // Try up to 3 times to get a valid patch
       let patchData: any = null;
