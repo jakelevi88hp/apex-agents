@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>Apex Agents — Put Your Local Business Revenue on Autopilot</title>
+  <meta name="description" content="Apex Agents is an AI revenue engine for local businesses. Autonomous agents scout leads, score prospects, write outreach, and track results — so you focus on closing. Start free." />
+
+  <!-- Canonical + social -->
+  <link rel="canonical" href="https://apex-agents.vercel.app/ads/" />
+  <meta property="og:title" content="Apex Agents — Your Business. On Autopilot." />
+  <meta property="og:description" content="AI agents that scout leads, score prospects, and write outreach for local businesses. Start free today." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://apex-agents.vercel.app/ads/" />
+  <meta name="robots" content="index, follow" />
+
+  <link rel="icon" href="/favicon-32x32.svg" type="image/svg+xml" />
+
+  <!--
+    ============================================================
+    GOOGLE ADS CONVERSION TRACKING
+    ------------------------------------------------------------
+    1. Replace AW-XXXXXXXXXX with your Google Ads conversion ID.
+    2. Replace AW-XXXXXXXXXX/yyyyyyyyyyyy in trackConversion()
+       with your conversion ID + label.
+    Both are found in Google Ads > Goals > Conversions.
+    Until you fill these in, the snippet is inert (no-op).
+    ============================================================
+  -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-XXXXXXXXXX');
+
+    // Fire on CTA click, then continue to /signup.
+    function trackConversion(url) {
+      var callback = function () { if (typeof url === 'string') window.location = url; };
+      if (typeof gtag === 'function') {
+        gtag('event', 'conversion', {
+          'send_to': 'AW-XXXXXXXXXX/yyyyyyyyyyyy',
+          'event_callback': callback
+        });
+      } else {
+        callback();
+      }
+      return false;
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg-soft: #111118;
+      --purple: #a855f7;
+      --purple-600: #9333ea;
+      --pink: #ec4899;
+      --text: #ffffff;
+      --muted: #9ca3af;
+      --muted-2: #6b7280;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+    .grad-text {
+      background: linear-gradient(90deg, #c084fc, #f472b6, #c084fc);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+
+    /* Nav */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; }
+    .logo-mark {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 15px;
+    }
+    .nav-cta {
+      background: var(--purple-600); color: #fff; font-weight: 600; font-size: 14px;
+      padding: 9px 16px; border-radius: 9px; transition: background .2s;
+    }
+    .nav-cta:hover { background: var(--purple); }
+    .nav-signin { color: var(--muted); font-size: 14px; padding: 9px 12px; transition: color .2s; }
+    .nav-signin:hover { color: #fff; }
+    .nav-actions { display: flex; align-items: center; gap: 8px; }
+
+    /* Hero */
+    .hero { position: relative; text-align: center; padding: 140px 0 90px; overflow: hidden; }
+    .blob { position: absolute; border-radius: 9999px; filter: blur(80px); pointer-events: none; z-index: 0; }
+    .blob-1 { top: 40px; left: 50%; transform: translateX(-50%); width: 620px; height: 380px; background: rgba(147,51,234,.22); }
+    .blob-2 { top: 160px; left: 28%; width: 300px; height: 300px; background: rgba(236,72,153,.13); }
+    .hero .wrap { position: relative; z-index: 1; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(168,85,247,.1); border: 1px solid rgba(168,85,247,.25);
+      color: #d8b4fe; font-size: 14px; padding: 6px 16px; border-radius: 9999px; margin-bottom: 28px;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; animation: pulse 1.6s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+    h1 { font-size: clamp(40px, 7vw, 72px); font-weight: 900; line-height: 1.02; letter-spacing: -.02em; margin-bottom: 22px; }
+    .hero p.sub { font-size: clamp(18px, 2.4vw, 23px); color: var(--muted); max-width: 640px; margin: 0 auto 36px; }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+    .btn-primary {
+      background: linear-gradient(90deg, var(--purple-600), var(--pink));
+      color: #fff; font-weight: 700; font-size: 17px; padding: 15px 30px; border-radius: 12px;
+      box-shadow: 0 12px 30px rgba(147,51,234,.4); transition: transform .15s, box-shadow .2s; border: none; cursor: pointer;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 16px 38px rgba(147,51,234,.5); }
+    .btn-ghost {
+      border: 1px solid var(--border); background: rgba(255,255,255,.05);
+      color: #fff; font-weight: 600; font-size: 17px; padding: 15px 30px; border-radius: 12px; transition: border-color .2s;
+    }
+    .btn-ghost:hover { border-color: rgba(255,255,255,.25); }
+    .microtrust { margin-top: 20px; font-size: 13px; color: var(--muted-2); }
+
+    /* Stats */
+    .stats { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: rgba(255,255,255,.02); padding: 44px 0; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center; }
+    .stat-num { font-size: 38px; font-weight: 900; }
+    .stat-label { font-size: 12px; color: var(--muted-2); text-transform: uppercase; letter-spacing: .14em; margin-top: 4px; }
+
+    /* Sections */
+    section.block { padding: 86px 0; }
+    .section-head { text-align: center; max-width: 680px; margin: 0 auto 56px; }
+    .section-head h2 { font-size: clamp(30px, 4.5vw, 46px); font-weight: 900; margin-bottom: 14px; letter-spacing: -.02em; }
+    .section-head p { color: var(--muted); font-size: 18px; }
+
+    /* Features */
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .card {
+      border: 1px solid var(--border); background: rgba(255,255,255,.03);
+      border-radius: 18px; padding: 26px; transition: background .2s, border-color .2s;
+    }
+    .card:hover { background: rgba(255,255,255,.06); border-color: rgba(168,85,247,.25); }
+    .card .ico { font-size: 28px; margin-bottom: 14px; }
+    .card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .card p { color: var(--muted); font-size: 14.5px; }
+
+    /* How it works */
+    .how { background: rgba(255,255,255,.02); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+    .step { padding-left: 22px; border-left: 1px solid rgba(168,85,247,.3); }
+    .step .n { font-size: 46px; font-weight: 900; color: rgba(168,85,247,.22); margin-bottom: 8px; }
+    .step h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .step p { color: var(--muted); font-size: 14.5px; }
+
+    /* Pricing teaser */
+    .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: stretch; }
+    .price-card {
+      border: 1px solid var(--border); background: rgba(255,255,255,.03);
+      border-radius: 18px; padding: 30px; display: flex; flex-direction: column; position: relative;
+    }
+    .price-card.featured { border-color: rgba(168,85,247,.5); background: linear-gradient(160deg, rgba(147,51,234,.18), rgba(236,72,153,.06)); }
+    .price-tag {
+      position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+      background: #facc15; color: #111; font-size: 12px; font-weight: 800; padding: 4px 14px; border-radius: 9999px; letter-spacing: .03em;
+    }
+    .price-name { font-size: 15px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-bottom: 12px; }
+    .price-amt { font-size: 44px; font-weight: 900; }
+    .price-amt span { font-size: 16px; font-weight: 500; color: var(--muted); }
+    .price-desc { color: var(--muted); font-size: 14px; margin: 10px 0 20px; }
+    .price-card ul { list-style: none; margin-bottom: 24px; flex: 1; }
+    .price-card li { font-size: 14px; color: #d1d5db; padding: 6px 0 6px 26px; position: relative; }
+    .price-card li::before { content: "✓"; position: absolute; left: 0; color: #4ade80; font-weight: 800; }
+    .price-card .btn-primary, .price-card .btn-ghost { width: 100%; text-align: center; font-size: 15px; padding: 13px; }
+
+    /* CTA banner */
+    .cta-banner { position: relative; }
+    .cta-inner {
+      position: relative; border: 1px solid rgba(168,85,247,.25); background: rgba(17,17,24,.85);
+      border-radius: 26px; padding: 60px 30px; text-align: center; overflow: hidden;
+    }
+    .cta-inner::before {
+      content: ""; position: absolute; inset: 0; z-index: -1;
+      background: linear-gradient(90deg, rgba(147,51,234,.2), rgba(236,72,153,.2)); filter: blur(30px);
+    }
+    .cta-inner h2 { font-size: clamp(30px, 4.5vw, 46px); font-weight: 900; margin-bottom: 14px; }
+    .cta-inner p { color: var(--muted); font-size: 18px; max-width: 540px; margin: 0 auto 30px; }
+
+    /* FAQ */
+    .faq-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; max-width: 880px; margin: 0 auto; }
+    .faq-item { border: 1px solid var(--border); background: rgba(255,255,255,.03); border-radius: 14px; padding: 22px; }
+    .faq-item h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .faq-item p { color: var(--muted); font-size: 14.5px; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 40px 0; }
+    .foot-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; }
+    .foot-links { display: flex; gap: 24px; font-size: 14px; color: var(--muted-2); }
+    .foot-links a:hover { color: #fff; }
+    .foot-copy { font-size: 13px; color: var(--muted-2); }
+
+    @media (max-width: 860px) {
+      .features-grid, .steps, .price-grid, .faq-grid, .stats-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .price-card.featured { order: -1; }
+      .nav-signin { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="wrap nav-inner">
+      <a class="logo" href="/ads/">
+        <span class="logo-mark">A</span>
+        <span>Apex Agents</span>
+      </a>
+      <div class="nav-actions">
+        <a class="nav-signin" href="/login">Sign In</a>
+        <a class="nav-cta" href="/signup" onclick="return trackConversion('/signup');">Start Free →</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="wrap">
+      <span class="badge"><span class="dot"></span> AI Revenue Engine — Live &amp; Running</span>
+      <h1>Your Business.<br /><span class="grad-text">On Autopilot.</span></h1>
+      <p class="sub">
+        Apex Agents is an AI-powered revenue system for local businesses. It scouts leads,
+        scores prospects, writes outreach, and tracks results — while you focus on closing.
+      </p>
+      <div class="cta-row">
+        <a class="btn-primary" href="/signup" onclick="return trackConversion('/signup');">Start Free Today →</a>
+        <a class="btn-ghost" href="#how">See How It Works</a>
+      </div>
+      <p class="microtrust">3-day free trial · No credit card to start · Cancel anytime</p>
+    </div>
+  </header>
+
+  <!-- Stats -->
+  <section class="stats">
+    <div class="wrap stats-grid">
+      <div><div class="stat-num grad-text">147+</div><div class="stat-label">Leads Normalized</div></div>
+      <div><div class="stat-num grad-text">5</div><div class="stat-label">Active AI Agents</div></div>
+      <div><div class="stat-num grad-text">30+</div><div class="stat-label">Supported Niches</div></div>
+      <div><div class="stat-num grad-text">9</div><div class="stat-label">Lead Scoring Signals</div></div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="block" id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Everything You Need to <span class="grad-text">Win Locally</span></h2>
+        <p>One system. Five agents. Built for businesses that want to grow without hiring a full sales team.</p>
+      </div>
+      <div class="features-grid">
+        <div class="card"><div class="ico">🤖</div><h3>Autonomous AI Agents</h3><p>Deploy intelligent agents that prospect, research, and engage leads around the clock — no manual work required.</p></div>
+        <div class="card"><div class="ico">📍</div><h3>Local Market Domination</h3><p>Built for local businesses. Our agents understand your market, your niche, and your city — not generic fluff.</p></div>
+        <div class="card"><div class="ico">⭐</div><h3>Google Review Engine</h3><p>Automatically identify, score, and reach the right prospects with a proven review and local SEO acquisition system.</p></div>
+        <div class="card"><div class="ico">📊</div><h3>Live Revenue Tracking</h3><p>See your pipeline in real time. Every lead scored, every outreach tracked, every dollar visible.</p></div>
+        <div class="card"><div class="ico">🎯</div><h3>Precision Lead Scoring</h3><p>Leads scored 0–200+ across 9 signals. Only your highest-value prospects get your time and your pitch.</p></div>
+        <div class="card"><div class="ico">⚡</div><h3>Always-On Automation</h3><p>Scout, scrape, build, and publish — on a schedule. Your revenue engine runs while you sleep.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="block how" id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>How It Works</h2>
+        <p>Three steps from zero to revenue.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="n">01</div><h3>Agents Scout &amp; Score</h3><p>AI agents continuously find local businesses in your target niche, enrich their data, and score each lead across 9 signals — so you only see the best prospects.</p></div>
+        <div class="step"><div class="n">02</div><h3>Personalized Outreach Builds</h3><p>The Builder agent crafts a tailored pitch for each lead — referencing their real Google rating, review count, and local SEO gaps. Every message lands like it was written by hand.</p></div>
+        <div class="step"><div class="n">03</div><h3>Publisher Sends. You Close.</h3><p>Outreach goes out on schedule. Replies land in your inbox. You step in only when a prospect says yes. The engine never stops running.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing teaser -->
+  <section class="block" id="pricing">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Simple, <span class="grad-text">Honest Pricing</span></h2>
+        <p>Start with a 3-day free trial. Upgrade anytime. Cancel anytime.</p>
+      </div>
+      <div class="price-grid">
+        <div class="price-card">
+          <div class="price-name">Free Trial</div>
+          <div class="price-amt">$0<span> / 3 days</span></div>
+          <p class="price-desc">Try every feature, free.</p>
+          <ul>
+            <li>Full platform access</li>
+            <li>Live lead scouting &amp; scoring</li>
+            <li>No credit card to start</li>
+          </ul>
+          <a class="btn-ghost" href="/signup" onclick="return trackConversion('/signup');">Start Free</a>
+        </div>
+        <div class="price-card featured">
+          <span class="price-tag">MOST POPULAR</span>
+          <div class="price-name">Premium</div>
+          <div class="price-amt">$29<span> / month</span></div>
+          <p class="price-desc">For individuals and small teams.</p>
+          <ul>
+            <li>Everything in Trial</li>
+            <li>Unlimited outreach automation</li>
+            <li>Real-time revenue dashboard</li>
+            <li>Priority support</li>
+          </ul>
+          <a class="btn-primary" href="/signup" onclick="return trackConversion('/signup');">Get Started →</a>
+        </div>
+        <div class="price-card">
+          <div class="price-name">Pro</div>
+          <div class="price-amt">$99<span> / month</span></div>
+          <p class="price-desc">For power users &amp; growing businesses.</p>
+          <ul>
+            <li>Everything in Premium</li>
+            <li>Higher usage quotas</li>
+            <li>Advanced analytics &amp; alerts</li>
+            <li>Workflow orchestration</li>
+          </ul>
+          <a class="btn-ghost" href="/signup" onclick="return trackConversion('/signup');">Go Pro</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA banner -->
+  <section class="block cta-banner">
+    <div class="wrap">
+      <div class="cta-inner">
+        <h2>Ready to Put Your <span class="grad-text">Revenue on Autopilot?</span></h2>
+        <p>Join local business owners using Apex Agents to find more leads, send better outreach, and close more deals — without adding headcount.</p>
+        <div class="cta-row">
+          <a class="btn-primary" href="/signup" onclick="return trackConversion('/signup');">Get Started Free →</a>
+          <a class="btn-ghost" href="/login">Sign In</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="block" id="faq">
+    <div class="wrap">
+      <div class="section-head"><h2>Frequently Asked Questions</h2></div>
+      <div class="faq-grid">
+        <div class="faq-item"><h3>How does the free trial work?</h3><p>Get full access to every feature for 3 days. Explore live lead scouting, scoring, and outreach before you pay anything.</p></div>
+        <div class="faq-item"><h3>Can I cancel anytime?</h3><p>Yes. Cancel anytime from your account settings — no questions asked, no lock-in.</p></div>
+        <div class="faq-item"><h3>What kinds of businesses is this for?</h3><p>Apex Agents supports 30+ local service niches — from law firms and dental clinics to HVAC, salons, auto, and restaurants. If you serve a local market, it works for you.</p></div>
+        <div class="faq-item"><h3>Do you offer refunds?</h3><p>Yes — a 30-day money-back guarantee on all paid plans.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="wrap foot-inner">
+      <a class="logo" href="/ads/"><span class="logo-mark" style="width:28px;height:28px;font-size:13px;">A</span><span>Apex Agents</span></a>
+      <p class="foot-copy">© <span id="yr"></span> Apex Advantage. All rights reserved.</p>
+      <div class="foot-links">
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/login">Sign In</a>
+        <a href="/signup" onclick="return trackConversion('/signup');">Get Started</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+</body>
+</html>
