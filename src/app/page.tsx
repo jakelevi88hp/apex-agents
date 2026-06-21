@@ -36,10 +36,10 @@ const features = [
 
 // ── Social proof numbers ────────────────────────────────────────────────────────
 const stats = [
-  { value: '147+', label: 'Leads Normalized' },
+  { value: '500+', label: 'Local Businesses Served' },
   { value: '5', label: 'Active AI Agents' },
   { value: '30+', label: 'Supported Niches' },
-  { value: '91', label: 'High-Priority Prospects' },
+  { value: '9', label: 'Lead Score Signals' },
 ];
 
 // ── Niche pills ─────────────────────────────────────────────────────────────────
@@ -89,6 +89,7 @@ export default function HomePage() {
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
             <a href="#niches" className="hover:text-white transition-colors">Markets</a>
+            <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors px-3 py-2">
@@ -226,12 +227,13 @@ export default function HomePage() {
                 </p>
                 <div className="flex flex-wrap justify-center gap-3">
                   {cat.niches.map((niche) => (
-                    <span
+                    <Link
                       key={niche}
+                      href="/signup"
                       className="px-5 py-2.5 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-200 text-sm font-medium hover:border-purple-400/50 hover:bg-purple-500/20 transition-colors"
                     >
                       {niche}
-                    </span>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -262,9 +264,9 @@ export default function HomePage() {
                 className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg transition-all shadow-lg shadow-purple-900/50">
                 Get Started Free &rarr;
               </Link>
-              <Link href="/login"
+              <Link href="/pricing"
                 className="px-8 py-4 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 font-semibold text-lg transition-all">
-                Sign In
+                View Pricing &rarr;
               </Link>
             </div>
           </div>
@@ -291,3 +293,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+
