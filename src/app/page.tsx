@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useState } from 'react';
 
 // ── Feature card data ──────────────────────────────────────────────────────────
 const features = [
@@ -73,6 +76,63 @@ const nicheCategories = [
     niches: ['Restaurants', 'Catering Services', 'Food Trucks', 'Bakeries', 'Coffee Shops'],
   },
 ];
+
+// ── FAQ data ────────────────────────────────────────────────────────────────────
+const faqs = [
+  {
+    q: 'Is this really fully automated?',
+    a: 'Yes. Once your agent is configured, it runs on its own — scouting leads from Google Maps and review sites, scoring them against 9 signals, and sending personalized outreach without you lifting a finger. You get a daily summary and can approve or adjust anything from your dashboard.',
+  },
+  {
+    q: 'How long until I see results?',
+    a: 'Most clients see their first qualified leads engaged within 48 hours of setup. Meaningful pipeline activity — replies, booked calls, review requests fulfilled — typically shows up in the first 1–2 weeks.',
+  },
+  {
+    q: 'What niches do you support?',
+    a: 'We support 30+ local business types including auto repair, dental, HVAC, law firms, roofing, landscaping, med spas, and more. If your business serves local customers, there\'s almost certainly an agent configuration for you. Check the niches section above or reach out and we\'ll confirm your fit.',
+  },
+  {
+    q: 'How is this different from a chatbot?',
+    a: 'Chatbots react — they sit on your site and wait. Apex Agents are proactive. They go out and find leads, score them by conversion likelihood, and initiate outreach on your behalf. Think of it as an AI sales rep, not a support widget.',
+  },
+  {
+    q: 'Do I need to be technical to set this up?',
+    a: 'Not at all. Onboarding takes about 15 minutes — you answer a few questions about your business, and we configure everything. No code, no integrations to manage.',
+  },
+  {
+    q: 'What happens if I want to pause or cancel?',
+    a: 'You\'re never locked in. You can pause your agents any time from the dashboard, and canceling is a single click. We don\'t hide cancellation behind support tickets.',
+  },
+];
+
+// ── FAQ accordion item ──────────────────────────────────────────────────────────
+function FAQItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-white/5 last:border-0">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between py-5 text-left gap-4 group"
+        aria-expanded={open}
+      >
+        <span className="font-semibold text-white group-hover:text-purple-300 transition-colors">
+          {q}
+        </span>
+        <span
+          className={`flex-shrink-0 text-purple-400 text-lg leading-none transition-transform duration-200 ${
+            open ? 'rotate-180' : 'rotate-0'
+          }`}
+          aria-hidden
+        >
+          ▾
+        </span>
+      </button>
+      {open && (
+        <p className="pb-5 text-gray-400 text-sm leading-relaxed pr-8">{a}</p>
+      )}
+    </div>
+  );
+}
 
 export default function HomePage() {
   return (
@@ -330,6 +390,26 @@ export default function HomePage() {
           <p className="text-gray-600 text-sm mt-12">
             Don&apos;t see your niche? Apex Agents works for any local service business.
           </p>
+        </div>
+      </section>
+
+      {/* ── FAQ ──────────────────────────────────────────────────────── */}
+      <section className="py-24 px-6 border-b border-white/5">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-14">
+            <h2 className="text-4xl md:text-5xl font-black mb-4">
+              Frequently Asked{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                Questions
+              </span>
+            </h2>
+            <div className="w-16 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mt-4" />
+          </div>
+          <div className="rounded-2xl border border-white/5 bg-white/[0.03] px-6">
+            {faqs.map((faq) => (
+              <FAQItem key={faq.q} q={faq.q} a={faq.a} />
+            ))}
+          </div>
         </div>
       </section>
 
