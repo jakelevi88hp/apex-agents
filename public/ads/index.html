@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apex Agents — AI Sales Team for Local Businesses</title>
+  <meta name="description" content="Your AI sales team without the payroll. Scouts leads, scores prospects, sends outreach — on autopilot. Deploy in 24 hours." />
+
+  <!-- Google Ads Conversion Tracking Placeholder -->
+  <!--
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-XXXXXXXXXX');
+  </script>
+  -->
+
+  <!-- Conversion event function (call on CTA click) -->
+  <!--
+  function gtag_report_conversion(url) {
+    gtag('event', 'conversion', {
+      'send_to': 'AW-XXXXXXXXXX/XXXXXXXXXXXXXXXX',
+      'event_callback': function() { if (url) window.location = url; }
+    });
+    return false;
+  }
+  -->
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple-600: #9333ea;
+      --purple-500: #a855f7;
+      --purple-400: #c084fc;
+      --purple-300: #d8b4fe;
+      --navy-950: #0a0a1a;
+      --navy-900: #0f0f2e;
+      --navy-800: #1a1a3e;
+      --navy-700: #252550;
+      --text-white: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-subtle: #64748b;
+      --border: rgba(139, 92, 246, 0.2);
+      --glow: rgba(168, 85, 247, 0.35);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+      background: var(--navy-950);
+      color: var(--text-white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Background grid + glow ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(147, 51, 234, 0.25) 0%, transparent 65%),
+        linear-gradient(180deg, var(--navy-950) 0%, var(--navy-900) 100%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(139, 92, 246, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139, 92, 246, 0.06) 1px, transparent 1px);
+      background-size: 48px 48px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── Layout ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 64px 24px 80px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+      text-align: center;
+    }
+
+    /* ── Badge ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--purple-300);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--purple-400);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* ── Headline ── */
+    h1 {
+      font-size: clamp(2rem, 6vw, 3.25rem);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #ffffff 30%, var(--purple-300) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Subheadline ── */
+    .sub {
+      font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 40px;
+    }
+
+    /* ── Benefits ── */
+    .benefits {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 44px;
+      text-align: left;
+    }
+
+    .benefit {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      transition: border-color 0.2s;
+    }
+
+    .benefit:hover { border-color: rgba(139, 92, 246, 0.45); }
+
+    .benefit-icon {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(139, 92, 246, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+    }
+
+    .benefit-text strong {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-white);
+      margin-bottom: 3px;
+    }
+
+    .benefit-text span {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ── CTA ── */
+    .cta-wrap {
+      margin-bottom: 28px;
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: linear-gradient(135deg, var(--purple-600) 0%, #7c3aed 100%);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      padding: 18px 40px;
+      border-radius: 12px;
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      box-shadow:
+        0 0 0 1px rgba(139,92,246,0.5),
+        0 8px 32px rgba(139,92,246,0.4),
+        0 2px 8px rgba(0,0,0,0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 0 0 1px rgba(139,92,246,0.7),
+        0 12px 40px rgba(139,92,246,0.55),
+        0 4px 12px rgba(0,0,0,0.35);
+    }
+
+    .cta-btn:active { transform: translateY(0); }
+
+    .cta-arrow { font-size: 20px; transition: transform 0.15s; }
+    .cta-btn:hover .cta-arrow { transform: translateX(4px); }
+
+    .cta-note {
+      font-size: 12.5px;
+      color: var(--text-subtle);
+      margin-top: 12px;
+    }
+
+    /* ── Trust bar ── */
+    .trust {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px 0;
+      font-size: 13px;
+      color: var(--text-subtle);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding-top: 28px;
+    }
+
+    .trust-item { white-space: nowrap; padding: 0 14px; }
+
+    .trust-sep {
+      color: rgba(139,92,246,0.5);
+      font-size: 10px;
+    }
+
+    /* ── Social proof logos / icons ── */
+    .niche-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 44px;
+    }
+
+    .niche-pill {
+      background: rgba(139,92,246,0.1);
+      border: 1px solid rgba(139,92,246,0.2);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--purple-300);
+      font-weight: 500;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .page { padding: 48px 16px 64px; }
+      .cta-btn { padding: 16px 28px; font-size: 16px; }
+      .trust { flex-direction: column; gap: 6px; }
+      .trust-sep { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<main class="page">
+  <div class="container">
+
+    <!-- Badge -->
+    <div class="badge">
+      <span class="badge-dot"></span>
+      AI-Powered Revenue Automation
+    </div>
+
+    <!-- Headline -->
+    <h1>Your AI Sales Team —<br>Without the Payroll</h1>
+
+    <!-- Subheadline -->
+    <p class="sub">
+      Deploys in 24 hours. Scouts leads, scores prospects, sends outreach — on autopilot.
+      While you focus on doing the work, your AI agent fills the pipeline.
+    </p>
+
+    <!-- Niche pills -->
+    <div class="niche-row">
+      <span class="niche-pill">⚖️ Law Firms</span>
+      <span class="niche-pill">🔧 Auto Repair</span>
+      <span class="niche-pill">🦷 Dental</span>
+      <span class="niche-pill">❄️ HVAC</span>
+      <span class="niche-pill">+ 26 more niches</span>
+    </div>
+
+    <!-- Benefits -->
+    <div class="benefits">
+      <div class="benefit">
+        <div class="benefit-icon">🎯</div>
+        <div class="benefit-text">
+          <strong>Zero Missed Leads</strong>
+          <span>5 agents run 24/7 — scouting, scraping, and queueing qualified local businesses before your competitors even wake up.</span>
+        </div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon">📊</div>
+        <div class="benefit-text">
+          <strong>9-Signal Lead Scoring</strong>
+          <span>Every prospect is scored 0–200+ across email, phone, website quality, review presence, niche fit, and more. You only touch the best.</span>
+        </div>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon">⭐</div>
+        <div class="benefit-text">
+          <strong>Review Request Automation</strong>
+          <span>Personalized outreach that drives Google reviews and local SEO rankings — the fastest ROI lever for any local business.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-wrap">
+      <a
+        class="cta-btn"
+        href="https://apex-agents.vercel.app/signup"
+        id="main-cta"
+      >
+        Get My AI Agent <span class="cta-arrow">→</span>
+      </a>
+      <p class="cta-note">No setup fees &nbsp;·&nbsp; First leads delivered within 24 hours</p>
+    </div>
+
+    <!-- Trust bar -->
+    <div class="trust">
+      <span class="trust-item">500+ local businesses</span>
+      <span class="trust-sep">◆</span>
+      <span class="trust-item">30+ supported niches</span>
+      <span class="trust-sep">◆</span>
+      <span class="trust-item">5 active AI agents</span>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  // CTA click — wire up conversion tracking here once Google Ads tag is live
+  document.getElementById('main-cta').addEventListener('click', function() {
+    // gtag_report_conversion('https://apex-agents.vercel.app/signup');
+  });
+</script>
+
+</body>
+</html>
