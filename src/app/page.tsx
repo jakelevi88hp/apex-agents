@@ -155,6 +155,94 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* TODO: Replace with real client testimonials */}
+      {/* ── Testimonials ──────────────────────────────────────────────── */}
+      <section className="py-24 px-6 border-b border-white/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black mb-4">
+              What Local Business Owners{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                Are Saying
+              </span>
+            </h2>
+            <div className="w-16 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mt-4" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            {/* Testimonial 1 — Mike T. */}
+            <div className="p-6 rounded-2xl border border-white/5 bg-white/[0.03] hover:border-purple-500/20 transition-all flex flex-col">
+              <div className="flex text-yellow-400 mb-4 gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              <p className="text-gray-300 text-sm leading-relaxed mb-6 flex-1">
+                &ldquo;We were losing leads to competitors who responded faster. Within two weeks the AI agent was following up on every Google inquiry the same day. Booked 11 new jobs in the first month.&rdquo;
+              </p>
+              <div className="flex items-center justify-between mt-auto">
+                <div>
+                  <p className="font-semibold text-sm">Mike T.</p>
+                  <p className="text-gray-500 text-xs">Indianapolis Auto Repair</p>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold">
+                  +11 jobs / month
+                </span>
+              </div>
+            </div>
+
+            {/* Testimonial 2 — Sarah K. */}
+            <div className="p-6 rounded-2xl border border-white/5 bg-white/[0.03] hover:border-purple-500/20 transition-all flex flex-col">
+              <div className="flex text-yellow-400 mb-4 gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              <p className="text-gray-300 text-sm leading-relaxed mb-6 flex-1">
+                &ldquo;I didn&apos;t think AI outreach could feel personal. Our review requests alone added 23 new Google reviews in 30 days. Patients actually comment on how attentive we are.&rdquo;
+              </p>
+              <div className="flex items-center justify-between mt-auto">
+                <div>
+                  <p className="font-semibold text-sm">Sarah K.</p>
+                  <p className="text-gray-500 text-xs">Dental Practice, Carmel IN</p>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold">
+                  +23 reviews / 30 days
+                </span>
+              </div>
+            </div>
+
+            {/* Testimonial 3 — James R. */}
+            <div className="p-6 rounded-2xl border border-white/5 bg-white/[0.03] hover:border-purple-500/20 transition-all flex flex-col">
+              <div className="flex text-yellow-400 mb-4 gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              <p className="text-gray-300 text-sm leading-relaxed mb-6 flex-1">
+                &ldquo;The lead scoring is the best part — it stops us wasting time on tire-kickers. We&apos;re closing at a higher rate with half the effort.&rdquo;
+              </p>
+              <div className="flex items-center justify-between mt-auto">
+                <div>
+                  <p className="font-semibold text-sm">James R.</p>
+                  <p className="text-gray-500 text-xs">HVAC Company, Fishers IN</p>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold">
+                  2× close rate
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* ── Features ──────────────────────────────────────────────────── */}
       <section id="features" className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
