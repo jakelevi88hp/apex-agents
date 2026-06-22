@@ -413,6 +413,53 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Product Preview ──────────────────────────────────────────── */}
+      <section className="py-24 px-6 border-b border-white/5 overflow-hidden">
+        <div className="max-w-6xl mx-auto">
+          {/* Section heading */}
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-black mb-4">
+              Your Dashboard,{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                Always On
+              </span>
+            </h2>
+            <p className="text-gray-400 text-lg max-w-xl mx-auto">
+              Track every lead, every agent, every result — in real time.
+            </p>
+          </div>
+
+          {/* Image + glow wrapper */}
+          <div className="relative">
+            {/* Purple glow blob behind image */}
+            <div
+              className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[300px] bg-purple-600/5 rounded-full blur-3xl pointer-events-none"
+              aria-hidden
+            />
+            {/* Dashboard screenshot */}
+            <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-purple-900/30">
+              <img
+                src="/dashboard-preview.svg"
+                alt="Apex Agents dashboard — showing lead pipeline, active agents, and activity feed"
+                className="w-full block"
+                width={1200}
+                height={700}
+              />
+            </div>
+          </div>
+
+          {/* CTA below image */}
+          <div className="mt-10 text-center">
+            <Link
+              href="/signup"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg transition-all shadow-lg shadow-purple-900/50"
+            >
+              Start Free Trial →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ── CTA Banner ────────────────────────────────────────────────── */}
       <section className="py-24 px-6">
         <div className="max-w-4xl mx-auto relative">

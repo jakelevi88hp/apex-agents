@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+<defs>
+  <style>text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial, sans-serif; }</style>
+  <filter id="blur-sm"><feGaussianBlur stdDeviation="2"/></filter>
+  <clipPath id="main-clip"><rect x="200" y="0" width="1000" height="700"/></clipPath>
+</defs>
+<rect width="1200" height="700" fill="#0d0a1a"/>
+<rect x="0" y="0" width="200" height="700" fill="#130d24"/>
+<line x1="200" y1="0" x2="200" y2="700" stroke="#1e1535" stroke-width="1"/>
+<rect x="0" y="0" width="200" height="52" fill="#130d24"/>
+<line x1="0" y1="52" x2="200" y2="52" stroke="#1e1535" stroke-width="1"/>
+<polygon points="16,12 28,12 34,22 28,32 16,32 10,22" fill="#9333ea"/>
+<text x="40" y="30" fill="white" font-size="14" font-weight="700" letter-spacing="1">APEX</text>
+<rect x="0" y="62" width="200" height="38" fill="#9333ea" opacity="0.13"/>
+<rect x="0" y="62" width="3" height="38" fill="#9333ea"/>
+<text x="22" y="86" fill="#c084fc" font-size="13" font-weight="600">Dashboard</text>
+<text x="22" y="130" fill="#4b5563" font-size="13" font-weight="400">Leads</text>
+<text x="22" y="174" fill="#4b5563" font-size="13" font-weight="400">Agents</text>
+<text x="22" y="218" fill="#4b5563" font-size="13" font-weight="400">Reviews</text>
+<text x="22" y="262" fill="#4b5563" font-size="13" font-weight="400">Outreach</text>
+<text x="22" y="306" fill="#4b5563" font-size="13" font-weight="400">Settings</text>
+<line x1="0" y1="642" x2="200" y2="642" stroke="#1e1535" stroke-width="1"/>
+<rect x="14" y="654" width="32" height="32" rx="16" fill="#7e22ce"/>
+<text x="30" y="675" fill="white" font-size="11" font-weight="700" text-anchor="middle">JL</text>
+<text x="54" y="665" fill="#e2e8f0" font-size="12.5" font-weight="500">Jacob L.</text>
+<text x="54" y="680" fill="#6b7280" font-size="11">Admin</text>
+<rect x="200" y="0" width="1000" height="52" fill="#0d0a1a"/>
+<line x1="200" y1="52" x2="1200" y2="52" stroke="#1e1535" stroke-width="1"/>
+<text x="224" y="32" fill="#6b7280" font-size="13">Dashboard</text>
+<text x="308" y="32" fill="#374151" font-size="13">/</text>
+<text x="320" y="32" fill="#d1d5db" font-size="13" font-weight="500">Overview</text>
+<circle cx="1008" cy="26" r="4" fill="#22c55e"/>
+<text x="1017" y="30" fill="#6b7280" font-size="12">Last updated: just now</text>
+<rect x="220" y="72" width="229" height="100" rx="10" fill="#1a1030" stroke="#2a1f4a" stroke-width="1"/>
+<rect x="221" y="73" width="227" height="3" rx="2" fill="#9333ea" opacity="0.5"/>
+<text x="234" y="96" fill="#9ca3af" font-size="12">Leads Scouted</text>
+<text x="234" y="137" fill="white" font-size="34" font-weight="700">47</text>
+<rect x="351" y="144" width="88" height="20" rx="10" fill="#2d1f6e"/>
+<text x="395" y="157" fill="#c084fc" font-size="11" font-weight="600" text-anchor="middle">↑ 12 today</text>
+<rect x="463" y="72" width="229" height="100" rx="10" fill="#1a1030" stroke="#2a1f4a" stroke-width="1"/>
+<rect x="464" y="73" width="227" height="3" rx="2" fill="#9333ea" opacity="0.5"/>
+<text x="477" y="96" fill="#9ca3af" font-size="12">Outreach Sent</text>
+<text x="477" y="137" fill="white" font-size="34" font-weight="700">23</text>
+<rect x="601" y="144" width="81" height="20" rx="10" fill="#2d1f6e"/>
+<text x="641" y="157" fill="#c084fc" font-size="11" font-weight="600" text-anchor="middle">↑ 6 today</text>
+<rect x="706" y="72" width="229" height="100" rx="10" fill="#1a1030" stroke="#2a1f4a" stroke-width="1"/>
+<rect x="707" y="73" width="227" height="3" rx="2" fill="#22c55e" opacity="0.5"/>
+<text x="720" y="96" fill="#9ca3af" font-size="12">Replies Received</text>
+<text x="720" y="137" fill="white" font-size="34" font-weight="700">4</text>
+<rect x="872" y="144" width="53" height="20" rx="10" fill="#14532d"/>
+<text x="898" y="157" fill="#4ade80" font-size="11" font-weight="600" text-anchor="middle">2 new</text>
+<rect x="949" y="72" width="229" height="100" rx="10" fill="#1a1030" stroke="#2a1f4a" stroke-width="1"/>
+<rect x="950" y="73" width="227" height="3" rx="2" fill="#d97706" opacity="0.5"/>
+<text x="963" y="96" fill="#9ca3af" font-size="12">Reviews Earned</text>
+<text x="963" y="137" fill="white" font-size="34" font-weight="700">2</text>
+<rect x="1087" y="144" width="81" height="20" rx="10" fill="#451a03"/>
+<text x="1127" y="157" fill="#fbbf24" font-size="11" font-weight="600" text-anchor="middle">this week</text>
+<rect x="220" y="192" width="554" height="308" rx="10" fill="#1a1030" stroke="#2a1f4a" stroke-width="1"/>
+<text x="236" y="218" fill="white" font-size="14" font-weight="600">Recent Leads</text>
+<text x="760" y="218" fill="#9333ea" font-size="12" text-anchor="end">View All →</text>
+<rect x="221" y="228" width="552" height="24" rx="0" fill="#13102a"/>
+<text x="234" y="244" fill="#6b7280" font-size="11" font-weight="600" letter-spacing="0.3">Business</text>
+<text x="398" y="244" fill="#6b7280" font-size="11" font-weight="600" letter-spacing="0.3">Niche</text>
+<text x="514" y="244" fill="#6b7280" font-size="11" font-weight="600" letter-spacing="0.3">Score</text>
+<text x="586" y="244" fill="#6b7280" font-size="11" font-weight="600" letter-spacing="0.3">Status</text>
+<text x="704" y="244" fill="#6b7280" font-size="11" font-weight="600" letter-spacing="0.3">Action</text>
+<rect x="221" y="246" width="552" height="46" fill="#ffffff" opacity="0.018"/>
+<text x="234" y="266" fill="#e2e8f0" font-size="12.5" font-weight="500">Precision Auto Care</text>
+<text x="398" y="266" fill="#9ca3af" font-size="12">Auto Repair</text>
+<rect x="512" y="250" width="36" height="20" rx="10" fill="#14532d"/>
+<text x="530" y="264" fill="#22c55e" font-size="11" font-weight="600" text-anchor="middle">94</text>
+<circle cx="586" cy="259" r="4" fill="#22c55e"/>
+<text x="598" y="264" fill="#4ade80" font-size="12">Contacted</text>
+<rect x="704" y="249" width="38" height="20" rx="6" fill="#1e1535" stroke="#2a1f4a" stroke-width="1"/>
+<text x="723" y="263" fill="#9333ea" font-size="11" font-weight="500" text-anchor="middle">View</text>
+<text x="234" y="312" fill="#e2e8f0" font-size="12.5" font-weight="500">Smiles Family Dental</text>
+<text x="398" y="312" fill="#9ca3af" font-size="12">Dental</text>
+<rect x="512" y="296" width="36" height="20" rx="10" fill="#2d1f6e"/>
+<text x="530" y="310" fill="#9333ea" font-size="11" font-weight="600" text-anchor="middle">87</text>
+<circle cx="586" cy="305" r="4" fill="#eab308"/>
+<text x="598" y="310" fill="#fde047" font-size="12">Pending</text>
+<rect x="704" y="295" width="38" height="20" rx="6" fill="#1e1535" stroke="#2a1f4a" stroke-width="1"/>
+<text x="723" y="309" fill="#9333ea" font-size="11" font-weight="500" text-anchor="middle">View</text>
+<rect x="221" y="338" width="552" height="46" fill="#ffffff" opacity="0.018"/>
+<text x="234" y="358" fill="#e2e8f0" font-size="12.5" font-weight="500">Cool Air HVAC</text>
+<text x="398" y="358" fill="#9ca3af" font-size="12">HVAC</text>
+<rect x="512" y="342" width="36" height="20" rx="10" fill="#2d1f6e"/>
+<text x="530" y="356" fill="#9333ea" font-size="11" font-weight="600" text-anchor="middle">81</text>
+<circle cx="586" cy="351" r="4" fill="#22c55e"/>
+<text x="598" y="356" fill="#4ade80" font-size="12">Contacted</text>
+<rect x="704" y="341" width="38" height="20" rx="6" fill="#1e1535" stroke="#2a1f4a" stroke-width="1"/>
+<text x="723" y="355" fill="#9333ea" font-size="11" font-weight="500" text-anchor="middle">View</text>
+<text x="234" y="404" fill="#e2e8f0" font-size="12.5" font-weight="500">Greenfield Law</text>
+<text x="398" y="404" fill="#9ca3af" font-size="12">Law Firm</text>
+<rect x="512" y="388" width="36" height="20" rx="10" fill="#1f2937"/>
+<text x="530" y="402" fill="#6b7280" font-size="11" font-weight="600" text-anchor="middle">76</text>
+<circle cx="586" cy="397" r="4" fill="#6b7280"/>
+<text x="598" y="402" fill="#9ca3af" font-size="12">Queued</text>
+<rect x="704" y="387" width="38" height="20" rx="6" fill="#1e1535" stroke="#2a1f4a" stroke-width="1"/>
+<text x="723" y="401" fill="#9333ea" font-size="11" font-weight="500" text-anchor="middle">View</text>
+<rect x="221" y="430" width="552" height="46" fill="#ffffff" opacity="0.018"/>
+<text x="234" y="450" fill="#e2e8f0" font-size="12.5" font-weight="500">Elite Roofing Co</text>
+<text x="398" y="450" fill="#9ca3af" font-size="12">Roofing</text>
+<rect x="512" y="434" width="36" height="20" rx="10" fill="#1f2937"/>
+<text x="530" y="448" fill="#6b7280" font-size="11" font-weight="600" text-anchor="middle">71</text>
+<circle cx="586" cy="443" r="4" fill="#6b7280"/>
+<text x="598" y="448" fill="#9ca3af" font-size="12">Queued</text>
+<rect x="704" y="433" width="38" height="20" rx="6" fill="#1e1535" stroke="#2a1f4a" stroke-width="1"/>
+<text x="723" y="447" fill="#9333ea" font-size="11" font-weight="500" text-anchor="middle">View</text>
+<rect x="790" y="192" width="390" height="308" rx="10" fill="#1a1030" stroke="#2a1f4a" stroke-width="1"/>
+<text x="806" y="218" fill="white" font-size="14" font-weight="600">Active Agents</text>
+<line x1="790" y1="228" x2="1180" y2="228" stroke="#1e1535" stroke-width="1"/>
+<circle cx="810" cy="248" r="8" fill="#22c55e" opacity="0.12"/>
+<circle cx="810" cy="248" r="5" fill="#22c55e"/>
+<text x="826" y="252" fill="#e2e8f0" font-size="13" font-weight="500">Lead Scout</text>
+<text x="826" y="267" fill="#6b7280" font-size="11">Scouting Google Maps</text>
+<rect x="1106" y="237" width="58" height="20" rx="10" fill="#14532d"/>
+<text x="1135" y="251" fill="#4ade80" font-size="10" font-weight="600" text-anchor="middle">Running</text>
+<circle cx="810" cy="298" r="8" fill="#22c55e" opacity="0.12"/>
+<circle cx="810" cy="298" r="5" fill="#22c55e"/>
+<text x="826" y="302" fill="#e2e8f0" font-size="13" font-weight="500">Score Engine</text>
+<text x="826" y="317" fill="#6b7280" font-size="11">Scored 14 leads</text>
+<rect x="1106" y="287" width="58" height="20" rx="10" fill="#14532d"/>
+<text x="1135" y="301" fill="#4ade80" font-size="10" font-weight="600" text-anchor="middle">Running</text>
+<circle cx="810" cy="348" r="8" fill="#22c55e" opacity="0.12"/>
+<circle cx="810" cy="348" r="5" fill="#22c55e"/>
+<text x="826" y="352" fill="#e2e8f0" font-size="13" font-weight="500">Outreach Agent</text>
+<text x="826" y="367" fill="#6b7280" font-size="11">Sent 6 emails</text>
+<rect x="1106" y="337" width="58" height="20" rx="10" fill="#14532d"/>
+<text x="1135" y="351" fill="#4ade80" font-size="10" font-weight="600" text-anchor="middle">Running</text>
+<circle cx="810" cy="398" r="8" fill="#22c55e" opacity="0.12"/>
+<circle cx="810" cy="398" r="5" fill="#22c55e"/>
+<text x="826" y="402" fill="#e2e8f0" font-size="13" font-weight="500">Review Agent</text>
+<text x="826" y="417" fill="#6b7280" font-size="11">2 requests sent</text>
+<rect x="1106" y="387" width="58" height="20" rx="10" fill="#14532d"/>
+<text x="1135" y="401" fill="#4ade80" font-size="10" font-weight="600" text-anchor="middle">Running</text>
+<circle cx="810" cy="448" r="5" fill="#eab308"/>
+<text x="826" y="452" fill="#e2e8f0" font-size="13" font-weight="500">eBay Agent</text>
+<text x="826" y="467" fill="#6b7280" font-size="11">Idle</text>
+<rect x="1128" y="437" width="36" height="20" rx="10" fill="#713f12"/>
+<text x="1146" y="451" fill="#fbbf24" font-size="10" font-weight="600" text-anchor="middle">Idle</text>
+<rect x="220" y="512" width="960" height="162" rx="10" fill="#1a1030" stroke="#2a1f4a" stroke-width="1"/>
+<text x="236" y="538" fill="white" font-size="14" font-weight="600">Today's Activity</text>
+<line x1="220" y1="548" x2="1180" y2="548" stroke="#1e1535" stroke-width="1"/>
+<line x1="240" y1="577" x2="240" y2="615" stroke="#2a1f4a" stroke-width="1.5"/>
+<circle cx="240" cy="570" r="5" fill="#9333ea"/>
+<circle cx="240" cy="570" r="3" fill="#c084fc"/>
+<text x="256" y="575" fill="#6b7280" font-size="12">10:42 AM</text>
+<text x="332" y="575" fill="#d1d5db" font-size="12.5">Lead Scout found 12 new leads in Indianapolis</text>
+<line x1="240" y1="615" x2="240" y2="653" stroke="#2a1f4a" stroke-width="1.5"/>
+<circle cx="240" cy="608" r="5" fill="#9333ea"/>
+<circle cx="240" cy="608" r="3" fill="#c084fc"/>
+<text x="256" y="613" fill="#6b7280" font-size="12">09:18 AM</text>
+<text x="332" y="613" fill="#d1d5db" font-size="12.5">Outreach Agent sent email to Precision Auto Care</text>
+<circle cx="240" cy="646" r="5" fill="#9333ea"/>
+<circle cx="240" cy="646" r="3" fill="#c084fc"/>
+<text x="256" y="651" fill="#6b7280" font-size="12">08:55 AM</text>
+<text x="332" y="651" fill="#d1d5db" font-size="12.5">Review Agent sent request to Smiles Family Dental · +1 review</text>
+</svg>
