@@ -32,13 +32,17 @@ export const stripe = new Proxy({} as Stripe, {
 export const STRIPE_PLANS = {
   premium: {
     priceId: process.env.STRIPE_PREMIUM_PRICE_ID || '',
+    yearlyPriceId: process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID || '',
     name: 'Premium',
-    amount: 2900, // $29.00 in cents
+    amount: 2900,        // $29.00/month in cents
+    yearlyAmount: 29000, // $290.00/year in cents (~$24.17/month)
   },
   pro: {
     priceId: process.env.STRIPE_PRO_PRICE_ID || '',
+    yearlyPriceId: process.env.STRIPE_PRO_YEARLY_PRICE_ID || '',
     name: 'Pro',
-    amount: 9900, // $99.00 in cents
+    amount: 9900,        // $99.00/month in cents
+    yearlyAmount: 99000, // $990.00/year in cents (~$82.50/month)
   },
 } as const;
 
@@ -159,6 +163,9 @@ export async function ensureStripeProducts() {
   let premiumPriceId = STRIPE_PLANS.premium.priceId;
   let proPriceId = STRIPE_PLANS.pro.priceId;
 
+  let premiumYearlyPriceId = STRIPE_PLANS.premium.yearlyPriceId;
+  let proYearlyPriceId = STRIPE_PLANS.pro.yearlyPriceId;
+
   // Create Premium product if it doesn't exist
   if (!premiumProduct) {
     const product = await stripe.products.create({
@@ -167,20 +174,39 @@ export async function ensureStripeProducts() {
       metadata: { tier: 'premium' },
     });
 
-    const price = await stripe.prices.create({
+    const monthlyPrice = await stripe.prices.create({
       product: product.id,
       currency: 'usd',
       unit_amount: STRIPE_PLANS.premium.amount,
       recurring: { interval: 'month' },
     });
+    const yearlyPrice = await stripe.prices.create({
+      product: product.id,
+      currency: 'usd',
+      unit_amount: STRIPE_PLANS.premium.yearlyAmount,
+      recurring: { interval: 'year' },
+    });
 
-    premiumPriceId = price.id;
-    console.log('Created Premium product:', product.id, 'Price:', price.id);
+    premiumPriceId = monthlyPrice.id;
+    premiumYearlyPriceId = yearlyPrice.id;
+    console.log('Created Premium product:', product.id, 'Monthly:', monthlyPrice.id, 'Yearly:', yearlyPrice.id);
   } else {
-    // Get the price for existing product
-    const prices = await stripe.prices.list({ product: premiumProduct.id, active: true, limit: 1 });
-    if (prices.data.length > 0) {
-      premiumPriceId = prices.data[0].id;
+    // Get prices for existing product
+    const prices = await stripe.prices.list({ product: premiumProduct.id, active: true, limit: 10 });
+    const monthly = prices.data.find(p => p.recurring?.interval === 'month');
+    const yearly  = prices.data.find(p => p.recurring?.interval === 'year');
+    if (monthly) premiumPriceId = monthly.id;
+    if (yearly)  premiumYearlyPriceId = yearly.id;
+    // Create yearly price if missing
+    if (!yearly) {
+      const newYearly = await stripe.prices.create({
+        product: premiumProduct.id,
+        currency: 'usd',
+        unit_amount: STRIPE_PLANS.premium.yearlyAmount,
+        recurring: { interval: 'year' },
+      });
+      premiumYearlyPriceId = newYearly.id;
+      console.log('Created missing Premium yearly price:', newYearly.id);
     }
   }
 
@@ -192,26 +218,47 @@ export async function ensureStripeProducts() {
       metadata: { tier: 'pro' },
     });
 
-    const price = await stripe.prices.create({
+    const monthlyPrice = await stripe.prices.create({
       product: product.id,
       currency: 'usd',
       unit_amount: STRIPE_PLANS.pro.amount,
       recurring: { interval: 'month' },
     });
+    const yearlyPrice = await stripe.prices.create({
+      product: product.id,
+      currency: 'usd',
+      unit_amount: STRIPE_PLANS.pro.yearlyAmount,
+      recurring: { interval: 'year' },
+    });
 
-    proPriceId = price.id;
-    console.log('Created Pro product:', product.id, 'Price:', price.id);
+    proPriceId = monthlyPrice.id;
+    proYearlyPriceId = yearlyPrice.id;
+    console.log('Created Pro product:', product.id, 'Monthly:', monthlyPrice.id, 'Yearly:', yearlyPrice.id);
   } else {
-    // Get the price for existing product
-    const prices = await stripe.prices.list({ product: proProduct.id, active: true, limit: 1 });
-    if (prices.data.length > 0) {
-      proPriceId = prices.data[0].id;
+    // Get prices for existing product
+    const prices = await stripe.prices.list({ product: proProduct.id, active: true, limit: 10 });
+    const monthly = prices.data.find(p => p.recurring?.interval === 'month');
+    const yearly  = prices.data.find(p => p.recurring?.interval === 'year');
+    if (monthly) proPriceId = monthly.id;
+    if (yearly)  proYearlyPriceId = yearly.id;
+    // Create yearly price if missing
+    if (!yearly) {
+      const newYearly = await stripe.prices.create({
+        product: proProduct.id,
+        currency: 'usd',
+        unit_amount: STRIPE_PLANS.pro.yearlyAmount,
+        recurring: { interval: 'year' },
+      });
+      proYearlyPriceId = newYearly.id;
+      console.log('Created missing Pro yearly price:', newYearly.id);
     }
   }
 
   return {
-    premium: premiumPriceId,
-    pro: proPriceId,
+    premium:        premiumPriceId,
+    premium_yearly: premiumYearlyPriceId,
+    pro:            proPriceId,
+    pro_yearly:     proYearlyPriceId,
   };
 }
 

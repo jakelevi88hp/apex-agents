@@ -99,8 +99,11 @@ export const subscriptionRouter = router({
         user.name || undefined
       );
 
-      // Get the appropriate price ID
-      const priceId = priceIds[input.plan];
+      // Get the appropriate price ID (monthly or yearly)
+      const priceKey = input.billingPeriod === 'yearly'
+        ? (`${input.plan}_yearly` as 'premium_yearly' | 'pro_yearly')
+        : input.plan;
+      const priceId = priceIds[priceKey];
 
       // Create checkout session
       const session = await createCheckoutSession({

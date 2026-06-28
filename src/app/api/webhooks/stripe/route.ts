@@ -4,11 +4,22 @@ import { db } from '@/lib/db';
 import { subscriptions } from '@/lib/db/schema/subscriptions';
 import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
+import { STRIPE_PLANS } from '@/lib/stripe/stripe';
 import { WebhookMonitor } from '@/lib/monitoring/webhook-monitor';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+if (!webhookSecret) {
+  console.error('STRIPE_WEBHOOK_SECRET is not configured');
+}
+
 export async function POST(request: NextRequest) {
+  if (!webhookSecret) {
+    return NextResponse.json(
+      { error: 'Webhook not configured: STRIPE_WEBHOOK_SECRET missing' },
+      { status: 500 }
+    );
+  }
   const startTime = Date.now();
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
@@ -109,14 +120,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const subscriptionId = session.subscription as string;
   const subscription: Stripe.Subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
-  // Determine tier based on price
+  // Determine tier based on price ID (not amount — amount-based detection breaks with promos/yearly plans)
   const priceId = subscription.items.data[0].price.id;
   let plan: 'premium' | 'pro' = 'premium';
-  
-  // You'll need to match price IDs to tiers
-  // This is a simplified version
-  const amount = subscription.items.data[0].price.unit_amount || 0;
-  if (amount >= 9900) {
+  if (
+    priceId === STRIPE_PLANS.pro.priceId ||
+    priceId === STRIPE_PLANS.pro.yearlyPriceId
+  ) {
     plan = 'pro';
   }
 
@@ -168,10 +178,13 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     return;
   }
 
-  // Determine tier
-  const amount = subscription.items.data[0].price.unit_amount || 0;
+  // Determine tier based on price ID
+  const priceId = subscription.items.data[0].price.id;
   let plan: 'premium' | 'pro' = 'premium';
-  if (amount >= 9900) {
+  if (
+    priceId === STRIPE_PLANS.pro.priceId ||
+    priceId === STRIPE_PLANS.pro.yearlyPriceId
+  ) {
     plan = 'pro';
   }
 
