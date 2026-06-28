@@ -5,7 +5,8 @@ import { ErrorBoundary } from '../components/ui/error-boundary';
 import Script from 'next/script';
 import './globals.css';
 
-const SITE_URL = 'https://apex-agents.vercel.app';
+const SITE_URL = 'https://apex-ai-agent.com';
+const GOOGLE_ADS_ID = 'AW-18241966954';
 
 export const metadata = {
   title: 'Apex Agents — Autonomous AI Platform for Local Businesses',
@@ -79,6 +80,19 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         />
       </head>
       <body>
+        {/* Google Ads tag — loads on every page */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GOOGLE_ADS_ID}');
+          `}
+        </Script>
         <ErrorBoundary>
           <TRPCProvider>
             <ThemeProvider>
