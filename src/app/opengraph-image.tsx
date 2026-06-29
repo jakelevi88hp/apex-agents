@@ -47,7 +47,11 @@ export default async function Image() {
             padding: '10px 24px', borderRadius: '999px',
             background: 'rgba(147,51,234,0.2)', border: '1px solid rgba(147,51,234,0.5)',
             color: '#c084fc', fontSize: '16px', fontWeight: '600',
-          }}>● Revenue Engine Live</div>
+            display: 'flex', alignItems: 'center', gap: '8px',
+          }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#c084fc' }} />
+            Revenue Engine Live
+          </div>
           <div style={{
             padding: '10px 24px', borderRadius: '999px',
             background: 'rgba(236,72,153,0.1)', border: '1px solid rgba(236,72,153,0.3)',
