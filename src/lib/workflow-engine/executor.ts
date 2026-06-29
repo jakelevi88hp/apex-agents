@@ -237,7 +237,7 @@ export class WorkflowExecutor {
 
     // Execute agent using OpenAI (lazy getter will throw clearly if key missing)
     const response = await this.openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+      model: 'gpt-4-turbo',
       messages: [
         {
           role: 'system',
