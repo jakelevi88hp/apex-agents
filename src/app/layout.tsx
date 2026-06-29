@@ -7,6 +7,7 @@ import './globals.css';
 
 const SITE_URL = 'https://apex-ai-agent.com';
 const GOOGLE_ADS_ID = 'AW-18241966954';
+const GA4_ID = 'G-PBZH6YQFBT';
 
 export const metadata = {
   title: 'Apex Agents — Autonomous AI Platform for Local Businesses',
@@ -80,7 +81,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         />
       </head>
       <body>
-        {/* Google Ads tag — loads on every page */}
+        {/* Google tag — loads gtag.js once for both Google Ads and GA4 */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
           strategy="afterInteractive"
@@ -91,6 +92,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', '${GOOGLE_ADS_ID}');
+            gtag('config', '${GA4_ID}');
           `}
         </Script>
         <ErrorBoundary>
