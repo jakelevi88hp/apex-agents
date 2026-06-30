@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { router, protectedProcedure } from '../trpc';
+import { router, protectedProcedure, publicProcedure } from '../trpc';
 import { SubscriptionService } from '@/lib/subscription/service';
 import { PLAN_FEATURES, PLAN_PRICES } from '@/lib/subscription/config';
 import { getOrCreateStripeCustomer, createCheckoutSession, createCustomerPortalSession, ensureStripeProducts } from '@/lib/stripe/stripe';
@@ -43,7 +43,7 @@ export const subscriptionRouter = router({
   /**
    * Get all available plans and features
    */
-  getPlans: protectedProcedure.query(() => {
+  getPlans: publicProcedure.query(() => {
     return {
       trial: {
         name: 'Free Trial',
