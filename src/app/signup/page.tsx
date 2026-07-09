@@ -18,6 +18,12 @@ export default function SignupPage() {
     onSuccess: (data) => {
       // Store JWT token in localStorage
       localStorage.setItem('token', data.token);
+      // Fire Google Ads sign-up conversion (AW-18241966954)
+      if (typeof window !== 'undefined' && typeof (window as any).gtag === 'function') {
+        (window as any).gtag('event', 'conversion', {
+          send_to: 'AW-18241966954/ZoJXCNyG48wcEOqmufpD',
+        });
+      }
       // Redirect to agents page
       router.push('/dashboard/agents');
     },
