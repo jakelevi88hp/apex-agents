@@ -105,12 +105,18 @@ export const subscriptionRouter = router({
         : input.plan;
       const priceId = priceIds[priceKey];
 
+      // Build app URL defensively: env var may be missing or carry stray
+      // whitespace/quotes/backticks from a paste — sanitize, then fall back
+      // to the production domain so checkout can never receive a bad URL.
+      const rawAppUrl = (process.env.NEXT_PUBLIC_APP_URL || '').trim().replace(/[`'"\s]/g, '');
+      const appUrl = /^https?:\/\/.+/.test(rawAppUrl) ? rawAppUrl.replace(/\/+$/, '') : 'https://apex-ai-agent.com';
+
       // Create checkout session
       const session = await createCheckoutSession({
         customerId: customer.id,
         priceId,
-        successUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?success=true`,
-        cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/pricing?canceled=true`,
+        successUrl: `${appUrl}/dashboard?success=true`,
+        cancelUrl: `${appUrl}/pricing?canceled=true`,
         userId: user.id,
       });
 
@@ -142,7 +148,7 @@ export const subscriptionRouter = router({
 
     const session = await createCustomerPortalSession(
       subscription.stripeCustomerId,
-      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard`
+      `${(/^https?:\/\/.+/.test((process.env.NEXT_PUBLIC_APP_URL || '').trim().replace(/[`'"\s]/g, '')) ? (process.env.NEXT_PUBLIC_APP_URL || '').trim().replace(/[`'"\s]/g, '').replace(/\/+$/, '') : 'https://apex-ai-agent.com')}/dashboard`
     );
 
     return {
@@ -150,4 +156,5 @@ export const subscriptionRouter = router({
     };
   }),
 });
+
 
