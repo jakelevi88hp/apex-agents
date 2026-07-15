@@ -31,13 +31,22 @@ export class DocumentProcessor {
    * Process a document and extract text content
    */
   static async processDocument(filePath: string, mimeType: string): Promise<ProcessedDocument> {
+    const buffer = await readFile(filePath);
+    return this.processDocumentBuffer(buffer, mimeType);
+  }
+
+  /**
+   * Process a document from an in-memory buffer (no filesystem access;
+   * required on serverless where the deployment bundle is read-only)
+   */
+  static async processDocumentBuffer(buffer: Buffer, mimeType: string): Promise<ProcessedDocument> {
     try {
       if (mimeType === 'application/pdf') {
-        return await this.processPDF(filePath);
+        return await this.processPDF(buffer);
       } else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-        return await this.processDOCX(filePath);
+        return await this.processDOCX(buffer);
       } else if (mimeType === 'text/plain' || mimeType === 'text/markdown') {
-        return await this.processText(filePath);
+        return this.processText(buffer);
       } else {
         throw new Error(`Unsupported file type: ${mimeType}`);
       }
@@ -50,9 +59,8 @@ export class DocumentProcessor {
   /**
    * Process PDF file
    */
-  private static async processPDF(filePath: string): Promise<ProcessedDocument> {
+  private static async processPDF(dataBuffer: Buffer): Promise<ProcessedDocument> {
     const pdf = await getPdfParse();
-    const dataBuffer = await readFile(filePath);
     const data = await pdf(dataBuffer);
 
     return {
@@ -69,8 +77,8 @@ export class DocumentProcessor {
   /**
    * Process DOCX file
    */
-  private static async processDOCX(filePath: string): Promise<ProcessedDocument> {
-    const result = await mammoth.extractRawText({ path: filePath });
+  private static async processDOCX(buffer: Buffer): Promise<ProcessedDocument> {
+    const result = await mammoth.extractRawText({ buffer });
     const text = result.value;
 
     return {
@@ -85,8 +93,8 @@ export class DocumentProcessor {
   /**
    * Process plain text or markdown file
    */
-  private static async processText(filePath: string): Promise<ProcessedDocument> {
-    const text = await readFile(filePath, 'utf-8');
+  private static processText(buffer: Buffer): ProcessedDocument {
+    const text = buffer.toString('utf-8');
 
     return {
       text,

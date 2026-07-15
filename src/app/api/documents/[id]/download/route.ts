@@ -4,6 +4,7 @@ import { join } from 'path';
 import { db, documents } from '@/lib/db';
 import { eq, and } from 'drizzle-orm';
 import { verifyToken } from '@/lib/auth/jwt';
+import { getFileUrl } from '@/lib/knowledge-base/storage';
 
 const UPLOAD_DIR = join(process.cwd(), 'uploads');
 
@@ -43,15 +44,35 @@ export async function GET(
     }
 
     if (!doc.filePath) {
-      return NextResponse.json({ error: 'File path not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'The original file was not retained for this document. Its extracted text remains available.' },
+        { status: 404 }
+      );
     }
 
-    // Read file from disk
-    const filePath = join(UPLOAD_DIR, doc.filePath);
-    const fileBuffer = await readFile(filePath);
+    // S3-stored files: redirect to a short-lived signed URL
+    if (doc.storageType === 's3') {
+      const result = await getFileUrl(doc.filePath);
+      if (result.success && result.url) {
+        return NextResponse.redirect(result.url);
+      }
+      console.error('Failed to sign S3 URL:', result.error);
+      return NextResponse.json({ error: 'Failed to generate download link' }, { status: 500 });
+    }
+
+    // Legacy/local files: read from disk
+    let fileBuffer: Buffer;
+    try {
+      fileBuffer = await readFile(join(UPLOAD_DIR, doc.filePath));
+    } catch {
+      return NextResponse.json(
+        { error: 'The original file is no longer available. Its extracted text remains available.' },
+        { status: 404 }
+      );
+    }
 
     // Return file with appropriate headers
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(new Uint8Array(fileBuffer), {
       headers: {
         'Content-Type': doc.mimeType,
         'Content-Disposition': `attachment; filename="${doc.originalName}"`,

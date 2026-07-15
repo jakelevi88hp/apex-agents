@@ -1,22 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-import { existsSync } from 'fs';
 import { db, documents } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import { DocumentProcessor } from '@/lib/document-processor';
 import { PineconeService } from '@/lib/pinecone-service';
 import { verifyToken } from '@/lib/auth/jwt';
 import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
+import { uploadFile } from '@/lib/knowledge-base/storage';
+
+// Processing (text extraction + embeddings) happens before the response is
+// sent — serverless freezes fire-and-forget work once the response returns.
+export const maxDuration = 300;
 
 const UPLOAD_DIR = join(process.cwd(), 'uploads');
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
-// Ensure upload directory exists
-async function ensureUploadDir() {
-  if (!existsSync(UPLOAD_DIR)) {
-    await mkdir(UPLOAD_DIR, { recursive: true });
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
+function s3Configured(): boolean {
+  return Boolean(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY);
+}
+
+/**
+ * Persist the original file. Prefers S3 when configured; falls back to the
+ * local uploads/ dir in non-serverless environments (dev). On serverless
+ * without S3 the original is not retained ('ephemeral') — extracted text and
+ * embeddings are still stored, so search/RAG keep working.
+ */
+async function storeOriginalFile(
+  buffer: Buffer,
+  fileName: string,
+  contentType: string,
+  userId: string
+): Promise<{ storageType: string; filePath: string | null }> {
+  if (s3Configured()) {
+    const result = await uploadFile({ file: buffer, fileName, contentType, userId });
+    if (result.success && result.key) {
+      return { storageType: 's3', filePath: result.key };
+    }
+    console.error('S3 upload failed, continuing without original-file retention:', result.error);
+    return { storageType: 'ephemeral', filePath: null };
   }
+
+  if (!isServerless) {
+    await mkdir(UPLOAD_DIR, { recursive: true });
+    const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const localName = `${Date.now()}-${sanitizedName}`;
+    await writeFile(join(UPLOAD_DIR, localName), buffer);
+    return { storageType: 'local', filePath: localName };
+  }
+
+  return { storageType: 'ephemeral', filePath: null };
 }
 
 export async function POST(request: NextRequest) {
@@ -43,7 +78,7 @@ export async function POST(request: NextRequest) {
     // Parse form data
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    
+
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
@@ -71,20 +106,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Ensure upload directory exists
-    await ensureUploadDir();
-
-    // Generate unique filename
-    const timestamp = Date.now();
-    // Allow alphanumeric, dots, hyphens, underscores, and spaces (replace spaces with underscores)
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const filename = `${timestamp}-${sanitizedName}`;
-    const filePath = join(UPLOAD_DIR, filename);
-
-    // Save file to disk
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
+
+    const stored = await storeOriginalFile(buffer, file.name, file.type, userId);
 
     // Create database record (initial)
     const [doc] = await db.insert(documents).values({
@@ -93,16 +118,13 @@ export async function POST(request: NextRequest) {
       originalName: file.name,
       mimeType: file.type,
       size: file.size,
-      filePath: filename, // Store relative path
-      storageType: 'local',
+      filePath: stored.filePath,
+      storageType: stored.storageType,
       status: 'processing',
       source: 'upload',
     }).returning();
 
-    // Process document asynchronously (don't wait)
-    processDocumentAsync(doc.id, filePath, file.type, userId, file.name).catch(error => {
-      console.error('Background processing error:', error);
-    });
+    const status = await processDocument(doc.id, buffer, file.type, userId, file.name);
 
     return NextResponse.json({
       success: true,
@@ -111,7 +133,7 @@ export async function POST(request: NextRequest) {
         name: doc.name,
         size: doc.size,
         mimeType: doc.mimeType,
-        status: doc.status,
+        status,
         createdAt: doc.createdAt,
       },
     });
@@ -130,18 +152,18 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Process document in the background
+ * Extract text, embed, and index the document. Returns the final status.
  */
-async function processDocumentAsync(
+async function processDocument(
   documentId: string,
-  filePath: string,
+  buffer: Buffer,
   mimeType: string,
   userId: string,
   documentName: string
-) {
+): Promise<string> {
   try {
     // Extract text from document
-    const processed = await DocumentProcessor.processDocument(filePath, mimeType);
+    const processed = await DocumentProcessor.processDocumentBuffer(buffer, mimeType);
 
     // Generate chunks for vector embedding
     const chunks = DocumentProcessor.chunkText(processed.text);
@@ -180,10 +202,11 @@ async function processDocumentAsync(
       .where(eq(documents.id, documentId));
 
     console.log(`Document ${documentId} processed successfully`);
+    return 'completed';
 
   } catch (error) {
     console.error(`Failed to process document ${documentId}:`, error);
-    
+
     // Update status to failed
     await db.update(documents)
       .set({
@@ -192,6 +215,6 @@ async function processDocumentAsync(
         updatedAt: new Date(),
       })
       .where(eq(documents.id, documentId));
+    return 'failed';
   }
 }
-
