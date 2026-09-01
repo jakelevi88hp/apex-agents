@@ -1,15 +1,20 @@
-import type { ReactNode } from 'react';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'Start free',
-  description: 'Start a 3-day trial of Apex Agents. Scout leads, 9-signal scoring, and outreach for local businesses.',
+export const metadata: Metadata = {
+  title: 'Start Your AI Revenue Engine | Apex Agents',
+  description:
+    'Create an Apex Agents account to scout leads, score prospects, and send personalized outreach for your local business.',
   alternates: { canonical: '/signup' },
   openGraph: {
-    title: 'Start free | Apex Agents',
-    url: 'https://apex-ai-agent.com/signup',
+    title: 'Start Your AI Revenue Engine | Apex Agents',
+    description:
+      'Create an Apex Agents account to scout leads, score prospects, and send personalized outreach for your local business.',
+    url: '/signup',
+    type: 'website',
   },
+  robots: { index: true, follow: true },
 };
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default function SignupLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

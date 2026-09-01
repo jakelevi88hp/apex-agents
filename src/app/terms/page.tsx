@@ -1,8 +1,11 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'Terms of Service — Apex Agents',
+export const metadata: Metadata = {
+  title: 'Terms of Service | Apex Agents',
   description: 'Terms and conditions for using the Apex Agents platform.',
+  alternates: { canonical: '/terms' },
+  robots: { index: true, follow: true },
 };
 
 export default function TermsPage() {

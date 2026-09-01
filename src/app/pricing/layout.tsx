@@ -1,15 +1,20 @@
-import type { ReactNode } from 'react';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'Pricing',
-  description: '3-day trial, then Premium $29 or Pro $99. AI revenue engine for local businesses.',
+export const metadata: Metadata = {
+  title: 'Local Business AI Agent Pricing | Apex Agents',
+  description:
+    'Plans for the Apex Agents AI revenue engine: scout leads, 9-signal scoring, and personalized outreach for local businesses.',
   alternates: { canonical: '/pricing' },
   openGraph: {
-    title: 'Pricing | Apex Agents',
-    url: 'https://apex-ai-agent.com/pricing',
+    title: 'Local Business AI Agent Pricing | Apex Agents',
+    description:
+      'Plans for the Apex Agents AI revenue engine: scout leads, 9-signal scoring, and personalized outreach for local businesses.',
+    url: '/pricing',
+    type: 'website',
   },
+  robots: { index: true, follow: true },
 };
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default function PricingLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

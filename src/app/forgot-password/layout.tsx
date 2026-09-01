@@ -1,11 +1,10 @@
-import type { ReactNode } from 'react';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'Reset password',
-  description: 'Reset your Apex Agents password.',
+export const metadata: Metadata = {
+  title: 'Reset password | Apex Agents',
   robots: { index: false, follow: false },
 };
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default function ForgotPasswordLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

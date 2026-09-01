@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'Sign in',
-  description: 'Sign in to Apex Agents.',
+export const metadata: Metadata = {
+  title: 'Sign In | Apex Agents',
+  description: 'Sign in to your Apex Agents account.',
   robots: { index: false, follow: false },
 };
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default function LoginLayout({ children }: { children: React.ReactNode }) {
   return children;
 }
