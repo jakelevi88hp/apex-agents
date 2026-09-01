@@ -1,9 +1,62 @@
-'use client';
-
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { useState } from 'react';
+import Script from 'next/script';
+import FAQItem from '@/components/FAQItem';
 
-// ── Feature card data ──────────────────────────────────────────────────────────
+const SITE_URL = 'https://apex-ai-agent.com';
+
+export const metadata: Metadata = {
+  title: {
+    absolute: 'AI Revenue Engine for Local Businesses | Apex Agents',
+  },
+  description:
+    'Scout leads, 9-signal scoring, and personalized outreach for local businesses. Indianapolis-built AI revenue engine.',
+  keywords:
+    'AI agents, local business automation, lead generation, Google reviews, local SEO, autonomous agents',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'AI Revenue Engine for Local Businesses | Apex Agents',
+    description:
+      'Scout leads, 9-signal scoring, and personalized outreach for local businesses. Indianapolis-built.',
+    url: SITE_URL,
+    siteName: 'Apex Agents',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AI Revenue Engine for Local Businesses | Apex Agents',
+    description:
+      'Scout leads, 9-signal scoring, and personalized outreach for local businesses. Indianapolis-built.',
+  },
+  robots: { index: true, follow: true },
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Apex Agents',
+  applicationCategory: 'BusinessApplication',
+  description:
+    'AI revenue engine for local businesses. Scout leads, score prospects with 9 signals, and send personalized outreach.',
+  url: SITE_URL,
+  offers: {
+    '@type': 'Offer',
+    url: `${SITE_URL}/pricing`,
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Apex Advantage',
+    url: SITE_URL,
+  },
+  areaServed: {
+    '@type': 'City',
+    name: 'Indianapolis',
+  },
+};
+
 const features = [
   {
     icon: '🤖',
@@ -37,7 +90,6 @@ const features = [
   },
 ];
 
-// ── Social proof numbers ────────────────────────────────────────────────────────
 const stats = [
   { value: '24/7', label: 'Autonomous Operation' },
   { value: '5', label: 'Active AI Agents' },
@@ -45,7 +97,6 @@ const stats = [
   { value: '9', label: 'Lead Score Signals' },
 ];
 
-// ── Niche pills ─────────────────────────────────────────────────────────────────
 const nicheCategories = [
   {
     label: 'Legal & Finance',
@@ -77,7 +128,6 @@ const nicheCategories = [
   },
 ];
 
-// ── FAQ data ────────────────────────────────────────────────────────────────────
 const faqs = [
   {
     q: 'Is this really fully automated?',
@@ -105,40 +155,15 @@ const faqs = [
   },
 ];
 
-// ── FAQ accordion item ──────────────────────────────────────────────────────────
-function FAQItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="border-b border-white/5 last:border-0">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between py-5 text-left gap-4 group"
-        aria-expanded={open}
-      >
-        <span className="font-semibold text-white group-hover:text-purple-300 transition-colors">
-          {q}
-        </span>
-        <span
-          className={`flex-shrink-0 text-purple-400 text-lg leading-none transition-transform duration-200 ${
-            open ? 'rotate-180' : 'rotate-0'
-          }`}
-          aria-hidden
-        >
-          ▾
-        </span>
-      </button>
-      {open && (
-        <p className="pb-5 text-gray-400 text-sm leading-relaxed pr-8">{a}</p>
-      )}
-    </div>
-  );
-}
-
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-950 text-white">
+      <Script
+        id="json-ld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
 
-      {/* ── Nav ─────────────────────────────────────────────────────────────── */}
       <nav className="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-gray-950/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -147,7 +172,7 @@ export default function HomePage() {
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-gray-400">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
+            <Link href="/how-it-works" className="hover:text-white transition-colors">How It Works</Link>
             <a href="#niches" className="hover:text-white transition-colors">Markets</a>
             <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
           </div>
@@ -163,9 +188,7 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* ── Hero ────────────────────────────────────────────────────────────── */}
       <section className="pt-32 pb-24 px-6 text-center relative overflow-hidden">
-        {/* Glow blobs */}
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-purple-600/20 rounded-full blur-3xl pointer-events-none"/>
         <div className="absolute top-40 left-1/3 w-[300px] h-[300px] bg-pink-600/10 rounded-full blur-3xl pointer-events-none"/>
 
@@ -193,15 +216,14 @@ export default function HomePage() {
               className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg transition-all shadow-lg shadow-purple-900/50">
               Start Free Today →
             </Link>
-            <a href="#how-it-works"
+            <Link href="/how-it-works"
               className="px-8 py-4 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 font-semibold text-lg transition-all">
               See How It Works
-            </a>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* ── Stats Bar ─────────────────────────────────────────────────── */}
       <section className="py-12 px-6 border-y border-white/5 bg-white/[0.02]">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {stats.map((s) => (
@@ -215,7 +237,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Why We Built This (founder story — real, no placeholder reviews) ── */}
       <section className="py-24 px-6 border-b border-white/5">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -226,16 +247,15 @@ export default function HomePage() {
               </span>
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              Apex Agents wasn&apos;t dreamed up in a boardroom. It&apos;s the system we built to run growth for our own companies — productized.
+              This stack was built to run our Indianapolis 24-hour shop. Founding users get the system we actually run.
             </p>
             <div className="w-16 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mt-4" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-            {/* Card 1 — Origin */}
             <div className="p-6 rounded-2xl border border-white/5 bg-white/[0.03] hover:border-purple-500/20 transition-all flex flex-col">
               <p className="text-gray-300 text-sm leading-relaxed mb-6 flex-1">
-                Born from our own grind. Apex Agents started as the internal engine running growth for our Indianapolis portfolio — scouting prospects, scoring them, and writing outreach while we slept. It worked, so we productized it.
+                This stack was built to run our Indianapolis 24-hour shop. Founding users get the system we actually run — scouting prospects, scoring them, and writing outreach around the clock.
               </p>
               <div className="flex items-center justify-between mt-auto">
                 <div>
@@ -248,7 +268,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Card 2 — Proof over promises */}
             <div className="p-6 rounded-2xl border border-white/5 bg-white/[0.03] hover:border-purple-500/20 transition-all flex flex-col">
               <p className="text-gray-300 text-sm leading-relaxed mb-6 flex-1">
                 Proof over promises. Every feature exists because we needed it: 9-signal lead scoring so no time is wasted on tire-kickers, outreach that doesn&apos;t read like a robot wrote it, and scheduling that never forgets to follow up.
@@ -264,7 +283,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Card 3 — Founding users */}
             <div className="p-6 rounded-2xl border border-white/5 bg-white/[0.03] hover:border-purple-500/20 transition-all flex flex-col">
               <p className="text-gray-300 text-sm leading-relaxed mb-6 flex-1">
                 Become a founding user. Apex Agents is in early access — founding users get direct access to the team, real input on the roadmap, and pricing locked in before public launch. Your wins become the case studies on this page.
@@ -284,7 +302,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Features ──────────────────────────────────────────────────── */}
       <section id="features" className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -313,12 +330,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── How It Works ──────────────────────────────────────────────── */}
       <section id="how-it-works" className="py-24 px-6 bg-white/[0.02] border-y border-white/5">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black mb-4">How It Works</h2>
             <p className="text-gray-400 text-lg">Three steps from zero to revenue.</p>
+            <p className="mt-4">
+              <Link href="/how-it-works" className="text-purple-400 hover:text-purple-300 font-semibold">
+                Read the full walkthrough →
+              </Link>
+            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
@@ -336,7 +357,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Niches ────────────────────────────────────────────────────── */}
       <section id="niches" className="py-24 px-6">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-black mb-4">
@@ -374,7 +394,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── FAQ ──────────────────────────────────────────────────────── */}
       <section className="py-24 px-6 border-b border-white/5">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-14">
@@ -394,10 +413,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Product Preview ──────────────────────────────────────────── */}
       <section className="py-24 px-6 border-b border-white/5 overflow-hidden">
         <div className="max-w-6xl mx-auto">
-          {/* Section heading */}
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-black mb-4">
               Your Dashboard,{' '}
@@ -410,14 +427,11 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Image + glow wrapper */}
           <div className="relative">
-            {/* Purple glow blob behind image */}
             <div
               className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[300px] bg-purple-600/5 rounded-full blur-3xl pointer-events-none"
               aria-hidden
             />
-            {/* Dashboard screenshot */}
             <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-purple-900/30">
               <img
                 src="/dashboard-preview.svg"
@@ -429,7 +443,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* CTA below image */}
           <div className="mt-10 text-center">
             <Link
               href="/signup"
@@ -441,7 +454,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── CTA Banner ────────────────────────────────────────────────── */}
       <section className="py-24 px-6">
         <div className="max-w-4xl mx-auto relative">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-3xl blur-xl"/>
@@ -469,7 +481,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Footer ────────────────────────────────────────────────────── */}
       <footer className="border-t border-white/5 py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
@@ -478,6 +489,7 @@ export default function HomePage() {
           </div>
           <p className="text-gray-600 text-sm">&copy; {new Date().getFullYear()} Apex Advantage. All rights reserved.</p>
           <div className="flex items-center gap-6 text-sm text-gray-500">
+            <Link href="/how-it-works" className="hover:text-white transition-colors">How It Works</Link>
             <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
             <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>
