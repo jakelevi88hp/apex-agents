@@ -7,7 +7,7 @@ type AuthFixtures = {
 export const test = base.extend<AuthFixtures>({
   authenticatedPage: async ({ page }: { page: any }, use: (page: any) => Promise<void>) => {
     // Navigate to login page
-    await page.goto('/auth/login');
+    await page.goto('/login');
     
     // Fill in login credentials (use test user)
     await page.fill('input[type="email"]', process.env.TEST_USER_EMAIL || 'test@example.com');
@@ -16,8 +16,8 @@ export const test = base.extend<AuthFixtures>({
     // Submit login form
     await page.click('button[type="submit"]');
     
-    // Wait for navigation to dashboard
-    await page.waitForURL('**/dashboard');
+    // Wait for navigation to dashboard (app redirects to /dashboard/agents)
+    await page.waitForURL('**/dashboard**');
     
     // Use the authenticated page
     await use(page);
@@ -25,4 +25,3 @@ export const test = base.extend<AuthFixtures>({
 });
 
 export { expect } from '@playwright/test';
-
