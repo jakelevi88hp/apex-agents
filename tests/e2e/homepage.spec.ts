@@ -4,19 +4,19 @@ test.describe('Homepage', () => {
   test('should load homepage successfully', async ({ page }) => {
     await page.goto('/');
     
-    // Check page title
+    // Check page title (SEO: AI Revenue Engine for Local Businesses | Apex Agents)
     await expect(page).toHaveTitle(/Apex Agents/i);
     
-    // Check main heading
-    await expect(page.locator('h1')).toContainText(/The Future of Autonomous AI/i);
+    // Check main heading (current SEO homepage copy)
+    await expect(page.locator('h1')).toContainText(/On Autopilot/i);
   });
 
   test('should have working navigation buttons', async ({ page }) => {
     await page.goto('/');
     
-    // Check Login button exists and is visible
-    const loginButton = page.locator('a:has-text("Login"), button:has-text("Login")').first();
-    await expect(loginButton).toBeVisible();
+    // Check Sign In link exists and is visible (nav uses "Sign In", not "Login")
+    const signInLink = page.locator('a:has-text("Sign In"), a:has-text("Login")').first();
+    await expect(signInLink).toBeVisible();
     
     // Check Get Started button exists and is visible
     const getStartedButton = page.locator('a:has-text("Get Started"), button:has-text("Get Started")').first();
@@ -26,21 +26,20 @@ test.describe('Homepage', () => {
   test('should display feature cards', async ({ page }) => {
     await page.goto('/');
     
-    // Check for feature cards
-    await expect(page.locator('text=Autonomous Agents')).toBeVisible();
-    await expect(page.locator('text=Verified Results')).toBeVisible();
-    await expect(page.locator('text=Proprietary Models')).toBeVisible();
+    // Check for current feature cards from homepage
+    await expect(page.locator('text=Autonomous AI Agents')).toBeVisible();
+    await expect(page.locator('text=Local Market Domination')).toBeVisible();
+    await expect(page.locator('text=Precision Lead Scoring')).toBeVisible();
   });
 
   test('should navigate to login page', async ({ page }) => {
     await page.goto('/');
     
-    // Click login button
-    const loginButton = page.locator('a:has-text("Login"), button:has-text("Login")').first();
-    await loginButton.click();
+    // Click Sign In link
+    const signInLink = page.locator('a:has-text("Sign In"), a:has-text("Login")').first();
+    await signInLink.click();
     
-    // Verify navigation to login page
-    await expect(page).toHaveURL(/.*auth\/login/);
+    // Verify navigation to /login (not /auth/login)
+    await expect(page).toHaveURL(/.*\/login/);
   });
 });
-
