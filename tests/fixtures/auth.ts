@@ -17,7 +17,7 @@ export const test = base.extend<AuthFixtures>({
     await page.click('button[type="submit"]');
     
     // Wait for navigation to dashboard (app redirects to /dashboard/agents)
-    await page.waitForURL('**/dashboard**');
+    await page.waitForURL(/\/dashboard/);
     
     // Use the authenticated page
     await use(page);

@@ -79,7 +79,7 @@ test.describe('Authentication', () => {
       await page.click('button[type="submit"]');
       
       // Wait for dashboard (login redirects to /dashboard/agents)
-      await page.waitForURL('**/dashboard**', { timeout: 10000 });
+      await page.waitForURL(/\/dashboard/, { timeout: 10000 });
       
       // Find and click logout button
       const logoutButton = page.locator('button:has-text("Logout"), button:has-text("Log out"), a:has-text("Logout")').first();
