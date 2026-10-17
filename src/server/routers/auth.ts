@@ -6,6 +6,7 @@ import { eq, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { signToken } from '@/lib/auth/jwt';
 import { sendPasswordResetEmail, sendWelcomeEmail } from '@/lib/email/resend';
+import { TRIAL_DURATION_DAYS } from '@/lib/subscription/config';
 
 export const authRouter = router({
   signup: publicProcedure
@@ -40,7 +41,7 @@ export const authRouter = router({
         subscriptionTier: 'trial',
         subscriptionStatus: 'trial',
         trialStartDate: new Date(),
-        trialEndDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days
+        trialEndDate: new Date(Date.now() + TRIAL_DURATION_DAYS * 24 * 60 * 60 * 1000),
       }).returning();
 
       // Send welcome email (non-blocking)
