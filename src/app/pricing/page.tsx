@@ -1,13 +1,35 @@
 'use client';
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
+import Link from 'next/link';
 import { Check, Zap, Crown, Rocket, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
+import { getStorageItem } from '@/lib/utils/storage';
+import SiteNav from '@/components/marketing/SiteNav';
+
+// MUST FILL BEFORE SHIP: replace with the real support address.
+const SUPPORT_EMAIL = '{{SUPPORT_EMAIL}}';
+
+function subscribeToStorage(onChange: () => void) {
+  window.addEventListener('storage', onChange);
+  return () => window.removeEventListener('storage', onChange);
+}
 
 export default function PricingPage() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [checkoutError, setCheckoutError] = useState('');
   const { data: plans } = trpc.subscription.getPlans.useQuery();
-  const { data: currentSub } = trpc.subscription.getCurrent.useQuery();
+  // Auth state is read the same way the tRPC client reads it: a JWT in
+  // localStorage under "token". The server snapshot is "logged out" so the
+  // prerendered HTML never shows "Current Plan" to visitors.
+  const isLoggedIn = useSyncExternalStore(
+    subscribeToStorage,
+    () => Boolean(getStorageItem('token')),
+    () => false,
+  );
+  // getCurrent is a protected procedure, so only ask for it when signed in.
+  const { data: currentSub } = trpc.subscription.getCurrent.useQuery(undefined, {
+    enabled: isLoggedIn,
+  });
 
   const createCheckoutSession = trpc.subscription.createCheckoutSession.useMutation({
     onSuccess: (data) => {
@@ -28,7 +50,7 @@ export default function PricingPage() {
       period: '3 days',
       description: 'Try all features free for 3 days',
       features: plans?.trial.features || [],
-      cta: 'Current Plan',
+      cta: isLoggedIn ? 'Current Plan' : 'Start Free Trial →',
       highlighted: false,
       plan: 'trial' as const,
     },
@@ -62,8 +84,12 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 py-12 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-950 text-white">
+      <SiteNav />
+      <main className="relative overflow-hidden pt-32 pb-24 px-4">
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-40 left-1/3 w-[300px] h-[300px] bg-pink-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-white mb-4">Choose Your Plan</h1>
@@ -149,6 +175,21 @@ export default function PricingPage() {
                   </div>
                 </div>
 
+                {!isLoggedIn ? (
+                  // Logged-out visitors need an account before Stripe checkout
+                  // (createCheckoutSession is a protected procedure), so every
+                  // plan CTA sends them to signup instead of failing.
+                  <Link
+                    href="/signup"
+                    className={`w-full py-3 rounded-lg font-semibold transition-all mb-6 flex items-center justify-center gap-2 ${
+                      tier.highlighted
+                        ? 'bg-white text-purple-600 hover:bg-gray-100'
+                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                    }`}
+                  >
+                    {tier.cta}
+                  </Link>
+                ) : (
                 <button
                   onClick={() => tier.plan !== 'trial' && handleUpgrade(tier.plan)}
                   disabled={isCurrentPlan || tier.plan === 'trial' || createCheckoutSession.isPending}
@@ -163,6 +204,7 @@ export default function PricingPage() {
                   {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                   {isCurrentPlan ? 'Current Plan' : tier.cta}
                 </button>
+                )}
 
                 <ul className="space-y-3">
                   {tier.features.map((feature, index) => (
@@ -184,7 +226,8 @@ export default function PricingPage() {
             <div className="bg-gray-800 p-6 rounded-lg">
               <h3 className="text-xl font-semibold text-white mb-2">Can I cancel anytime?</h3>
               <p className="text-gray-300">
-                Yes! Cancel anytime from your account settings. No questions asked.
+                Yes. For now, cancellations are handled by email. Write to us at{' '}
+                <a href={`mailto:${SUPPORT_EMAIL}`} className="text-purple-400 hover:text-purple-300 font-semibold">{SUPPORT_EMAIL}</a> and we&apos;ll cancel your plan.
               </p>
             </div>
             <div className="bg-gray-800 p-6 rounded-lg">
@@ -201,18 +244,20 @@ export default function PricingPage() {
                 Can I upgrade or downgrade later?
               </h3>
               <p className="text-gray-300">
-                Absolutely! Change your plan anytime from your account settings.
+                Yes. You can upgrade anytime from this page. To downgrade, email us at{' '}
+                <a href={`mailto:${SUPPORT_EMAIL}`} className="text-purple-400 hover:text-purple-300 font-semibold">{SUPPORT_EMAIL}</a>.
               </p>
             </div>
             <div className="bg-gray-800 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-white mb-2">Do you offer refunds?</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Questions about billing?</h3>
               <p className="text-gray-300">
-                Yes, we offer a 30-day money-back guarantee on all paid plans.
+                Contact us at <a href={`mailto:${SUPPORT_EMAIL}`} className="text-purple-400 hover:text-purple-300 font-semibold">{SUPPORT_EMAIL}</a> and we&apos;ll help.
               </p>
             </div>
           </div>
         </div>
       </div>
+      </main>
     </div>
   );
 }

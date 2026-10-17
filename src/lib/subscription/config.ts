@@ -56,7 +56,7 @@ export const PLAN_FEATURES = {
   trial: [
     'Full access to all features',
     '10 agents',
-    '100 AGI messages',
+    '100 AI messages',
     '5 workflows',
     '1 GB storage',
     'Basic analytics',
@@ -64,7 +64,7 @@ export const PLAN_FEATURES = {
   ],
   premium: [
     '50 agents',
-    '2,000 AGI messages/month',
+    '2,000 AI messages/month',
     '25 workflows',
     '10 GB storage',
     'Advanced analytics',
@@ -74,7 +74,7 @@ export const PLAN_FEATURES = {
   ],
   pro: [
     'Unlimited agents',
-    '10,000 AGI messages/month',
+    '10,000 AI messages/month',
     'Unlimited workflows',
     '100 GB storage',
     'Advanced analytics + exports',
