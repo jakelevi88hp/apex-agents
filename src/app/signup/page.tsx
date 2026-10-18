@@ -59,6 +59,9 @@ export default function SignupPage() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Join Apex Agents</h1>
           <p className="text-gray-300">Create your account and start building intelligent agents</p>
+          <p className="mt-3 text-sm font-semibold text-purple-200">
+            Start with a 3-day free trial. No credit card required.
+          </p>
         </div>
 
         {error && (

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Script from 'next/script';
 import FAQItem from '@/components/FAQItem';
+import SiteNav from '@/components/marketing/SiteNav';
 
 const SITE_URL = 'https://apex-ai-agent.com';
 
@@ -61,12 +62,12 @@ const features = [
   {
     icon: '🤖',
     title: 'Autonomous AI Agents',
-    desc: 'Deploy intelligent agents that prospect, research, and engage leads around the clock — no manual work required.',
+    desc: 'Deploy intelligent agents that prospect, research, and engage leads around the clock, with no manual work required.',
   },
   {
     icon: '📍',
     title: 'Local Market Domination',
-    desc: 'Built for local businesses. Our agents understand your market, your niche, and your city — not generic fluff.',
+    desc: 'Built for local businesses. Our agents understand your market, your niche, and your city. No generic fluff.',
   },
   {
     icon: '⭐',
@@ -81,18 +82,18 @@ const features = [
   {
     icon: '🎯',
     title: 'Precision Lead Scoring',
-    desc: 'Leads scored 0–200+ across 9 signals. Only your highest-value prospects get your time and your pitch.',
+    desc: 'Leads are scored from 0 to 200+ across 9 signals. Only your highest-value prospects get your time and your pitch.',
   },
   {
     icon: '⚡',
     title: 'Always-On Automation',
-    desc: 'Scout, scrape, build, and publish — on a schedule. Your revenue engine runs while you sleep.',
+    desc: 'Scout, scrape, build, and publish, all on a schedule. Your revenue engine runs while you sleep.',
   },
 ];
 
 const stats = [
   { value: '24/7', label: 'Autonomous Operation' },
-  { value: '5', label: 'Active AI Agents' },
+  { value: '5', label: 'Built-In AI Agents' },
   { value: '30+', label: 'Supported Niches' },
   { value: '9', label: 'Lead Score Signals' },
 ];
@@ -131,11 +132,7 @@ const nicheCategories = [
 const faqs = [
   {
     q: 'Is this really fully automated?',
-    a: 'Yes. Once your agent is configured, it runs on its own — scouting leads from Google Maps and review sites, scoring them against 9 signals, and sending personalized outreach without you lifting a finger. You get a daily summary and can approve or adjust anything from your dashboard.',
-  },
-  {
-    q: 'How long until I see results?',
-    a: 'Most clients see their first qualified leads engaged within 48 hours of setup. Meaningful pipeline activity — replies, booked calls, review requests fulfilled — typically shows up in the first 1–2 weeks.',
+    a: 'Yes. Once your agent is configured, it runs on its own. It scouts leads from Google Maps and review sites, scores them against 9 signals, and drafts personalized outreach for each one. You stay in control: review, edit, or hold any draft from your dashboard, and approved messages go out on a schedule. You also get a daily summary.',
   },
   {
     q: 'What niches do you support?',
@@ -143,15 +140,15 @@ const faqs = [
   },
   {
     q: 'How is this different from a chatbot?',
-    a: 'Chatbots react — they sit on your site and wait. Apex Agents are proactive. They go out and find leads, score them by conversion likelihood, and initiate outreach on your behalf. Think of it as an AI sales rep, not a support widget.',
+    a: 'Chatbots react: they sit on your site and wait. Apex Agents are proactive. They go out and find leads, score them by conversion likelihood, and initiate outreach on your behalf. Think of it as an AI sales rep, not a support widget.',
   },
   {
     q: 'Do I need to be technical to set this up?',
-    a: 'Not at all. Onboarding takes about 15 minutes — you answer a few questions about your business, and we configure everything. No code, no integrations to manage.',
+    a: 'Not at all. Setup is self-serve. After you sign up, a short wizard asks what you want to automate, you pick an agent template and give it a name, and the agent is created for you. You can adjust its settings from your dashboard anytime. No code required.',
   },
   {
     q: 'What happens if I want to pause or cancel?',
-    a: 'You\'re never locked in. You can pause your agents any time from the dashboard, and canceling is a single click. We don\'t hide cancellation behind support tickets.',
+    a: 'You\'re never locked in. You can pause your agents any time from the dashboard. To cancel your subscription, email us at apexagents@mail.grokbot.com for now and we\'ll take care of it.',
   },
 ];
 
@@ -164,29 +161,7 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <nav className="fixed top-0 inset-x-0 z-50 border-b border-white/5 bg-gray-950/80 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-sm font-bold">A</div>
-            <span className="text-lg font-bold tracking-tight">Apex Agents</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8 text-sm text-gray-400">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <Link href="/how-it-works" className="hover:text-white transition-colors">How It Works</Link>
-            <a href="#niches" className="hover:text-white transition-colors">Markets</a>
-            <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors px-3 py-2">
-              Sign In
-            </Link>
-            <Link href="/signup"
-              className="text-sm font-semibold px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 transition-colors">
-              Get Started →
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <SiteNav />
 
       <section className="pt-32 pb-24 px-6 text-center relative overflow-hidden">
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-purple-600/20 rounded-full blur-3xl pointer-events-none"/>
@@ -195,7 +170,7 @@ export default function HomePage() {
         <div className="relative max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 rounded-full px-4 py-1.5 text-sm text-purple-300 mb-8">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"/>
-            Revenue Engine — Live & Running
+            Revenue Engine: Live & Running
           </div>
 
           <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-none mb-6">
@@ -207,7 +182,7 @@ export default function HomePage() {
 
           <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
             Apex Agents is an AI-powered revenue system for local businesses.
-            It scouts leads, scores prospects, writes outreach, and tracks results —
+            It scouts leads, scores prospects, writes outreach, and tracks results
             while you focus on closing.
           </p>
 
@@ -246,16 +221,13 @@ export default function HomePage() {
                 For Operators
               </span>
             </h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
-              This stack was built to run our Indianapolis 24-hour shop. Founding users get the system we actually run.
-            </p>
             <div className="w-16 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mt-4" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
             <div className="p-6 rounded-2xl border border-white/5 bg-white/[0.03] hover:border-purple-500/20 transition-all flex flex-col">
               <p className="text-gray-300 text-sm leading-relaxed mb-6 flex-1">
-                This stack was built to run our Indianapolis 24-hour shop. Founding users get the system we actually run — scouting prospects, scoring them, and writing outreach around the clock.
+                This stack was built to run our Indianapolis 24-hour shop. Founding users get the system we actually run: scouting prospects, scoring them, and writing outreach around the clock.
               </p>
               <div className="flex items-center justify-between mt-auto">
                 <div>
@@ -285,7 +257,7 @@ export default function HomePage() {
 
             <div className="p-6 rounded-2xl border border-white/5 bg-white/[0.03] hover:border-purple-500/20 transition-all flex flex-col">
               <p className="text-gray-300 text-sm leading-relaxed mb-6 flex-1">
-                Become a founding user. Apex Agents is in early access — founding users get direct access to the team, real input on the roadmap, and pricing locked in before public launch. Your wins become the case studies on this page.
+                Become a founding user. Apex Agents is in early access. Founding users get direct access to the team, real input on the roadmap, and pricing locked in before public launch. Your wins become the case studies on this page.
               </p>
               <div className="flex items-center justify-between mt-auto">
                 <div>
@@ -312,7 +284,7 @@ export default function HomePage() {
               </span>
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              One system. Five agents. Unlimited reach. Built for the businesses that want to grow without hiring a full sales team.
+              One system. Five built-in AI agents. Unlimited reach. Built for the businesses that want to grow without hiring a full sales team.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -343,8 +315,8 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { step: '01', title: 'Agents Scout & Score', desc: 'Our AI agents continuously find local businesses in your target niche, enrich their data, and score each lead across 9 signals — so you only see the best prospects.' },
-              { step: '02', title: 'Personalized Outreach Builds', desc: 'The Builder agent crafts a tailored pitch for each lead — referencing their real Google rating, review count, and local SEO gaps. Every message lands like it was written by hand.' },
+              { step: '01', title: 'Agents Scout & Score', desc: 'Our AI agents continuously find local businesses in your target niche, enrich their data, and score each lead across 9 signals, so you only see the best prospects.' },
+              { step: '02', title: 'Personalized Outreach Builds', desc: 'The Builder agent crafts a tailored pitch for each lead that references their real Google rating, review count, and local SEO gaps. Every message lands like it was written by hand.' },
               { step: '03', title: 'Publisher Sends. You Close.', desc: 'Outreach goes out on schedule. Replies land in your inbox. You step in only when a prospect says yes. The engine never stops running.' },
             ].map((item) => (
               <div key={item.step} className="relative pl-6 border-l border-purple-500/30">
@@ -366,7 +338,7 @@ export default function HomePage() {
             </span>
           </h2>
           <p className="text-gray-400 text-lg mb-16 max-w-2xl mx-auto">
-            30+ local business niches supported out of the box — with industry-specific messaging, lead scoring, and outreach that sounds like it was written for your market.
+            30+ local business niches are supported out of the box, with industry-specific messaging, lead scoring, and outreach that sounds like it was written for your market.
           </p>
           <div className="space-y-10 text-left max-w-5xl mx-auto">
             {nicheCategories.map((cat) => (
@@ -423,7 +395,7 @@ export default function HomePage() {
               </span>
             </h2>
             <p className="text-gray-400 text-lg max-w-xl mx-auto">
-              Track every lead, every agent, every result — in real time.
+              Track every lead, every agent, and every result in real time.
             </p>
           </div>
 
@@ -435,7 +407,7 @@ export default function HomePage() {
             <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-purple-900/30">
               <img
                 src="/dashboard-preview.svg"
-                alt="Apex Agents dashboard — showing lead pipeline, active agents, and activity feed"
+                alt="Apex Agents dashboard showing lead pipeline, active agents, and activity feed"
                 className="w-full block"
                 width={1200}
                 height={700}
@@ -465,7 +437,7 @@ export default function HomePage() {
               </span>
             </h2>
             <p className="text-gray-400 text-lg max-w-xl mx-auto mb-10">
-              Join local business owners using Apex Agents to find more leads, send better outreach, and close more deals — without adding headcount.
+              Join local business owners using Apex Agents to find more leads, send better outreach, and close more deals without adding headcount.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/signup"
