@@ -5,7 +5,7 @@
  * Note: These tests require a test database connection.
  */
 
-import { SubscriptionService } from '@/lib/subscription/service';
+import { SubscriptionService, toSubscription } from '@/lib/subscription/service';
 import { db } from '@/lib/db';
 import { subscriptions, usageTracking, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -63,27 +63,75 @@ describe('SubscriptionService', () => {
       expect(db.select).not.toHaveBeenCalled();
     });
 
-    it('should fetch from database if not cached', async () => {
+    it('should build the subscription from users + prod subscriptions rows if not cached', async () => {
       const { getCachedSubscription, setCachedSubscription } = require('@/lib/cache/subscription-cache');
-      const mockSubscription = {
+      const trialEnd = new Date('2026-10-21T00:00:00Z');
+      const userRow = {
+        id: 'user-123',
+        subscriptionTier: 'premium',
+        subscriptionStatus: 'active',
+        trialStartDate: new Date('2026-10-18T00:00:00Z'),
+        trialEndDate: trialEnd,
+        stripeCustomerId: 'cus_123',
+        createdAt: new Date('2026-10-18T00:00:00Z'),
+        updatedAt: null,
+      };
+      const subRow = {
         id: 'sub-123',
         userId: 'user-123',
-        plan: 'premium',
+        tier: 'premium',
+        status: 'active',
+        stripeSubscriptionId: 'sub_stripe_1',
+        currentPeriodStart: null,
+        currentPeriodEnd: null,
+        cancelAtPeriodEnd: false,
+        createdAt: null,
       };
-      
-      getCachedSubscription.mockReturnValue(undefined);
-      (db.select as jest.Mock).mockReturnValue({
+      const chain = (rows: unknown[]) => ({
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([mockSubscription]),
+            limit: jest.fn().mockResolvedValue(rows),
           }),
         }),
       });
-      
+
+      getCachedSubscription.mockReturnValue(undefined);
+      (db.select as jest.Mock)
+        .mockReturnValueOnce(chain([userRow]))
+        .mockReturnValueOnce(chain([subRow]));
+
       const result = await SubscriptionService.getUserSubscription('user-123');
-      
-      expect(result).toEqual(mockSubscription);
-      expect(setCachedSubscription).toHaveBeenCalledWith('user-123', mockSubscription);
+
+      expect(result).toMatchObject({
+        id: 'sub-123',
+        userId: 'user-123',
+        plan: 'premium',
+        status: 'active',
+        trialEndsAt: trialEnd,
+        stripeCustomerId: 'cus_123',
+        stripeSubscriptionId: 'sub_stripe_1',
+      });
+      expect(setCachedSubscription).toHaveBeenCalledWith('user-123', result);
+    });
+
+    it('should map users.subscription_status trial -> active and cancelled -> canceled', () => {
+      const base = { id: 'u', subscriptionTier: 'trial', trialStartDate: null, trialEndDate: null, stripeCustomerId: null, createdAt: new Date(), updatedAt: null };
+      expect(toSubscription({ ...base, subscriptionStatus: 'trial' }, null).status).toBe('active');
+      expect(toSubscription({ ...base, subscriptionStatus: 'cancelled' }, null).status).toBe('canceled');
+      expect(toSubscription({ ...base, subscriptionStatus: 'past_due' }, null).status).toBe('past_due');
+      expect(toSubscription({ ...base, subscriptionStatus: 'trial' }, null).plan).toBe('trial');
+    });
+
+    it('should return null for an unknown user', async () => {
+      const { getCachedSubscription, setCachedSubscription } = require('@/lib/cache/subscription-cache');
+      getCachedSubscription.mockReturnValue(undefined);
+      (db.select as jest.Mock).mockReturnValue({
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({ limit: jest.fn().mockResolvedValue([]) }),
+        }),
+      });
+      expect(await SubscriptionService.getUserSubscription('nope')).toBeNull();
+      expect(setCachedSubscription).toHaveBeenCalledWith('nope', null);
     });
   });
 

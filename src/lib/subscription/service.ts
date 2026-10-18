@@ -1,8 +1,53 @@
 import { db } from '../db';
 import { subscriptions, usageTracking, users } from '../db/schema';
+import { prodSubscriptions } from '../db/schema/subscriptions-prod';
+import type { Subscription } from '../db/schema/subscriptions';
 import { eq, and, lt } from 'drizzle-orm';
 import { PLAN_LIMITS, TRIAL_DURATION_DAYS, type SubscriptionPlan } from './config';
 import { getCachedSubscription, setCachedSubscription, invalidateSubscriptionCache } from '../cache/subscription-cache';
+
+type UserBillingRow = {
+  id: string;
+  subscriptionTier: string;
+  subscriptionStatus: string;
+  trialStartDate: Date | null;
+  trialEndDate: Date | null;
+  stripeCustomerId: string | null;
+  createdAt: Date;
+  updatedAt: Date | null;
+};
+type ProdSubscriptionRow = typeof prodSubscriptions.$inferSelect;
+
+/**
+ * Production keeps plan/trial state on `users` (subscription_tier, subscription_status,
+ * trial_*_date, stripe_customer_id) and Stripe state on the prod-shaped `subscriptions`
+ * table (tier, status, stripe_subscription_id, current_period_*, cancel_at_period_end).
+ * Build the `Subscription` shape the rest of the app expects from those two rows.
+ */
+export function toSubscription(user: UserBillingRow, sub: ProdSubscriptionRow | null): Subscription {
+  const userStatus = user.subscriptionStatus;
+  const status =
+    userStatus === 'cancelled' ? 'canceled'
+    : userStatus === 'expired' || userStatus === 'past_due' ? userStatus
+    : 'active'; // 'trial' and 'active'
+  return {
+    id: sub?.id ?? user.id,
+    userId: user.id,
+    plan: user.subscriptionTier || 'trial',
+    status,
+    trialStartedAt: user.trialStartDate,
+    trialEndsAt: user.trialEndDate,
+    currentPeriodStart: sub?.currentPeriodStart ?? null,
+    currentPeriodEnd: sub?.currentPeriodEnd ?? null,
+    stripeCustomerId: user.stripeCustomerId,
+    stripeSubscriptionId: sub?.stripeSubscriptionId ?? null,
+    stripePriceId: null,
+    cancelAtPeriodEnd: sub?.cancelAtPeriodEnd ?? false,
+    canceledAt: null,
+    createdAt: sub?.createdAt ?? user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+}
 
 export class SubscriptionService {
   /**
@@ -85,20 +130,43 @@ export class SubscriptionService {
   /**
    * Get user's current subscription (with caching)
    */
-  static async getUserSubscription(userId: string) {
+  static async getUserSubscription(userId: string): Promise<Subscription | null> {
     // Check cache first
     const cached = getCachedSubscription(userId);
     if (cached !== undefined) {
       return cached;
     }
-    
-    // Fetch from database
-    const [subscription] = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).limit(1);
-    
-    // Cache result (even if null)
-    setCachedSubscription(userId, subscription || null);
-    
-    return subscription || null;
+
+    // Read the columns that exist in production (see toSubscription)
+    const [user] = await db
+      .select({
+        id: users.id,
+        subscriptionTier: users.subscriptionTier,
+        subscriptionStatus: users.subscriptionStatus,
+        trialStartDate: users.trialStartDate,
+        trialEndDate: users.trialEndDate,
+        stripeCustomerId: users.stripeCustomerId,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user) {
+      setCachedSubscription(userId, null);
+      return null;
+    }
+
+    const [sub] = await db
+      .select()
+      .from(prodSubscriptions)
+      .where(eq(prodSubscriptions.userId, userId))
+      .limit(1);
+
+    const subscription = toSubscription(user, sub ?? null);
+    setCachedSubscription(userId, subscription);
+    return subscription;
   }
 
   /**
@@ -191,23 +259,15 @@ export class SubscriptionService {
       throw new Error('No subscription found for user');
     }
 
-    const [updated] = await db.update(subscriptions)
-      .set({
-        plan,
-        status: 'active',
-        stripeSubscriptionId,
-        stripePriceId,
-        currentPeriodStart: new Date(),
-        currentPeriodEnd,
-        updatedAt: new Date(),
-      })
-      .where(eq(subscriptions.id, subscription.id))
-      .returning();
-
-    // Update cache with new subscription
-    if (updated) {
-      setCachedSubscription(userId, updated);
-    }
+    // Write prod columns: plan/trial state on users, Stripe state on subscriptions
+    await db.update(users)
+      .set({ subscriptionTier: plan, subscriptionStatus: 'active', updatedAt: new Date() })
+      .where(eq(users.id, userId));
+    await db.update(prodSubscriptions)
+      .set({ tier: plan, status: 'active', stripeSubscriptionId, currentPeriodStart: new Date(), currentPeriodEnd })
+      .where(eq(prodSubscriptions.userId, userId));
+    void stripePriceId; // not stored in prod schema
+    invalidateSubscriptionCache(userId);
 
     // Update usage limits
     await this.updateUsageLimits(userId, plan);
@@ -251,13 +311,11 @@ export class SubscriptionService {
       throw new Error('No subscription found');
     }
 
-    await db.update(subscriptions)
-      .set({
-        cancelAtPeriodEnd: true,
-        canceledAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(subscriptions.id, subscription.id));
+    // NOTE: this only records the intent in the DB. It does not call Stripe, so the
+    // Stripe subscription keeps billing (pre-existing gap, see report).
+    await db.update(prodSubscriptions)
+      .set({ cancelAtPeriodEnd: true })
+      .where(eq(prodSubscriptions.userId, userId));
     
     // Invalidate cache
     invalidateSubscriptionCache(userId);
