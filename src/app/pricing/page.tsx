@@ -7,7 +7,7 @@ import { getStorageItem } from '@/lib/utils/storage';
 import SiteNav from '@/components/marketing/SiteNav';
 
 // MUST FILL BEFORE SHIP: replace with the real support address.
-const SUPPORT_EMAIL = '{{SUPPORT_EMAIL}}';
+const SUPPORT_EMAIL = 'apexagents@mail.grokbot.com';
 
 function subscribeToStorage(onChange: () => void) {
   window.addEventListener('storage', onChange);

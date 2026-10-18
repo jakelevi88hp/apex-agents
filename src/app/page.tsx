@@ -148,7 +148,7 @@ const faqs = [
   },
   {
     q: 'What happens if I want to pause or cancel?',
-    a: 'You\'re never locked in. You can pause your agents any time from the dashboard. To cancel your subscription, email us at {{SUPPORT_EMAIL}} for now and we\'ll take care of it.',
+    a: 'You\'re never locked in. You can pause your agents any time from the dashboard. To cancel your subscription, email us at apexagents@mail.grokbot.com for now and we\'ll take care of it.',
   },
 ];
 

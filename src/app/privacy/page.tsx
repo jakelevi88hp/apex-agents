@@ -51,7 +51,7 @@ export default function PrivacyPage() {
           </section>
           <section>
             <h2 className="text-xl font-bold text-white mb-3">6. Cookies</h2>
-            <p>We use essential cookies and local storage to maintain your login session and preferences. We also use Google Analytics for site analytics and the Google Ads tag to measure sign-ups from our ads. These Google services set their own cookies in your browser.</p>
+            <p>We use essential cookies and local storage to maintain your login session and preferences. We also use Google Analytics for site analytics, which sets its own cookies in your browser.</p>
           </section>
           <section>
             <h2 className="text-xl font-bold text-white mb-3">7. Contact Us</h2>
