@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { SubscriptionService } from '@/lib/subscription/service';
 import { middleware } from '../trpc';
+import { assertCanCreate, assertCanRun } from '@/lib/subscription/entitlements';
 
 /**
  * Middleware to check if user can perform an action based on their subscription
@@ -123,3 +124,25 @@ export const requireTier = (minTier: 'trial' | 'premium' | 'pro') =>
     return next({ ctx });
   });
 
+
+/**
+ * Block creation after trial expiry and (when ENFORCE_CONCURRENT_LIMITS=true) at the
+ * plan's concurrent cap. Usage: protectedProcedure.use(requireCanCreate('agents'))
+ */
+export const requireCanCreate = (resource: 'agents' | 'workflows') =>
+  middleware(async ({ ctx, next }) => {
+    if (!ctx.userId) {
+      throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You must be logged in to perform this action' });
+    }
+    await assertCanCreate(ctx.userId, resource);
+    return next({ ctx });
+  });
+
+/** Block new runs after trial expiry (reads stay available). */
+export const requireCanRun = middleware(async ({ ctx, next }) => {
+  if (!ctx.userId) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'You must be logged in to perform this action' });
+  }
+  await assertCanRun(ctx.userId);
+  return next({ ctx });
+});

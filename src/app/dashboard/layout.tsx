@@ -9,6 +9,7 @@ import CommandPalette from '@/components/CommandPalette';
 import KeyboardShortcutsHelp from '@/components/KeyboardShortcutsHelp';
 import ProductTour from '@/components/ProductTour';
 import LiveChatWidget from '@/components/LiveChatWidget';
+import { SubscriptionBanner } from '@/components/SubscriptionBanner';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isDarkMode } = useTheme();
@@ -33,6 +34,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main Content */}
       <main className="flex-1 ml-0 md:ml-64 p-4 md:p-8 pt-20 md:pt-8">
+        {/* Trial countdown / expired / canceled banner, links to /pricing */}
+        <div className="mb-4 rounded-lg overflow-hidden empty:hidden">
+          <SubscriptionBanner />
+        </div>
         {children}
       </main>
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { EnhancedAGICore } from '@/lib/agi/enhanced-core';
 import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-limit';
+import { getEntitlement, TRIAL_EXPIRED_MESSAGE } from '@/lib/subscription/entitlements';
 import { SubscriptionService } from '@/lib/subscription/service';
 import { extractTokenFromRequest, verifyToken } from '@/lib/auth/jwt';
 
@@ -37,7 +38,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Check subscription limits for AGI messages
+  // Trial expiry: block new AI messages after the trial ends without a paid plan
+  try {
+    const ent = await getEntitlement(user.userId);
+    if (ent.trialExpired) {
+      return NextResponse.json(
+        { error: TRIAL_EXPIRED_MESSAGE, trialExpired: true, upgradeRequired: true },
+        { status: 403 }
+      );
+    }
+  } catch (entitlementError) {
+    console.error('[AGI API] Entitlement check failed:', entitlementError);
+  }
+
+  // Check subscription limits for AGI messages (per calendar month, usage_tracking)
   try {
     const canUse = await SubscriptionService.canUseFeature(user.userId, 'agi_messages');
     if (!canUse) {

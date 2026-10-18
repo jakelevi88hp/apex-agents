@@ -63,18 +63,13 @@ export class SubscriptionService {
   }
 
   /**
-   * Features enforced through usage_tracking rows. `storage` is deliberately
-   * excluded: Premium/Pro storage limits in bytes (10 GB / 100 GB) overflow the
-   * integer `limit` column, and storage is checked by StorageTracker instead.
+   * Features enforced through usage_tracking rows: only `agi_messages` (monthly).
+   * `storage` stays excluded: Premium/Pro limits in bytes overflow the integer column.
    */
   static usageFeatures(plan: SubscriptionPlan) {
-    const limits = PLAN_LIMITS[plan];
-    return [
-      { feature: 'agi_messages', limit: limits.agiMessages },
-      { feature: 'agents', limit: limits.agents },
-      { feature: 'workflows', limit: limits.workflows },
-      { feature: 'api_calls', limit: limits.apiCalls },
-    ];
+    // Only AI messages are metered per calendar month. Agents/workflows are capped
+    // concurrently from existing rows (see entitlements.ts), so no counters for them.
+    return [{ feature: 'agi_messages', limit: PLAN_LIMITS[plan].agiMessages }];
   }
 
   /**

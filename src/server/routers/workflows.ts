@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { workflows, executions } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { getWorkflowExecutor } from '@/lib/workflow-engine/executor';
-import { checkUsageLimit } from '../middleware/subscription';
+import { requireCanCreate, requireCanRun } from '../middleware/subscription';
 
 export const workflowsRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -11,7 +11,7 @@ export const workflowsRouter = router({
   }),
 
   create: protectedProcedure
-    .use(checkUsageLimit('workflows', 1))
+    .use(requireCanCreate('workflows'))
     .input(z.object({
       name: z.string(),
       description: z.string().optional(),
@@ -28,6 +28,7 @@ export const workflowsRouter = router({
     }),
 
   execute: protectedProcedure
+    .use(requireCanRun)
     .input(z.object({
       workflowId: z.string().uuid(),
       inputData: z.record(z.string(), z.any()).optional(),

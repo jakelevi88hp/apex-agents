@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { agents, executions } from '@/lib/db/schema';
 import { eq, desc, inArray } from 'drizzle-orm';
 import { AgentFactory, type AgentType } from '@/lib/ai/agents';
-import { checkUsageLimit } from '../middleware/subscription';
+import { requireCanCreate, requireCanRun } from '../middleware/subscription';
 import { TRPCError } from '@trpc/server';
 import { and } from 'drizzle-orm';
 
@@ -20,7 +20,7 @@ export const agentsRouter = router({
     }),
 
   create: protectedProcedure
-    .use(checkUsageLimit('agents', 1))
+    .use(requireCanCreate('agents'))
     .input(z.object({
       name: z.string(),
       description: z.string().optional(),
@@ -108,6 +108,7 @@ export const agentsRouter = router({
     }),
 
   execute: protectedProcedure
+    .use(requireCanRun)
     .input(z.object({
       agentId: z.string().uuid(),
       objective: z.string(),
@@ -267,6 +268,7 @@ export const agentsRouter = router({
     }),
 
   duplicate: protectedProcedure
+    .use(requireCanCreate('agents'))
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       const [originalAgent] = await ctx.db.select().from(agents).where(eq(agents.id, input.id)).limit(1);
