@@ -1,9 +1,10 @@
+import { randomUUID } from 'crypto';
 import { db } from '../db';
-import { subscriptions, usageTracking, users } from '../db/schema';
+import { usageTracking, users } from '../db/schema';
 import { prodSubscriptions } from '../db/schema/subscriptions-prod';
 import type { Subscription } from '../db/schema/subscriptions';
 import { eq, and, lt } from 'drizzle-orm';
-import { PLAN_LIMITS, TRIAL_DURATION_DAYS, type SubscriptionPlan } from './config';
+import { PLAN_LIMITS, type SubscriptionPlan } from './config';
 import { getCachedSubscription, setCachedSubscription, invalidateSubscriptionCache } from '../cache/subscription-cache';
 
 type UserBillingRow = {
@@ -51,54 +52,54 @@ export function toSubscription(user: UserBillingRow, sub: ProdSubscriptionRow | 
 
 export class SubscriptionService {
   /**
-   * Initialize a trial subscription for a new user
+   * Initialize trial usage limits for a new user.
+   * Trial/plan state itself lives on `users` (set by auth.signup), so no
+   * `subscriptions` row is written here (prod `subscriptions` is Stripe-only).
    */
   static async initializeTrial(userId: string) {
-    const trialEndsAt = new Date();
-    trialEndsAt.setDate(trialEndsAt.getDate() + TRIAL_DURATION_DAYS);
-
-    const [subscription] = await db.insert(subscriptions).values({
-      userId,
-      plan: 'trial',
-      status: 'active',
-      trialStartedAt: new Date(),
-      trialEndsAt,
-    }).returning();
-
-    // Cache the new subscription
-    if (subscription) {
-      setCachedSubscription(userId, subscription);
-    }
-
-    // Initialize usage tracking for trial
     await this.initializeUsageTracking(userId, 'trial');
-
-    return subscription;
+    invalidateSubscriptionCache(userId);
+    return this.getUserSubscription(userId);
   }
 
   /**
-   * Initialize usage tracking for a user based on their plan
+   * Features enforced through usage_tracking rows. `storage` is deliberately
+   * excluded: Premium/Pro storage limits in bytes (10 GB / 100 GB) overflow the
+   * integer `limit` column, and storage is checked by StorageTracker instead.
    */
-  static async initializeUsageTracking(userId: string, plan: SubscriptionPlan) {
+  static usageFeatures(plan: SubscriptionPlan) {
     const limits = PLAN_LIMITS[plan];
-    const resetAt = this.getNextResetDate();
-
-    const features = [
+    return [
       { feature: 'agi_messages', limit: limits.agiMessages },
       { feature: 'agents', limit: limits.agents },
       { feature: 'workflows', limit: limits.workflows },
-      { feature: 'storage', limit: limits.storage },
       { feature: 'api_calls', limit: limits.apiCalls },
     ];
+  }
 
-    for (const { feature, limit } of features) {
+  /**
+   * Initialize usage tracking for a user based on their plan.
+   * Idempotent: only inserts features the user has no row for
+   * (usage_tracking has no unique constraint, so onConflictDoNothing can't be relied on).
+   */
+  static async initializeUsageTracking(userId: string, plan: SubscriptionPlan) {
+    const resetAt = this.getNextResetDate();
+    const existing = await db
+      .select({ feature: usageTracking.feature })
+      .from(usageTracking)
+      .where(eq(usageTracking.userId, userId));
+    const have = new Set(existing.map((r) => r.feature));
+
+    for (const { feature, limit } of this.usageFeatures(plan)) {
+      if (have.has(feature)) continue;
       await db.insert(usageTracking).values({
+        id: randomUUID(),
         userId,
         feature,
         count: 0,
         limit,
         resetAt,
-      }).onConflictDoNothing();
+      });
     }
   }
 
@@ -277,20 +278,11 @@ export class SubscriptionService {
    * Update usage limits when plan changes (optimized batch update)
    */
   static async updateUsageLimits(userId: string, plan: SubscriptionPlan) {
-    const limits = PLAN_LIMITS[plan];
+    // Make sure every enforced feature has a row, then apply the plan's limits.
+    await this.initializeUsageTracking(userId, plan);
 
-    // Batch update all features in a single transaction
-    const features = [
-      { feature: 'agi_messages', limit: limits.agiMessages },
-      { feature: 'agents', limit: limits.agents },
-      { feature: 'workflows', limit: limits.workflows },
-      { feature: 'storage', limit: limits.storage },
-      { feature: 'api_calls', limit: limits.apiCalls },
-    ];
-
-    // Update all features in parallel
     await Promise.all(
-      features.map(({ feature, limit }) =>
+      this.usageFeatures(plan).map(({ feature, limit }) =>
         db.update(usageTracking)
           .set({ limit, updatedAt: new Date() })
           .where(and(

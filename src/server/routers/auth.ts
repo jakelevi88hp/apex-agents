@@ -7,6 +7,7 @@ import bcrypt from 'bcryptjs';
 import { signToken } from '@/lib/auth/jwt';
 import { sendPasswordResetEmail, sendWelcomeEmail } from '@/lib/email/resend';
 import { TRIAL_DURATION_DAYS } from '@/lib/subscription/config';
+import { SubscriptionService } from '@/lib/subscription/service';
 
 export const authRouter = router({
   signup: publicProcedure
@@ -43,6 +44,14 @@ export const authRouter = router({
         trialStartDate: new Date(),
         trialEndDate: new Date(Date.now() + TRIAL_DURATION_DAYS * 24 * 60 * 60 * 1000),
       }).returning();
+
+      // Create trial usage_tracking rows so plan limits are enforced.
+      // Failure here must not block signup (user would just be unlimited, as before).
+      try {
+        await SubscriptionService.initializeTrial(newUser.id);
+      } catch (err) {
+        console.error('Failed to initialize trial usage tracking:', err);
+      }
 
       // Send welcome email (non-blocking)
       sendWelcomeEmail(newUser.email, newUser.name || 'there').catch(err => {

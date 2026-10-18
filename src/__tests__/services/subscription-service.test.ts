@@ -239,4 +239,34 @@ describe('SubscriptionService', () => {
       });
     });
   });
+
+  describe('usage tracking init', () => {
+    it('usageFeatures excludes storage and uses config.ts limits', () => {
+      expect(SubscriptionService.usageFeatures('trial')).toEqual([
+        { feature: 'agi_messages', limit: 100 },
+        { feature: 'agents', limit: 10 },
+        { feature: 'workflows', limit: 5 },
+        { feature: 'api_calls', limit: 1000 },
+      ]);
+      expect(SubscriptionService.usageFeatures('premium').find((f) => f.feature === 'agents')?.limit).toBe(50);
+      expect(SubscriptionService.usageFeatures('pro').every((f) => f.limit <= 2147483647)).toBe(true);
+    });
+
+    it('initializeUsageTracking only inserts missing features (idempotent)', async () => {
+      (db.select as jest.Mock).mockReturnValue({
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockResolvedValue([{ feature: 'agents' }, { feature: 'workflows' }]),
+        }),
+      });
+      const values = jest.fn().mockResolvedValue(undefined);
+      (db.insert as jest.Mock).mockReturnValue({ values });
+
+      await SubscriptionService.initializeUsageTracking('user-123', 'trial');
+
+      const inserted = values.mock.calls.map((c) => c[0].feature).sort();
+      expect(inserted).toEqual(['agi_messages', 'api_calls']);
+      expect(values.mock.calls[0][0]).toMatchObject({ userId: 'user-123', count: 0 });
+      expect(typeof values.mock.calls[0][0].id).toBe('string');
+    });
+  });
 });

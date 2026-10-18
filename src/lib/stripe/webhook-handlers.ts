@@ -4,6 +4,8 @@ import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { prodSubscriptions } from '@/lib/db/schema/subscriptions-prod';
 import { stripe, STRIPE_PLANS } from '@/lib/stripe/stripe';
+import { SubscriptionService } from '@/lib/subscription/service';
+import { invalidateSubscriptionCache } from '@/lib/cache/subscription-cache';
 
 /**
  * Stripe webhook handlers. Kept out of the route file so they can be unit/integration
@@ -102,6 +104,7 @@ function userStatus(s: string): string {
 
 async function updateUser(userId: string, values: Partial<typeof users.$inferInsert>) {
   await db.update(users).set({ ...values, updatedAt: new Date() }).where(eq(users.id, userId));
+  invalidateSubscriptionCache(userId);
 }
 
 export async function handleCheckoutCompleted(
@@ -148,6 +151,8 @@ export async function handleCheckoutCompleted(
     ...(customerId ? { stripeCustomerId: customerId } : {}),
   });
 
+  await SubscriptionService.updateUsageLimits(userId, plan);
+
   console.log(`Subscription created for user ${userId}: ${plan}`);
 }
 
@@ -173,6 +178,8 @@ export async function handleSubscriptionUpdate(subscription: Stripe.Subscription
     .where(eq(prodSubscriptions.userId, userId));
 
   await updateUser(userId, { subscriptionTier: plan, subscriptionStatus: userStatus(status) });
+  // Paid limits while active/past_due; trial limits once Stripe reports canceled.
+  await SubscriptionService.updateUsageLimits(userId, status === 'canceled' ? 'trial' : plan);
 
   console.log(`Subscription updated for user ${userId}: ${plan} (${status})`);
 }
@@ -191,6 +198,7 @@ export async function handleSubscriptionDeleted(subscription: Stripe.Subscriptio
     .where(eq(prodSubscriptions.userId, userId));
 
   await updateUser(userId, { subscriptionStatus: 'cancelled' });
+  await SubscriptionService.updateUsageLimits(userId, 'trial');
 
   console.log(`Subscription canceled for user ${userId}`);
 }
