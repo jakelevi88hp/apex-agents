@@ -20,6 +20,7 @@ export type Entitlement = {
   plan: SubscriptionPlan; // plan whose limits apply right now
   paidActive: boolean;
   trialExpired: boolean; // true => creation and new runs are blocked
+  isAdmin: boolean; // role=admin is exempt from trial expiry only (caps unchanged)
 };
 
 /** Read straight from users (uncached) so a webhook upgrade takes effect immediately. */
@@ -29,6 +30,7 @@ export async function getEntitlement(userId: string): Promise<Entitlement> {
       tier: users.subscriptionTier,
       status: users.subscriptionStatus,
       trialEndDate: users.trialEndDate,
+      role: users.role,
     })
     .from(users)
     .where(eq(users.id, userId))
@@ -40,12 +42,17 @@ export async function getEntitlement(userId: string): Promise<Entitlement> {
 
   const paidActive =
     (u.tier === 'premium' || u.tier === 'pro') && (u.status === 'active' || u.status === 'past_due');
-  const trialExpired = !paidActive && !!u.trialEndDate && u.trialEndDate.getTime() < Date.now();
+  const isAdmin = u.role === 'admin';
+  // Admins are exempt from trial expiry only. Their plan (and therefore the concurrent
+  // caps when enabled, and the monthly AI-message cap) is unchanged.
+  const trialExpired =
+    !isAdmin && !paidActive && !!u.trialEndDate && u.trialEndDate.getTime() < Date.now();
 
   return {
     plan: paidActive ? (u.tier as SubscriptionPlan) : 'trial',
     paidActive,
     trialExpired,
+    isAdmin,
   };
 }
 

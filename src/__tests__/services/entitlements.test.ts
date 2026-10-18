@@ -7,7 +7,7 @@ import { db } from '@/lib/db';
 jest.mock('@/lib/db', () => ({ db: { select: jest.fn() } }));
 
 const DAY = 24 * 60 * 60 * 1000;
-type U = { tier: string | null; status: string | null; trialEndDate: Date | null };
+type U = { tier: string | null; status: string | null; trialEndDate: Date | null; role?: string };
 
 function mockUser(u: U | undefined, rowCount?: number) {
   (db.select as jest.Mock).mockReturnValueOnce({
@@ -45,11 +45,11 @@ describe('entitlements', () => {
 
   it('classifies trial / expired / paid users', async () => {
     mockUser(activeTrial);
-    expect(await getEntitlement('u')).toEqual({ plan: 'trial', paidActive: false, trialExpired: false });
+    expect(await getEntitlement('u')).toEqual({ plan: 'trial', paidActive: false, trialExpired: false, isAdmin: false });
     mockUser(expiredTrial);
-    expect(await getEntitlement('u')).toEqual({ plan: 'trial', paidActive: false, trialExpired: true });
+    expect(await getEntitlement('u')).toEqual({ plan: 'trial', paidActive: false, trialExpired: true, isAdmin: false });
     mockUser(paidPremium);
-    expect(await getEntitlement('u')).toEqual({ plan: 'premium', paidActive: true, trialExpired: false });
+    expect(await getEntitlement('u')).toEqual({ plan: 'premium', paidActive: true, trialExpired: false, isAdmin: false });
     mockUser({ tier: 'pro', status: 'canceled', trialEndDate: new Date(Date.now() - DAY) });
     expect(await getEntitlement('u')).toMatchObject({ plan: 'trial', trialExpired: true });
   });
@@ -59,6 +59,19 @@ describe('entitlements', () => {
     await expect(assertCanRun('u')).rejects.toMatchObject({ code: 'FORBIDDEN', message: expect.stringContaining('/pricing') });
     mockUser(expiredTrial);
     await expect(assertCanCreate('u', 'agents')).rejects.toMatchObject({ code: 'FORBIDDEN' });
+  });
+
+  it('admin is exempt from trial expiry only; caps still apply when flag ON', async () => {
+    const expiredAdmin: U = { ...expiredTrial, role: 'admin' };
+    mockUser(expiredAdmin);
+    expect(await getEntitlement('u')).toEqual({ plan: 'trial', paidActive: false, trialExpired: false, isAdmin: true });
+    mockUser(expiredAdmin);
+    await expect(assertCanRun('u')).resolves.toMatchObject({ isAdmin: true });
+    mockUser(expiredAdmin);
+    await expect(assertCanCreate('u', 'agents')).resolves.toBeUndefined();
+    process.env.ENFORCE_CONCURRENT_LIMITS = 'true';
+    mockUser(expiredAdmin, 10);
+    await expect(assertCanCreate('u', 'agents')).rejects.toMatchObject({ code: 'FORBIDDEN', message: expect.stringContaining('10/10') });
   });
 
   it('flag OFF: no row count, creation allowed', async () => {
