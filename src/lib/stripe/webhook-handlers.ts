@@ -25,6 +25,57 @@ function planFromPriceId(priceId: string | undefined): Plan {
   return 'premium';
 }
 
+const asPlan = (v: unknown): Plan | null => (v === 'pro' || v === 'premium' ? v : null);
+
+/** Tier declared on the price itself or on its (expanded) product. */
+function tierFromPrice(price: Stripe.Price | null | undefined): Plan | null {
+  if (!price) return null;
+  const product = typeof price.product === 'object' && price.product && !('deleted' in price.product && price.product.deleted)
+    ? (price.product as Stripe.Product)
+    : null;
+  return asPlan(price.metadata?.tier) ?? asPlan(product?.metadata?.tier);
+}
+
+/** price id -> plan, only for metadata-resolved tiers (prices are immutable w.r.t. product). */
+const planCache = new Map<string, Plan>();
+export function clearPlanCache() {
+  planCache.clear();
+}
+
+/**
+ * Resolve the plan for a subscription price:
+ *   1. price.metadata.tier / expanded product.metadata.tier (no API call)
+ *   2. cache by price id
+ *   3. stripe.prices.retrieve(id, { expand: ['product'] }) -> same metadata check (1 call, then cached)
+ *   4. fallback: env price IDs (legacy planFromPriceId, defaults to premium)
+ * A Stripe error in step 3 falls through to step 4 instead of failing the webhook.
+ */
+export async function resolvePlan(
+  price: Stripe.Price | null | undefined,
+  retrievePrice: (id: string) => Promise<Stripe.Price> = (id) => stripe.prices.retrieve(id, { expand: ['product'] }),
+): Promise<Plan> {
+  const id = price?.id;
+  const direct = tierFromPrice(price);
+  if (direct) {
+    if (id) planCache.set(id, direct);
+    return direct;
+  }
+  if (!id) return planFromPriceId(undefined);
+  const cached = planCache.get(id);
+  if (cached) return cached;
+  try {
+    const fetched = tierFromPrice(await retrievePrice(id));
+    if (fetched) {
+      planCache.set(id, fetched);
+      return fetched;
+    }
+    console.warn(`[stripe] price ${id} has no metadata.tier on price or product; using env price IDs`);
+  } catch (err) {
+    console.error(`[stripe] could not retrieve price ${id} for tier; using env price IDs`, err);
+  }
+  return planFromPriceId(id);
+}
+
 function periodsOf(subscription: Stripe.Subscription) {
   // current_period_* moved to the subscription item in newer Stripe API versions.
   const top = subscription as unknown as Periods;
@@ -55,7 +106,8 @@ async function updateUser(userId: string, values: Partial<typeof users.$inferIns
 
 export async function handleCheckoutCompleted(
   session: Stripe.Checkout.Session,
-  retrieveSubscription: (id: string) => Promise<Stripe.Subscription> = (id) => stripe.subscriptions.retrieve(id),
+  retrieveSubscription: (id: string) => Promise<Stripe.Subscription> = (id) =>
+    stripe.subscriptions.retrieve(id, { expand: ['items.data.price.product'] }),
 ) {
   const userId = session.metadata?.userId;
   const customerId = typeof session.customer === 'string' ? session.customer : session.customer?.id;
@@ -67,8 +119,7 @@ export async function handleCheckoutCompleted(
 
   const subscriptionId = session.subscription as string;
   const subscription = await retrieveSubscription(subscriptionId);
-  const priceId = subscription.items.data[0]?.price.id;
-  const plan = planFromPriceId(priceId);
+  const plan = await resolvePlan(subscription.items.data[0]?.price);
   const periods = periodsOf(subscription);
 
   const [existing] = await db
@@ -108,7 +159,7 @@ export async function handleSubscriptionUpdate(subscription: Stripe.Subscription
     return;
   }
 
-  const plan = planFromPriceId(subscription.items.data[0]?.price.id);
+  const plan = await resolvePlan(subscription.items.data[0]?.price);
   const status = subscriptionStatus(subscription.status);
 
   await db
