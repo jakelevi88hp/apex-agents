@@ -179,12 +179,14 @@ export async function ensureStripeProducts() {
       currency: 'usd',
       unit_amount: STRIPE_PLANS.premium.amount,
       recurring: { interval: 'month' },
+      metadata: { tier: 'premium' },
     });
     const yearlyPrice = await stripe.prices.create({
       product: product.id,
       currency: 'usd',
       unit_amount: STRIPE_PLANS.premium.yearlyAmount,
       recurring: { interval: 'year' },
+      metadata: { tier: 'premium' },
     });
 
     premiumPriceId = monthlyPrice.id;
@@ -204,6 +206,7 @@ export async function ensureStripeProducts() {
         currency: 'usd',
         unit_amount: STRIPE_PLANS.premium.yearlyAmount,
         recurring: { interval: 'year' },
+        metadata: { tier: 'premium' },
       });
       premiumYearlyPriceId = newYearly.id;
       console.log('Created missing Premium yearly price:', newYearly.id);
@@ -223,12 +226,14 @@ export async function ensureStripeProducts() {
       currency: 'usd',
       unit_amount: STRIPE_PLANS.pro.amount,
       recurring: { interval: 'month' },
+      metadata: { tier: 'pro' },
     });
     const yearlyPrice = await stripe.prices.create({
       product: product.id,
       currency: 'usd',
       unit_amount: STRIPE_PLANS.pro.yearlyAmount,
       recurring: { interval: 'year' },
+      metadata: { tier: 'pro' },
     });
 
     proPriceId = monthlyPrice.id;
@@ -248,6 +253,7 @@ export async function ensureStripeProducts() {
         currency: 'usd',
         unit_amount: STRIPE_PLANS.pro.yearlyAmount,
         recurring: { interval: 'year' },
+        metadata: { tier: 'pro' },
       });
       proYearlyPriceId = newYearly.id;
       console.log('Created missing Pro yearly price:', newYearly.id);
