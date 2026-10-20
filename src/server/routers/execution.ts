@@ -1,9 +1,11 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
+import { requireCanRun } from '../middleware/subscription';
 import { executeAgent, getExecutionHistory, getExecution } from '@/lib/agent-execution/executor';
 
 export const executionRouter = router({
   execute: protectedProcedure
+    .use(requireCanRun)
     .input(z.object({
       agentId: z.string().uuid(),
       input: z.string().min(1),
