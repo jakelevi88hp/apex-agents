@@ -1,7 +1,7 @@
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { workflows, executions } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { and, eq, desc } from 'drizzle-orm';
 import { getWorkflowExecutor } from '@/lib/workflow-engine/executor';
 import { requireCanCreate, requireCanRun } from '../middleware/subscription';
 
@@ -66,7 +66,7 @@ export const workflowsRouter = router({
       const [execution] = await ctx.db
         .select()
         .from(executions)
-        .where(eq(executions.id, input.executionId));
+        .where(and(eq(executions.id, input.executionId), eq(executions.userId, ctx.userId!)));
 
       if (!execution) {
         throw new Error('Execution not found');
@@ -84,7 +84,7 @@ export const workflowsRouter = router({
       return await ctx.db
         .select()
         .from(executions)
-        .where(eq(executions.workflowId, input.workflowId))
+        .where(and(eq(executions.workflowId, input.workflowId), eq(executions.userId, ctx.userId!)))
         .orderBy(desc(executions.startedAt))
         .limit(input.limit);
     }),
@@ -97,7 +97,7 @@ export const workflowsRouter = router({
       const [workflow] = await ctx.db
         .select()
         .from(workflows)
-        .where(eq(workflows.id, input.id));
+        .where(and(eq(workflows.id, input.id), eq(workflows.userId, ctx.userId!)));
 
       if (!workflow) {
         throw new Error('Workflow not found');
@@ -125,7 +125,7 @@ export const workflowsRouter = router({
           ...updates,
           updatedAt: new Date(),
         })
-        .where(eq(workflows.id, id))
+        .where(and(eq(workflows.id, id), eq(workflows.userId, ctx.userId!)))
         .returning();
 
       if (!workflow) {
@@ -140,9 +140,14 @@ export const workflowsRouter = router({
       id: z.string().uuid(),
     }))
     .mutation(async ({ ctx, input }) => {
-      await ctx.db
+      const deleted = await ctx.db
         .delete(workflows)
-        .where(eq(workflows.id, input.id));
+        .where(and(eq(workflows.id, input.id), eq(workflows.userId, ctx.userId!)))
+        .returning({ id: workflows.id });
+
+      if (deleted.length === 0) {
+        throw new Error('Workflow not found');
+      }
 
       return { success: true };
     }),

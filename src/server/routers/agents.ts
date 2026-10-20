@@ -7,6 +7,11 @@ import { requireCanCreate, requireCanRun } from '../middleware/subscription';
 import { TRPCError } from '@trpc/server';
 import { and } from 'drizzle-orm';
 
+// Every by-id query is scoped to the caller: a row owned by someone else is
+// treated exactly like a missing row.
+const ownAgent = (id: string, userId: string) => and(eq(agents.id, id), eq(agents.userId, userId));
+const ownAgents = (ids: string[], userId: string) => and(inArray(agents.id, ids), eq(agents.userId, userId));
+
 export const agentsRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.db.select().from(agents).where(eq(agents.userId, ctx.userId!));
@@ -15,7 +20,7 @@ export const agentsRouter = router({
   get: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const [agent] = await ctx.db.select().from(agents).where(eq(agents.id, input.id));
+      const [agent] = await ctx.db.select().from(agents).where(ownAgent(input.id, ctx.userId!));
       return agent;
     }),
 
@@ -50,8 +55,9 @@ export const agentsRouter = router({
       const { id, ...updates } = input;
       const [updated] = await ctx.db.update(agents)
         .set({ ...updates, updatedAt: new Date() })
-        .where(eq(agents.id, id))
+        .where(ownAgent(id, ctx.userId!))
         .returning();
+      if (!updated) throw new TRPCError({ code: 'NOT_FOUND', message: 'Agent not found' });
       return updated;
     }),
 
@@ -115,7 +121,7 @@ export const agentsRouter = router({
       context: z.record(z.string(), z.any()).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const [agent] = await ctx.db.select().from(agents).where(eq(agents.id, input.agentId));
+      const [agent] = await ctx.db.select().from(agents).where(ownAgent(input.agentId, ctx.userId!));
       
       if (!agent) throw new Error('Agent not found');
 
@@ -191,7 +197,7 @@ export const agentsRouter = router({
     .query(async ({ ctx, input }) => {
       return await ctx.db.select()
         .from(executions)
-        .where(eq(executions.agentId, input.agentId))
+        .where(and(eq(executions.agentId, input.agentId), eq(executions.userId, ctx.userId!)))
         .orderBy(desc(executions.startedAt))
         .limit(50);
     }),
@@ -204,11 +210,13 @@ export const agentsRouter = router({
         return { success: true, count: 0 };
       }
 
-      // Delete agents in a transaction
+      // Only the caller's own agents; ids owned by anyone else count as failed.
+      const owned = await ctx.db.select({ id: agents.id }).from(agents)
+        .where(ownAgents(input.ids, ctx.userId!));
       const results = await Promise.all(
-        input.ids.map(id => 
-          ctx.db.delete(agents)
-            .where(eq(agents.id, id))
+        owned.map(({ id }) =>
+          ctx.db.delete(executions).where(eq(executions.agentId, id))
+            .then(() => ctx.db.delete(agents).where(ownAgent(id, ctx.userId!)))
             .catch(err => {
               console.error(`Failed to delete agent ${id}:`, err);
               return null;
@@ -235,7 +243,7 @@ export const agentsRouter = router({
         input.ids.map(id =>
           ctx.db.update(agents)
             .set({ status: input.status, updatedAt: new Date() })
-            .where(eq(agents.id, id))
+            .where(ownAgent(id, ctx.userId!))
             .returning()
             .catch(err => {
               console.error(`Failed to update agent ${id}:`, err);
@@ -244,14 +252,14 @@ export const agentsRouter = router({
         )
       );
 
-      const successCount = results.filter(r => r !== null).length;
+      const successCount = results.filter(r => r !== null && r.length > 0).length;
       return { success: true, count: successCount, failed: input.ids.length - successCount };
     }),
 
   toggleStatus: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const [agent] = await ctx.db.select().from(agents).where(eq(agents.id, input.id)).limit(1);
+      const [agent] = await ctx.db.select().from(agents).where(ownAgent(input.id, ctx.userId!)).limit(1);
       
       if (!agent) {
         throw new Error('Agent not found');
@@ -261,7 +269,7 @@ export const agentsRouter = router({
       const [updated] = await ctx.db
         .update(agents)
         .set({ status: newStatus, updatedAt: new Date() })
-        .where(eq(agents.id, input.id))
+        .where(ownAgent(input.id, ctx.userId!))
         .returning();
 
       return updated;
@@ -271,7 +279,7 @@ export const agentsRouter = router({
     .use(requireCanCreate('agents'))
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const [originalAgent] = await ctx.db.select().from(agents).where(eq(agents.id, input.id)).limit(1);
+      const [originalAgent] = await ctx.db.select().from(agents).where(ownAgent(input.id, ctx.userId!)).limit(1);
       
       if (!originalAgent) {
         throw new Error('Agent not found');

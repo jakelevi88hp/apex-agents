@@ -7,7 +7,7 @@
 
 import { db } from '@/lib/db';
 import { executions, executionSteps, workflows, agents } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { OpenAI } from 'openai';
 
 interface WorkflowStep {
@@ -62,7 +62,7 @@ export class WorkflowExecutor {
       const workflow = await db
         .select()
         .from(workflows)
-        .where(eq(workflows.id, context.workflowId))
+        .where(and(eq(workflows.id, context.workflowId), eq(workflows.userId, context.userId)))
         .limit(1);
 
       if (!workflow[0]) {

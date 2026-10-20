@@ -3,7 +3,7 @@
 import OpenAI from 'openai';
 import { db } from '@/lib/db';
 import { agents, executions } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 // Lazy initialization to avoid build-time errors
 let openaiInstance: OpenAI | null = null;
@@ -45,7 +45,7 @@ export async function executeAgent(config: ExecutionConfig): Promise<ExecutionRe
 
   try {
     // Fetch agent configuration from database
-    const [agent] = await db.select().from(agents).where(eq(agents.id, config.agentId)).limit(1);
+    const [agent] = await db.select().from(agents).where(and(eq(agents.id, config.agentId), eq(agents.userId, config.userId))).limit(1);
 
     if (!agent) {
       throw new Error(`Agent not found: ${config.agentId}`);
@@ -149,7 +149,7 @@ export async function* executeAgentStream(config: ExecutionConfig): AsyncGenerat
 
   try {
     // Fetch agent configuration
-    const [agent] = await db.select().from(agents).where(eq(agents.id, config.agentId)).limit(1);
+    const [agent] = await db.select().from(agents).where(and(eq(agents.id, config.agentId), eq(agents.userId, config.userId))).limit(1);
 
     if (!agent) {
       throw new Error(`Agent not found: ${config.agentId}`);
@@ -233,10 +233,10 @@ export async function* executeAgentStream(config: ExecutionConfig): AsyncGenerat
 /**
  * Get execution history for an agent
  */
-export async function getExecutionHistory(agentId: string, limit: number = 10) {
+export async function getExecutionHistory(agentId: string, userId: string, limit: number = 10) {
   const { desc } = await import('drizzle-orm');
   return await db.select().from(executions)
-    .where(eq(executions.agentId, agentId))
+    .where(and(eq(executions.agentId, agentId), eq(executions.userId, userId)))
     .orderBy(desc(executions.startedAt))
     .limit(limit);
 }
@@ -244,7 +244,8 @@ export async function getExecutionHistory(agentId: string, limit: number = 10) {
 /**
  * Get execution by ID
  */
-export async function getExecution(executionId: string) {
-  const [execution] = await db.select().from(executions).where(eq(executions.id, executionId)).limit(1);
+export async function getExecution(executionId: string, userId: string) {
+  const [execution] = await db.select().from(executions)
+    .where(and(eq(executions.id, executionId), eq(executions.userId, userId))).limit(1);
   return execution;
 }

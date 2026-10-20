@@ -25,8 +25,8 @@ export const executionRouter = router({
       agentId: z.string().uuid(),
       limit: z.number().min(1).max(100).optional(),
     }))
-    .query(async ({ input }) => {
-      return await getExecutionHistory(input.agentId, input.limit);
+    .query(async ({ input, ctx }) => {
+      return await getExecutionHistory(input.agentId, ctx.userId!, input.limit);
     }),
 
   getByAgent: protectedProcedure
@@ -34,16 +34,16 @@ export const executionRouter = router({
       agentId: z.string().uuid(),
       limit: z.number().min(1).max(100).optional().default(50),
     }))
-    .query(async ({ input }) => {
-      return await getExecutionHistory(input.agentId, input.limit);
+    .query(async ({ input, ctx }) => {
+      return await getExecutionHistory(input.agentId, ctx.userId!, input.limit);
     }),
 
   getById: protectedProcedure
     .input(z.object({
       executionId: z.string().uuid(),
     }))
-    .query(async ({ input }) => {
-      return await getExecution(input.executionId);
+    .query(async ({ input, ctx }) => {
+      return await getExecution(input.executionId, ctx.userId!);
     }),
 });
 
