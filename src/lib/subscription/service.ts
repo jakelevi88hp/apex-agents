@@ -103,7 +103,8 @@ export class SubscriptionService {
    */
   static getNextResetDate(): Date {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    // UTC month boundary so the reset does not depend on the server time zone.
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
   }
 
   /**

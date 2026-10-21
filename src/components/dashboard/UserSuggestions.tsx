@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactElement } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Sparkles, RefreshCcw, Check, X, Lightbulb } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 
@@ -21,7 +21,11 @@ export function UserSuggestionsPanel(): ReactElement {
     data: suggestions,
     isLoading,
     isFetching,
-  } = trpc.suggestions.list.useQuery({ limit: 12 });
+    isError: listFailed,
+  } = trpc.suggestions.list.useQuery({ limit: 12 }, { retry: false });
+
+  // Auto-generate at most once per mount so a failing endpoint is not hammered.
+  const autoGenerateAttempted = useRef(false);
 
   // Prepare mutation that generates a fresh batch of suggestions.
   const generateMutation = trpc.suggestions.generate.useMutation({
@@ -42,12 +46,14 @@ export function UserSuggestionsPanel(): ReactElement {
   // Auto-generate suggestions on first load if none exist yet.
   useEffect(() => {
     // Guard against repeated calls while a generation request is already active.
-    if (isLoading || generateMutation.isPending) return;
+    if (isLoading || listFailed || generateMutation.isPending) return;
+    if (autoGenerateAttempted.current) return;
     // Trigger generation only when no suggestions are available.
     if (!suggestions || suggestions.length === 0) {
+      autoGenerateAttempted.current = true;
       generateMutation.mutate({ refreshExisting: false });
     }
-  }, [isLoading, suggestions, generateMutation]);
+  }, [isLoading, listFailed, suggestions, generateMutation]);
 
   /**
    * Trigger server-side status update for a suggestion.
@@ -74,6 +80,11 @@ export function UserSuggestionsPanel(): ReactElement {
     // Multiply by 100 because values are stored between 0 and 1.
     return `${Math.round(parsed * 100)}%`;
   };
+
+  // Fail quietly: if suggestions cannot be loaded or generated, render nothing.
+  if (listFailed || generateMutation.isError) {
+    return <></>;
+  }
 
   return (
     <section className="space-y-4">
