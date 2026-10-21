@@ -1,6 +1,6 @@
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
-import { agents, executions } from '@/lib/db/schema';
+import { agents, executions, executionSteps } from '@/lib/db/schema';
 import { eq, desc, inArray } from 'drizzle-orm';
 import { AgentFactory, type AgentType } from '@/lib/ai/agents';
 import { requireCanCreate, requireCanRun } from '../middleware/subscription';
@@ -11,6 +11,15 @@ import { and } from 'drizzle-orm';
 // treated exactly like a missing row.
 const ownAgent = (id: string, userId: string) => and(eq(agents.id, id), eq(agents.userId, userId));
 const ownAgents = (ids: string[], userId: string) => and(inArray(agents.id, ids), eq(agents.userId, userId));
+
+// Atomic delete of one owned agent. execution_steps rows from other
+// executions that point at the agent are detached (agent_id = NULL), never
+// deleted, so workflow run history survives.
+const deleteAgentOps = (db: any, id: string, userId: string) => [
+  db.update(executionSteps).set({ agentId: null }).where(eq(executionSteps.agentId, id)),
+  db.delete(executions).where(and(eq(executions.agentId, id), eq(executions.userId, userId))),
+  db.delete(agents).where(ownAgent(id, userId)),
+] as const;
 
 export const agentsRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -89,12 +98,10 @@ export const agentsRouter = router({
         
         // First, delete all executions associated with this agent (cascade delete)
         console.log(`[Agent Delete] Deleting associated executions for agent ${agentId}`);
-        const executionDeleteResult = await ctx.db.delete(executions).where(eq(executions.agentId, agentId));
-        console.log(`[Agent Delete] Deleted executions for agent ${agentId}`);
-        
-        // Now delete the agent
-        console.log(`[Agent Delete] Deleting agent ${agentId}`);
-        const deleteResult = await ctx.db.delete(agents).where(eq(agents.id, agentId));
+        // In one atomic batch: detach workflow step history that references
+        // this agent (kept as run history), delete the agent's own
+        // executions, then delete the agent.
+        await ctx.db.batch(deleteAgentOps(ctx.db, agentId, userId!));
         console.log(`[Agent Delete] Delete operation completed for agent ${agentId}`);
         
         // Verify deletion
@@ -215,8 +222,7 @@ export const agentsRouter = router({
         .where(ownAgents(input.ids, ctx.userId!));
       const results = await Promise.all(
         owned.map(({ id }) =>
-          ctx.db.delete(executions).where(eq(executions.agentId, id))
-            .then(() => ctx.db.delete(agents).where(ownAgent(id, ctx.userId!)))
+          ctx.db.batch(deleteAgentOps(ctx.db, id, ctx.userId!))
             .catch(err => {
               console.error(`Failed to delete agent ${id}:`, err);
               return null;

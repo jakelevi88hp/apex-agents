@@ -115,11 +115,16 @@ export class WorkflowExecutor {
             durationMs: 0,
           });
         } catch (error: any) {
-          // Record failed step
+          // Record failed step. Don't reference an agent the lookup couldn't
+          // resolve for this user (missing or owned by someone else).
+          const agentResolved = step.agentId
+            ? (await db.select({ id: agents.id }).from(agents)
+                .where(and(eq(agents.id, step.agentId), eq(agents.userId, context.userId))).limit(1)).length > 0
+            : false;
           await db.insert(executionSteps).values({
             executionId,
             stepIndex: i,
-            agentId: step.agentId,
+            agentId: agentResolved ? step.agentId : null,
             status: 'failed',
             inputData: step.config,
             errorMessage: error.message,
@@ -223,7 +228,7 @@ export class WorkflowExecutor {
     const agent = await db
       .select()
       .from(agents)
-      .where(eq(agents.id, step.agentId))
+      .where(and(eq(agents.id, step.agentId), eq(agents.userId, context.userId)))
       .limit(1);
 
     if (!agent[0]) {
