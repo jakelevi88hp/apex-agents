@@ -34,14 +34,14 @@ describe('SubscriptionService', () => {
   });
 
   describe('getNextResetDate', () => {
-    it('should return first day of next month', () => {
+    it('should return first day of next month at 00:00 UTC', () => {
       const date = SubscriptionService.getNextResetDate();
       const now = new Date();
-      const expected = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-      
-      expect(date.getDate()).toBe(1);
-      expect(date.getMonth()).toBe(expected.getMonth());
-      expect(date.getFullYear()).toBe(expected.getFullYear());
+      const expected = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+
+      expect(date.toISOString()).toBe(expected.toISOString());
+      expect(date.getUTCDate()).toBe(1);
+      expect(date.getUTCHours()).toBe(0);
     });
   });
 
