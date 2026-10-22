@@ -146,14 +146,6 @@ export default function PricingPage() {
                     : 'bg-gray-800'
                 } ${isCurrentPlan ? 'ring-4 ring-green-500' : ''}`}
               >
-                {tier.highlighted && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-yellow-400 text-gray-900 px-4 py-1 rounded-full text-sm font-bold">
-                      MOST POPULAR
-                    </span>
-                  </div>
-                )}
-
                 {isCurrentPlan && (
                   <div className="absolute -top-4 right-4">
                     <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold">
@@ -204,6 +196,10 @@ export default function PricingPage() {
                   {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                   {isCurrentPlan ? 'Current Plan' : tier.cta}
                 </button>
+                )}
+
+                {tier.plan === 'trial' && (
+                  <p className="-mt-4 mb-6 text-center text-sm text-gray-400">No credit card required</p>
                 )}
 
                 <ul className="space-y-3">
