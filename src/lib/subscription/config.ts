@@ -54,7 +54,6 @@ export const TRIAL_DURATION_DAYS = 3;
 
 export const PLAN_FEATURES = {
   trial: [
-    'Full access to all features',
     '10 agents',
     '100 AI messages',
     '5 workflows',
