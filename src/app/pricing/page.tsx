@@ -48,7 +48,7 @@ export default function PricingPage() {
       icon: Zap,
       price: 0,
       period: '3 days',
-      description: 'Try all features free for 3 days',
+      description: 'Try Apex Agents free for 3 days',
       features: plans?.trial.features || [],
       cta: isLoggedIn ? 'Current Plan' : 'Start Free Trial →',
       highlighted: false,
