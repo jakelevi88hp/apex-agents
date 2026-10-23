@@ -1,14 +1,14 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Start Your AI Revenue Engine | Apex Agents',
+  title: 'Start Your Free 3-Day Trial | Apex Agents',
   description:
-    'Create an Apex Agents account to scout leads, score prospects, and send personalized outreach for your local business.',
+    'Create your Apex Agents account. 3-day free trial, no credit card required. Scout commercial leads, score them on 9 signals, and send outreach you approve.',
   alternates: { canonical: '/signup' },
   openGraph: {
-    title: 'Start Your AI Revenue Engine | Apex Agents',
+    title: 'Start Your Free 3-Day Trial | Apex Agents',
     description:
-      'Create an Apex Agents account to scout leads, score prospects, and send personalized outreach for your local business.',
+      'Create your Apex Agents account. 3-day free trial, no credit card required. Scout commercial leads, score them on 9 signals, and send outreach you approve.',
     url: '/signup',
     type: 'website',
   },

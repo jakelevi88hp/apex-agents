@@ -5,14 +5,14 @@ import { PRICING_FAQS, pricingFaqAnswerText } from '@/lib/marketing/pricing-faq'
 const SITE_URL = 'https://apex-ai-agent.com';
 
 export const metadata: Metadata = {
-  title: 'Local Business AI Agent Pricing | Apex Agents',
+  title: 'Apex Agents Pricing: Free 3-Day Trial, Plans from $29/mo',
   description:
-    'Plans for the Apex Agents AI revenue engine: scout leads, 9-signal scoring, and personalized outreach for local businesses.',
+    '3-day free trial with no credit card. Premium $29/mo, Pro $99/mo. Scout leads, 9-signal scoring, and personalized outreach for local service businesses.',
   alternates: { canonical: '/pricing' },
   openGraph: {
-    title: 'Local Business AI Agent Pricing | Apex Agents',
+    title: 'Apex Agents Pricing: Free 3-Day Trial, Plans from $29/mo',
     description:
-      'Plans for the Apex Agents AI revenue engine: scout leads, 9-signal scoring, and personalized outreach for local businesses.',
+      '3-day free trial with no credit card. Premium $29/mo, Pro $99/mo. Scout leads, 9-signal scoring, and personalized outreach for local service businesses.',
     url: '/pricing',
     type: 'website',
   },
