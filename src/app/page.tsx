@@ -8,19 +8,19 @@ const SITE_URL = 'https://apex-ai-agent.com';
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'AI Revenue Engine for Local Businesses | Apex Agents',
+    absolute: 'AI Lead Scoring & Outreach for Local Service Businesses | Apex',
   },
   description:
-    'Scout leads, 9-signal scoring, and personalized outreach for local businesses. Indianapolis-built AI revenue engine.',
+    'Find commercial customers near you, score each one on 9 signals, and send outreach that sounds hand-written. Built in Indianapolis. 3-day free trial.',
   keywords:
     'AI agents, local business automation, lead generation, Google reviews, local SEO, autonomous agents',
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'AI Revenue Engine for Local Businesses | Apex Agents',
+    title: 'AI Lead Scoring & Outreach for Local Service Businesses | Apex',
     description:
-      'Scout leads, 9-signal scoring, and personalized outreach for local businesses. Indianapolis-built.',
+      'Find commercial customers near you, score each one on 9 signals, and send outreach that sounds hand-written. Built in Indianapolis. 3-day free trial.',
     url: SITE_URL,
     siteName: 'Apex Agents',
     locale: 'en_US',
@@ -28,34 +28,89 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AI Revenue Engine for Local Businesses | Apex Agents',
+    title: 'AI Lead Scoring & Outreach for Local Service Businesses | Apex',
     description:
-      'Scout leads, 9-signal scoring, and personalized outreach for local businesses. Indianapolis-built.',
+      'Find commercial customers near you, score each one on 9 signals, and send outreach that sounds hand-written. Built in Indianapolis. 3-day free trial.',
   },
   robots: { index: true, follow: true },
 };
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'SoftwareApplication',
-  name: 'Apex Agents',
-  applicationCategory: 'BusinessApplication',
-  description:
-    'AI revenue engine for local businesses. Scout leads, score prospects with 9 signals, and send personalized outreach.',
-  url: SITE_URL,
-  offers: {
-    '@type': 'Offer',
-    url: `${SITE_URL}/pricing`,
-  },
-  publisher: {
-    '@type': 'Organization',
-    name: 'Apex Advantage',
-    url: SITE_URL,
-  },
-  areaServed: {
-    '@type': 'City',
-    name: 'Indianapolis',
-  },
+  '@graph': [
+    {
+      '@type': 'Organization',
+      name: 'Apex Agents',
+      url: SITE_URL,
+      logo: `${SITE_URL}/icon-512x512.svg`,
+      email: 'apexagents@mail.grokbot.com',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Indianapolis',
+        addressRegion: 'IN',
+        addressCountry: 'US',
+      },
+      parentOrganization: {
+        '@type': 'Organization',
+        name: 'Apex Advantage',
+        url: SITE_URL,
+      },
+    },
+    {
+      '@type': 'SoftwareApplication',
+      name: 'Apex Agents',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web',
+      description:
+        'AI lead scouting, 9-signal scoring, and personalized outreach for local service businesses. Built in Indianapolis.',
+      url: SITE_URL,
+      offers: [
+        {
+          '@type': 'Offer',
+          name: 'Free Trial',
+          price: '0',
+          priceCurrency: 'USD',
+          description: '3-day free trial tier, no credit card required',
+          url: `${SITE_URL}/pricing`,
+        },
+        {
+          '@type': 'Offer',
+          name: 'Premium',
+          price: '29',
+          priceCurrency: 'USD',
+          url: `${SITE_URL}/pricing`,
+          priceSpecification: {
+            '@type': 'UnitPriceSpecification',
+            price: '29',
+            priceCurrency: 'USD',
+            billingDuration: 'P1M',
+          },
+        },
+        {
+          '@type': 'Offer',
+          name: 'Pro',
+          price: '99',
+          priceCurrency: 'USD',
+          url: `${SITE_URL}/pricing`,
+          priceSpecification: {
+            '@type': 'UnitPriceSpecification',
+            price: '99',
+            priceCurrency: 'USD',
+            billingDuration: 'P1M',
+          },
+        },
+      ],
+      publisher: {
+        '@type': 'Organization',
+        name: 'Apex Advantage',
+        url: SITE_URL,
+      },
+      areaServed: {
+        '@type': 'City',
+        name: 'Indianapolis',
+      },
+    },
+  ],
 };
 
 const features = [

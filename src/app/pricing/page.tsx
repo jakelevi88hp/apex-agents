@@ -5,9 +5,7 @@ import { Check, Zap, Crown, Rocket, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { getStorageItem } from '@/lib/utils/storage';
 import SiteNav from '@/components/marketing/SiteNav';
-
-// MUST FILL BEFORE SHIP: replace with the real support address.
-const SUPPORT_EMAIL = 'apexagents@mail.grokbot.com';
+import { PRICING_FAQS, SUPPORT_EMAIL } from '@/lib/marketing/pricing-faq';
 
 function subscribeToStorage(onChange: () => void) {
   window.addEventListener('storage', onChange);
@@ -219,37 +217,26 @@ export default function PricingPage() {
         <div className="mt-20 text-center">
           <h2 className="text-3xl font-bold text-white mb-8">Frequently Asked Questions</h2>
           <div className="grid md:grid-cols-2 gap-6 text-left max-w-4xl mx-auto">
-            <div className="bg-gray-800 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-white mb-2">Can I cancel anytime?</h3>
-              <p className="text-gray-300">
-                Yes. For now, cancellations are handled by email. Write to us at{' '}
-                <a href={`mailto:${SUPPORT_EMAIL}`} className="text-purple-400 hover:text-purple-300 font-semibold">{SUPPORT_EMAIL}</a> and we&apos;ll cancel your plan.
-              </p>
-            </div>
-            <div className="bg-gray-800 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-white mb-2">
-                What happens after my trial ends?
-              </h3>
-              <p className="text-gray-300">
-                You&apos;ll be prompted to upgrade to a paid plan. Your data is safe and you can upgrade
-                anytime.
-              </p>
-            </div>
-            <div className="bg-gray-800 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-white mb-2">
-                Can I upgrade or downgrade later?
-              </h3>
-              <p className="text-gray-300">
-                Yes. You can upgrade anytime from this page. To downgrade, email us at{' '}
-                <a href={`mailto:${SUPPORT_EMAIL}`} className="text-purple-400 hover:text-purple-300 font-semibold">{SUPPORT_EMAIL}</a>.
-              </p>
-            </div>
-            <div className="bg-gray-800 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-white mb-2">Questions about billing?</h3>
-              <p className="text-gray-300">
-                Contact us at <a href={`mailto:${SUPPORT_EMAIL}`} className="text-purple-400 hover:text-purple-300 font-semibold">{SUPPORT_EMAIL}</a> and we&apos;ll help.
-              </p>
-            </div>
+            {PRICING_FAQS.map((faq) => (
+              <div key={faq.question} className="bg-gray-800 p-6 rounded-lg">
+                <h3 className="text-xl font-semibold text-white mb-2">{faq.question}</h3>
+                <p className="text-gray-300">
+                  {faq.answerParts.map((part, i) =>
+                    part.type === 'email' ? (
+                      <a
+                        key={i}
+                        href={`mailto:${SUPPORT_EMAIL}`}
+                        className="text-purple-400 hover:text-purple-300 font-semibold"
+                      >
+                        {SUPPORT_EMAIL}
+                      </a>
+                    ) : (
+                      <span key={i}>{part.value}</span>
+                    )
+                  )}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
