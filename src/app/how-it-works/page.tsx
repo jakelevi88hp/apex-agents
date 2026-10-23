@@ -3,15 +3,15 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'How the AI Revenue Engine Works | Apex Agents',
+    absolute: 'How Apex Agents Scouts, Scores, and Drafts Outreach',
   },
   description:
-    'See how Apex Agents scouts local leads, scores them on 9 signals, and builds personalized outreach. Indianapolis-built system for local businesses.',
+    'See how Apex Agents finds local commercial prospects, scores them on 9 signals, and drafts outreach you approve. Built in Indianapolis.',
   alternates: { canonical: '/how-it-works' },
   openGraph: {
-    title: 'How the AI Revenue Engine Works | Apex Agents',
+    title: 'How Apex Agents Scouts, Scores, and Drafts Outreach',
     description:
-      'See how Apex Agents scouts local leads, scores them on 9 signals, and builds personalized outreach.',
+      'See how Apex Agents finds local commercial prospects, scores them on 9 signals, and drafts outreach you approve. Built in Indianapolis.',
     url: '/how-it-works',
     type: 'website',
   },
