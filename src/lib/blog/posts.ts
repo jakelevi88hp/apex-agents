@@ -162,7 +162,7 @@ export const BLOG_POSTS: BlogPost[] = [
       { type: 'h2', text: '6. Follow up on a schedule, not from memory' },
       {
         type: 'p',
-        text: 'Commercial buying is slow. The manager who ignores your first email may be the one who calls in July when their current vendor cannot get there for three days. Most owners stop after one try because follow-ups live in their head instead of on a list.',
+        text: 'Commercial buying is slow. The manager who ignores your first email may be the one who calls in July when their current vendor cannot get there for three days. Many owners stop after one try because follow-ups live in their head instead of on a list.',
       },
       {
         type: 'p',
@@ -186,7 +186,7 @@ export const BLOG_POSTS: BlogPost[] = [
       { type: 'h2', text: 'Where Apex Agents fits' },
       {
         type: 'p',
-        text: 'Steps 3, 4, and 6 are where most owners run out of time, because prospecting competes with billable calls. Apex Agents was built to run that loop for our own Indianapolis 24-hour shop. Agents scout local businesses in the niche and city you choose, [score each prospect on nine public signals](/how-it-works) such as review recency, owner response rate, and listing completeness, and draft personalized outreach. You review, edit, or hold every draft before anything is sent, and follow-ups stay on a schedule.',
+        text: 'Steps 3, 4, and 6 are where most owners run out of time, because prospecting competes with billable calls. Apex Agents is built to run that loop for trade shops. Agents scout local businesses in the niche and city you choose, [score each prospect on nine public signals](/how-it-works) such as review recency, owner response rate, and listing completeness, and draft personalized outreach. You review, edit, or hold every draft before anything is sent, and follow-ups stay on a schedule.',
       },
       {
         type: 'p',
