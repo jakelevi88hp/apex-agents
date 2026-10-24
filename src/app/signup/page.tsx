@@ -58,9 +58,15 @@ export default function SignupPage() {
       <div className="max-w-md w-full bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-white/20">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">Join Apex Agents</h1>
-          <p className="text-gray-300">Create your account and start building intelligent agents</p>
+          <p className="text-gray-300">Create your account and start finding, scoring, and reaching local leads</p>
           <p className="mt-3 text-sm font-semibold text-purple-200">
             Start with a 3-day free trial. No credit card required.
+          </p>
+          <p className="mt-1 text-xs text-gray-400">
+            Plans from $29/mo after your trial.{' '}
+            <Link href="/pricing" className="text-purple-300 hover:text-purple-200 underline">
+              See pricing
+            </Link>
           </p>
         </div>
 
@@ -136,13 +142,22 @@ export default function SignupPage() {
             disabled={signupMutation.isPending}
             className="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {signupMutation.isPending ? 'Creating Account...' : 'Create Account'}
+            {signupMutation.isPending ? 'Creating Account...' : 'Start My Free Trial'}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-gray-300 text-sm">
-            By signing up, you agree to our Terms of Service and Privacy Policy
+            By signing up, you agree to our{' '}
+            <Link href="/terms" className="text-purple-300 hover:text-purple-200 underline">Terms of Service</Link>
+            {' '}and{' '}
+            <Link href="/privacy" className="text-purple-300 hover:text-purple-200 underline">Privacy Policy</Link>
+          </p>
+          <p className="mt-2 text-gray-400 text-sm">
+            Questions? Email{' '}
+            <a href="mailto:apexagents@mail.grokbot.com" className="text-purple-300 hover:text-purple-200 underline">
+              apexagents@mail.grokbot.com
+            </a>
           </p>
         </div>
 

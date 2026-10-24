@@ -48,7 +48,7 @@ export default function PricingPage() {
       period: '3 days',
       description: 'Try Apex Agents free for 3 days',
       features: plans?.trial.features || [],
-      cta: isLoggedIn ? 'Current Plan' : 'Start Free Trial →',
+      cta: isLoggedIn ? 'Current Plan' : 'Start 3-Day Free Trial →',
       highlighted: false,
       plan: 'trial' as const,
     },
@@ -91,7 +91,13 @@ export default function PricingPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-white mb-4">Choose Your Plan</h1>
-          <p className="text-xl text-gray-300 mb-8">Start with a 3-day free trial. Upgrade anytime.</p>
+          <p className="text-xl text-gray-300 mb-3">Start with a 3-day free trial. No credit card required. Upgrade anytime.</p>
+          <p className="text-sm text-gray-400 mb-8">
+            Questions before you start? Email{' '}
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="text-purple-400 hover:text-purple-300 font-semibold">
+              {SUPPORT_EMAIL}
+            </a>
+          </p>
 
           {/* Billing Toggle */}
           <div className="inline-flex items-center bg-gray-800 rounded-lg p-1">
@@ -177,7 +183,7 @@ export default function PricingPage() {
                         : 'bg-purple-600 text-white hover:bg-purple-700'
                     }`}
                   >
-                    {tier.cta}
+                    {tier.plan === 'trial' ? tier.cta : `Start Free, Then ${tier.name}`}
                   </Link>
                 ) : (
                 <button

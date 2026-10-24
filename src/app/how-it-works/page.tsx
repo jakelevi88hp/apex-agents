@@ -133,6 +133,23 @@ export default function HowItWorksPage() {
             score them on nine signals, and draft outreach you would actually send — so you
             spend time closing, not hunting.
           </p>
+          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/signup"
+              className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg transition-all shadow-lg shadow-purple-900/50"
+            >
+              Start 3-Day Free Trial →
+            </Link>
+            <Link
+              href="/pricing"
+              className="px-8 py-4 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 font-semibold text-lg transition-all"
+            >
+              View pricing →
+            </Link>
+          </div>
+          <p className="mt-5 text-sm text-gray-400">
+            No credit card required. Plans from $29/mo after your trial.
+          </p>
         </div>
       </section>
 
@@ -200,7 +217,7 @@ export default function HowItWorksPage() {
                 href="/signup"
                 className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg transition-all shadow-lg shadow-purple-900/50"
               >
-                Start free today →
+                Start 3-day free trial →
               </Link>
               <Link
                 href="/pricing"
@@ -221,6 +238,8 @@ export default function HowItWorksPage() {
           </Link>
           <p className="text-gray-600 text-sm">&copy; {new Date().getFullYear()} Apex Advantage. All rights reserved.</p>
           <div className="flex items-center gap-6 text-sm text-gray-500">
+            <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
+            <a href="mailto:apexagents@mail.grokbot.com" className="hover:text-white transition-colors">Contact</a>
             <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
             <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>
