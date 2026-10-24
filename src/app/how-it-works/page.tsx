@@ -135,8 +135,8 @@ export default function HowItWorksPage() {
           </p>
           <p className="mt-6 text-sm text-gray-300">
             Commercial prospecting for trade shops: property managers, fleets, and facilities near
-            your shop. You review and approve every message before anything sends. Built by an
-            Indianapolis 24-hour shop.
+            your shop. You review and approve every message before anything sends. Built in
+            Indianapolis.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -162,7 +162,7 @@ export default function HowItWorksPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-black mb-4">Three steps from zero to a live queue</h2>
-            <p className="text-gray-400 text-lg">The same loop we run for our Indianapolis 24-hour shop.</p>
+            <p className="text-gray-400 text-lg">Scout, score, and send on one loop.</p>
           </div>
           <div className="space-y-10">
             {steps.map((item) => (
@@ -211,11 +211,11 @@ export default function HowItWorksPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-3xl blur-xl" />
           <div className="relative rounded-3xl border border-purple-500/20 bg-gray-900/80 p-12 text-center">
             <h2 className="text-3xl md:text-4xl font-black mb-4">
-              Founding users get the system we actually run
+              Founding users get the full production system
             </h2>
             <p className="text-gray-400 text-lg max-w-xl mx-auto mb-10">
-              This stack was built to run our Indianapolis 24-hour shop. Early access means
-              the same scouting, scoring, and outreach loop — not a demo that diverges from production.
+              Apex Agents is built to run the prospecting loop for trade shops. Early access means
+              the full scouting, scoring, and outreach loop in production, not a stripped-down demo.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
