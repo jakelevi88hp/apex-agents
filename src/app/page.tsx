@@ -241,16 +241,34 @@ export default function HomePage() {
             while you focus on closing.
           </p>
 
+          <ul className="flex flex-col md:flex-row gap-2 md:gap-6 justify-center text-sm text-gray-300 mb-10 -mt-4">
+            <li>✓ Commercial prospecting for trade shops: property managers, fleets, and facilities near your shop</li>
+            <li>✓ You review and approve every message before anything sends</li>
+            <li>✓ Built by an Indianapolis 24-hour shop</li>
+          </ul>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup"
               className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg transition-all shadow-lg shadow-purple-900/50">
-              Start Free Today →
+              Start 3-Day Free Trial →
             </Link>
             <Link href="/how-it-works"
               className="px-8 py-4 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 font-semibold text-lg transition-all">
               See How It Works
             </Link>
           </div>
+
+          <p className="mt-5 text-sm text-gray-400">
+            No credit card required. Plans from $29/mo after your trial.{' '}
+            <Link href="/pricing" className="text-purple-400 hover:text-purple-300 font-semibold">
+              See pricing
+            </Link>
+            {' · '}
+            Questions?{' '}
+            <a href="mailto:apexagents@mail.grokbot.com" className="text-purple-400 hover:text-purple-300 font-semibold">
+              apexagents@mail.grokbot.com
+            </a>
+          </p>
         </div>
       </section>
 
@@ -497,13 +515,19 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/signup"
                 className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg transition-all shadow-lg shadow-purple-900/50">
-                Get Started Free &rarr;
+                Start 3-Day Free Trial &rarr;
               </Link>
               <Link href="/pricing"
                 className="px-8 py-4 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 font-semibold text-lg transition-all">
                 View Pricing &rarr;
               </Link>
             </div>
+            <p className="mt-6 text-sm text-gray-500">
+              No credit card required. Questions? Email{' '}
+              <a href="mailto:apexagents@mail.grokbot.com" className="text-purple-400 hover:text-purple-300">
+                apexagents@mail.grokbot.com
+              </a>
+            </p>
           </div>
         </div>
       </section>
@@ -517,6 +541,8 @@ export default function HomePage() {
           <p className="text-gray-600 text-sm">&copy; {new Date().getFullYear()} Apex Advantage. All rights reserved.</p>
           <div className="flex items-center gap-6 text-sm text-gray-500">
             <Link href="/how-it-works" className="hover:text-white transition-colors">How It Works</Link>
+            <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
+            <a href="mailto:apexagents@mail.grokbot.com" className="hover:text-white transition-colors">Contact</a>
             <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
             <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>
