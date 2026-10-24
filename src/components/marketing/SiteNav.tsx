@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 /**
- * Public marketing site header, shared by the home page and /pricing.
+ * Public marketing site header, shared by the home page, /pricing, and /blog.
  * Markup is the original home page nav, with no-wrap added so the
  * logo and buttons stay on one line at 390px phone widths.
  * Section links use "/#..." so they work from any public page and still
@@ -20,6 +20,7 @@ export default function SiteNav() {
           <Link href="/how-it-works" className="hover:text-white transition-colors">How It Works</Link>
           <Link href="/#niches" className="hover:text-white transition-colors">Markets</Link>
           <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
+          <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
           <Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors px-2 sm:px-3 py-2 whitespace-nowrap">

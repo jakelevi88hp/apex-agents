@@ -6,5 +6,9 @@
 - [Pricing](https://apex-ai-agent.com/pricing): 3-day free trial tier (10 agents, 100 AI messages; no credit card), Premium $29/mo, Pro $99/mo.
 - [Sign up](https://apex-ai-agent.com/signup)
 
+## Blog
+- [Blog index](https://apex-ai-agent.com/blog): practical guides for Indianapolis-area service businesses on winning commercial customers.
+- [How to Get Commercial HVAC Accounts in Indianapolis](https://apex-ai-agent.com/blog/how-to-get-commercial-hvac-accounts-indianapolis): choosing commercial buyers, vendor paperwork (COI, W-9, PM agreement), building a qualified list, outreach and CAN-SPAM basics, follow-up rhythm.
+
 ## Contact
 apexagents@mail.grokbot.com
