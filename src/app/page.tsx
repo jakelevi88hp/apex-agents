@@ -244,7 +244,7 @@ export default function HomePage() {
           <ul className="flex flex-col md:flex-row gap-2 md:gap-6 justify-center text-sm text-gray-300 mb-10 -mt-4">
             <li>✓ Commercial prospecting for trade shops: property managers, fleets, and facilities near your shop</li>
             <li>✓ You review and approve every message before anything sends</li>
-            <li>✓ Built by an Indianapolis 24-hour shop</li>
+            <li>✓ Built in Indianapolis</li>
           </ul>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -289,9 +289,9 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black mb-4">
-              Built By Operators,{' '}
+              Built For{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                For Operators
+                Trade Shop Operators
               </span>
             </h2>
             <div className="w-16 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mt-4" />
@@ -300,7 +300,7 @@ export default function HomePage() {
 
             <div className="p-6 rounded-2xl border border-white/5 bg-white/[0.03] hover:border-purple-500/20 transition-all flex flex-col">
               <p className="text-gray-300 text-sm leading-relaxed mb-6 flex-1">
-                This stack was built to run our Indianapolis 24-hour shop. Founding users get the system we actually run: scouting prospects, scoring them, and writing outreach around the clock.
+                Apex Agents is built to run the prospecting loop for trade shops: scouting prospects, scoring them, and writing outreach around the clock.
               </p>
               <div className="flex items-center justify-between mt-auto">
                 <div>
@@ -315,12 +315,12 @@ export default function HomePage() {
 
             <div className="p-6 rounded-2xl border border-white/5 bg-white/[0.03] hover:border-purple-500/20 transition-all flex flex-col">
               <p className="text-gray-300 text-sm leading-relaxed mb-6 flex-1">
-                Proof over promises. Every feature exists because we needed it: 9-signal lead scoring so no time is wasted on tire-kickers, outreach that doesn&apos;t read like a robot wrote it, and scheduling that never forgets to follow up.
+                Proof over promises. Every feature has a job: 9-signal lead scoring so no time is wasted on tire-kickers, outreach that doesn&apos;t read like a robot wrote it, and scheduling that never forgets to follow up.
               </p>
               <div className="flex items-center justify-between mt-auto">
                 <div>
-                  <p className="font-semibold text-sm">The Same Stack We Run</p>
-                  <p className="text-gray-500 text-xs">Every single day</p>
+                  <p className="font-semibold text-sm">One Connected Stack</p>
+                  <p className="text-gray-500 text-xs">Scout, score, send</p>
                 </div>
                 <span className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold">
                   9 lead signals
