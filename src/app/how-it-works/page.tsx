@@ -133,6 +133,11 @@ export default function HowItWorksPage() {
             score them on nine signals, and draft outreach you would actually send — so you
             spend time closing, not hunting.
           </p>
+          <p className="mt-6 text-sm text-gray-300">
+            Commercial prospecting for trade shops: property managers, fleets, and facilities near
+            your shop. You review and approve every message before anything sends. Built by an
+            Indianapolis 24-hour shop.
+          </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/signup"
