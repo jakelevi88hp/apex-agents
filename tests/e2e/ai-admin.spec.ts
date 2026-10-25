@@ -1,14 +1,23 @@
 import { test, expect } from '@playwright/test';
 
+// Admin credentials come from env only; never hardcode them here.
+// TODO(e2e): add TEST_ADMIN_EMAIL / TEST_ADMIN_PASSWORD Actions secrets (an admin user in the
+// CI test DB) to run the admin tests. Until then they are skipped.
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD;
+const ADMIN_SKIP_REASON = 'Needs TEST_ADMIN_EMAIL and TEST_ADMIN_PASSWORD env vars';
+
 test.describe('AI Admin Page', () => {
+  test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, ADMIN_SKIP_REASON);
+
   // Helper function to login before each test
   test.beforeEach(async ({ page }) => {
     // Navigate to login page
     await page.goto('/login');
     
     // Fill in admin credentials
-    await page.fill('input[type="email"]', process.env.TEST_ADMIN_EMAIL || 'jakelevi88hp@gmail.com');
-    await page.fill('input[type="password"]', process.env.TEST_ADMIN_PASSWORD || 'APex2025$$');
+    await page.fill('input[type="email"]', ADMIN_EMAIL!);
+    await page.fill('input[type="password"]', ADMIN_PASSWORD!);
     
     // Submit login form
     await page.click('button[type="submit"]');
@@ -103,10 +112,11 @@ test.describe('AI Admin Access Control', () => {
   });
 
   test('should show AI Admin link in navigation for admin users', async ({ page }) => {
+    test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, ADMIN_SKIP_REASON);
     // Login as admin
     await page.goto('/login');
-    await page.fill('input[type="email"]', process.env.TEST_ADMIN_EMAIL || 'jakelevi88hp@gmail.com');
-    await page.fill('input[type="password"]', process.env.TEST_ADMIN_PASSWORD || 'APex2025$$');
+    await page.fill('input[type="email"]', ADMIN_EMAIL!);
+    await page.fill('input[type="password"]', ADMIN_PASSWORD!);
     await page.click('button[type="submit"]');
     
     // Wait for dashboard
