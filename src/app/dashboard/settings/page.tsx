@@ -1,6 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
+import { PLAN_USAGE_LIMITS, AI_MESSAGE_RESET_NOTE } from '@/lib/subscription/plan-copy';
+import type { SubscriptionPlan } from '@/lib/subscription/config';
+
+// settings.getBillingInfo returns a display name ('Free Trial' | 'Premium' | 'Pro').
+const planKey = (name: string): SubscriptionPlan =>
+  name === 'Premium' ? 'premium' : name === 'Pro' ? 'pro' : 'trial';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'general' | 'api' | 'billing' | 'team'>('general');
@@ -354,7 +360,12 @@ export default function SettingsPage() {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <div className="text-2xl font-bold text-white">{billingInfo.plan}</div>
-                      <div className="text-gray-400">Unlimited agents and executions</div>
+                      <ul className="text-gray-400 text-sm space-y-1 mt-1" data-testid="plan-limits">
+                        {PLAN_USAGE_LIMITS[planKey(billingInfo.plan)].map((limit) => (
+                          <li key={limit}>{limit}</li>
+                        ))}
+                      </ul>
+                      <p className="text-gray-500 text-xs mt-2">{AI_MESSAGE_RESET_NOTE}</p>
                     </div>
                     <div className="text-right">
                       <div className="text-3xl font-bold text-white">${billingInfo.price}</div>
