@@ -1,12 +1,11 @@
 name: terraform-apply
 
+# Disabled on push: this workflow has never succeeded (single run, Oct 2025, failed).
+# The repo has none of the TF_VAR_* secrets below, and terraform/ has no remote backend,
+# so a CI apply would start from empty state every time. Manual trigger kept so it can be
+# re-enabled deliberately once secrets + a state backend exist.
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
-    paths:
-      - "terraform/**"
-      - "dashboards/**"
 
 jobs:
   tf-apply:
