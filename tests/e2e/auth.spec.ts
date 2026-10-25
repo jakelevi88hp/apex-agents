@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, openAccountMenu } from '../fixtures/auth';
 
 test.describe('Authentication', () => {
   test.describe('Login', () => {
@@ -71,22 +71,17 @@ test.describe('Authentication', () => {
   });
 
   test.describe('Logout', () => {
-    test('should logout successfully', async ({ page }) => {
-      // First login
-      await page.goto('/login');
-      await page.fill('input[type="email"]', process.env.TEST_USER_EMAIL || 'test@example.com');
-      await page.fill('input[type="password"]', process.env.TEST_USER_PASSWORD || 'TestPassword123!');
-      await page.click('button[type="submit"]');
-      
-      // Wait for dashboard (login redirects to /dashboard/agents)
-      await page.waitForURL(/\/dashboard/, { timeout: 10000 });
-      
-      // Find and click logout button
-      const logoutButton = page.locator('button:has-text("Logout"), button:has-text("Log out"), a:has-text("Logout")').first();
-      await logoutButton.click();
-      
-      // Verify redirect to login or homepage
-      await page.waitForURL(/\/(login|$)/, { timeout: 5000 });
+    test('should logout successfully', async ({ authenticatedPage: page }) => {
+      // Logout lives in the sidebar's "Account" menu
+      await openAccountMenu(page);
+      await page.getByRole('button', { name: 'Logout' }).click();
+
+      await page.waitForURL(/\/login/, { timeout: 10000 });
+      expect(await page.evaluate(() => localStorage.getItem('token'))).toBeNull();
+
+      // The dashboard is no longer reachable without a token
+      await page.goto('/dashboard/agents');
+      await page.waitForURL(/\/login/, { timeout: 10000 });
     });
   });
 });

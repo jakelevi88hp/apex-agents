@@ -7,40 +7,34 @@
  * - API call reduction
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures/auth';
 
 test.describe('Performance Optimizations', () => {
-  test('should cache subscription data', async ({ page, context }) => {
-    // Monitor network requests
-    const requests: string[] = [];
-    
+  test('should cache subscription data across client-side navigation', async ({ authenticatedPage: page }) => {
+    const subscriptionCalls: string[] = [];
     page.on('request', (request) => {
-      if (request.url().includes('subscription') || request.url().includes('api')) {
-        requests.push(request.url());
+      if (request.url().includes('/api/trpc/') && request.url().includes('subscription.')) {
+        subscriptionCalls.push(request.url());
       }
     });
 
-    // Navigate to dashboard (first load)
-    await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
-    
-    const firstLoadRequests = requests.length;
-    requests.length = 0; // Clear array
-
-    // Navigate away and back (should use cache)
+    // Fresh full load of the dashboard shell: subscription data is fetched once
     await page.goto('/dashboard/agents');
     await page.waitForLoadState('networkidle');
-    await page.goto('/dashboard');
+    expect(subscriptionCalls.length).toBeGreaterThan(0);
+    const afterFirstLoad = subscriptionCalls.length;
+
+    // Client-side navigation via the sidebar: React Query (staleTime 5 min) must serve it from cache
+    await page.getByRole('link', { name: 'Workflows', exact: true }).first().click();
+    await expect(page).toHaveURL(/\/dashboard\/workflows/);
+    await page.getByRole('link', { name: 'Agents', exact: true }).first().click();
+    await expect(page).toHaveURL(/\/dashboard\/agents/);
     await page.waitForLoadState('networkidle');
 
-    // Second load should have fewer subscription-related requests
-    const secondLoadRequests = requests.length;
-    
-    // Note: This is a heuristic test - exact numbers depend on implementation
-    expect(secondLoadRequests).toBeLessThanOrEqual(firstLoadRequests);
+    expect(subscriptionCalls.length).toBe(afterFirstLoad);
   });
 
-  test('should not refetch on window focus', async ({ page, context }) => {
+  test('should not refetch on window focus', async ({ authenticatedPage: page }) => {
     const requests: string[] = [];
     
     page.on('request', (request) => {
@@ -71,7 +65,7 @@ test.describe('Performance Optimizations', () => {
     expect(afterFocusRequests).toBe(0);
   });
 
-  test('should memoize components in lists', async ({ page }) => {
+  test('should memoize components in lists', async ({ authenticatedPage: page }) => {
     await page.goto('/dashboard/agents');
     await page.waitForLoadState('networkidle');
 
@@ -87,28 +81,23 @@ test.describe('Performance Optimizations', () => {
 });
 
 test.describe('Storage Utilities', () => {
-  test('should persist theme preference', async ({ page, context }) => {
-    await page.goto('/dashboard');
-    
-    // Find theme toggle
-    const themeToggle = page.locator('button[aria-label*="theme"]').or(page.locator('button:has-text("Dark")')).or(page.locator('button:has-text("Light")'));
-    
-    if (await themeToggle.isVisible()) {
-      // Get initial theme
-      const initialTheme = await page.evaluate(() => localStorage.getItem('theme'));
-      
-      // Toggle theme
-      await themeToggle.click();
-      await page.waitForTimeout(500);
-      
-      // Reload page
-      await page.reload();
-      await page.waitForLoadState('networkidle');
-      
-      // Theme should persist
-      const persistedTheme = await page.evaluate(() => localStorage.getItem('theme'));
-      expect(persistedTheme).not.toBe(initialTheme);
-    }
+  test('should persist theme preference', async ({ authenticatedPage: page }) => {
+    await page.goto('/dashboard/agents');
+    const themeToggle = page.getByRole('button', { name: /Switch to (Light|Dark) Mode/ });
+    await expect(themeToggle).toBeVisible();
+
+    const initialTheme = await page.evaluate(() => localStorage.getItem('theme'));
+    const initialLabel = await themeToggle.innerText();
+    await themeToggle.click();
+    await expect(themeToggle).not.toHaveText(initialLabel);
+    const toggledTheme = await page.evaluate(() => localStorage.getItem('theme'));
+    expect(toggledTheme).not.toBe(initialTheme);
+
+    // Theme survives a reload
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe(toggledTheme);
+    await expect(page.getByRole('button', { name: /Switch to (Light|Dark) Mode/ })).not.toHaveText(initialLabel);
   });
 
   test('should handle localStorage errors gracefully', async ({ page }) => {

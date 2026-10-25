@@ -14,6 +14,8 @@ const targetsLocalServer = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/.test(ba
 
 export default defineConfig({
   testDir: './tests/e2e',
+  /* Seeds the non-admin CI test user on CI (see tests/e2e/global-setup.ts). */
+  globalSetup: './tests/e2e/global-setup.ts',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
