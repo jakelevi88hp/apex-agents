@@ -3,7 +3,7 @@
 
 ## Key pages
 - [How it works](https://apex-ai-agent.com/how-it-works): scout, score on 9 signals (Google rating, review volume, review recency, owner response rate, listing completeness, website presence, local SEO gaps, niche fit, opportunity window), draft outreach, owner approves, publisher sends.
-- [Pricing](https://apex-ai-agent.com/pricing): 3-day free trial tier (10 agents, 100 AI messages; no credit card), Premium $29/mo, Pro $99/mo.
+- [Pricing](https://apex-ai-agent.com/pricing): 3-day free trial tier (100 AI messages; no credit card), Premium $29/mo, Pro $99/mo.
 - [Sign up](https://apex-ai-agent.com/signup)
 
 ## Blog
