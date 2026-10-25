@@ -53,19 +53,17 @@ export function UpgradePrompt({ feature, requiredPlan, currentUsage, limit }: Up
         <ul className="text-left space-y-2 text-sm text-gray-600 dark:text-gray-300">
           {requiredPlan === 'premium' ? (
             <>
-              <li>✓ 50 agents</li>
+              <li>✓ Build and run AI agents</li>
               <li>✓ 2,000 AGI messages/month</li>
-              <li>✓ 25 workflows</li>
-              <li>✓ 10 GB storage</li>
+              <li>✓ Automated workflows</li>
               <li>✓ Priority support</li>
             </>
           ) : (
             <>
-              <li>✓ Unlimited agents</li>
+              <li>✓ Build and run AI agents</li>
               <li>✓ 10,000 AGI messages/month</li>
-              <li>✓ Unlimited workflows</li>
-              <li>✓ 100 GB storage</li>
-              <li>✓ Team collaboration (10 users)</li>
+              <li>✓ Automated workflows</li>
+              <li>✓ Team collaboration</li>
               <li>✓ Custom integrations</li>
             </>
           )}
