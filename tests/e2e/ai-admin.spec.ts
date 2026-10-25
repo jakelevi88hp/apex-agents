@@ -103,6 +103,15 @@ test.describe('AI Admin Access Control', () => {
     expect((await response.json()).error.json.data.code).toBe('FORBIDDEN');
   });
 
+  test('should show a not-authorized state to non-admin users on the page', async ({ authenticatedPage: page }) => {
+    await page.goto('/dashboard/ai-admin');
+    await expect(page.getByTestId('ai-admin-not-authorized')).toBeVisible();
+    await expect(page.getByText('Not authorized')).toBeVisible();
+    // The admin console (chat input, welcome message) is not rendered
+    await expect(page.getByText('Welcome to AI Admin!')).toHaveCount(0);
+    await expect(page.locator('textarea')).toHaveCount(0);
+  });
+
   test('should not show AI Admin link to non-admin users', async ({ authenticatedPage: page }) => {
     await expect(page.getByRole('link', { name: 'Agents', exact: true }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: 'AI Admin' })).toHaveCount(0);
