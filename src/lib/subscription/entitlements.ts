@@ -43,7 +43,8 @@ export async function getEntitlement(userId: string): Promise<Entitlement> {
   const paidActive =
     (u.tier === 'premium' || u.tier === 'pro') && (u.status === 'active' || u.status === 'past_due');
   const isAdmin = u.role === 'admin';
-  // Admins are exempt from trial expiry only. Their plan (and therefore the concurrent
+  // Admins are exempt from trial expiry and from the always-on trial agent cap. Their plan
+  // (and therefore the flag-gated concurrent
   // caps when enabled, and the monthly AI-message cap) is unchanged.
   const trialExpired =
     !isAdmin && !paidActive && !!u.trialEndDate && u.trialEndDate.getTime() < Date.now();
@@ -65,25 +66,51 @@ export async function assertCanRun(userId: string): Promise<Entitlement> {
   return ent;
 }
 
-/** Block creation after trial end, and (when enabled) at the plan's concurrent cap. */
-export async function assertCanCreate(userId: string, resource: 'agents' | 'workflows'): Promise<void> {
-  const ent = await getEntitlement(userId);
-  if (ent.trialExpired) {
-    throw new TRPCError({ code: 'FORBIDDEN', message: TRIAL_EXPIRED_MESSAGE });
-  }
-  if (!concurrentLimitsEnabled()) return;
-
-  const limit = PLAN_LIMITS[ent.plan][resource];
+/** Count of the user's existing agents or workflows (deleting one frees a slot). */
+async function countOwned(userId: string, resource: 'agents' | 'workflows'): Promise<number> {
   const table = resource === 'agents' ? agents : workflows;
   const [{ n }] = await db
     .select({ n: count() })
     .from(table)
     .where(and(eq(table.userId, userId)));
+  return Number(n);
+}
 
-  if (n >= limit) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: `You've reached your plan's limit of ${limit} ${resource} (${n}/${limit}). Delete one or upgrade at /pricing.`,
-    });
+export const TRIAL_AGENT_LIMIT = PLAN_LIMITS.trial.agents;
+
+export function trialAgentLimitMessage(n: number): string {
+  return `Trial accounts can have up to ${TRIAL_AGENT_LIMIT} agents (${n}/${TRIAL_AGENT_LIMIT}). Delete an agent or upgrade at /pricing to add more.`;
+}
+
+/**
+ * Block creation after trial end; always cap trial (non-admin) accounts at the trial
+ * agent limit; and (when ENFORCE_CONCURRENT_LIMITS=true) apply every plan's concurrent cap.
+ * Existing agents are never touched -- only new ones are refused.
+ */
+export async function assertCanCreate(userId: string, resource: 'agents' | 'workflows'): Promise<void> {
+  const ent = await getEntitlement(userId);
+  if (ent.trialExpired) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: TRIAL_EXPIRED_MESSAGE });
+  }
+
+  if (concurrentLimitsEnabled()) {
+    const limit = PLAN_LIMITS[ent.plan][resource];
+    const n = await countOwned(userId, resource);
+    if (n >= limit) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: `You've reached your plan's limit of ${limit} ${resource} (${n}/${limit}). Delete one or upgrade at /pricing.`,
+      });
+    }
+    return;
+  }
+
+  // Always on (no flag): trial accounts may not exceed the trial agent limit.
+  // Premium/Pro are not capped here; admins are exempt (as with trial expiry).
+  if (resource === 'agents' && ent.plan === 'trial' && !ent.isAdmin) {
+    const n = await countOwned(userId, 'agents');
+    if (n >= TRIAL_AGENT_LIMIT) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: trialAgentLimitMessage(n) });
+    }
   }
 }
