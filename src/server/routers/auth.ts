@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
 import { router, publicProcedure, protectedProcedure } from '../trpc';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
@@ -21,7 +22,7 @@ export const authRouter = router({
       const [existingUser] = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
 
       if (existingUser) {
-        throw new Error('User already exists');
+        throw new TRPCError({ code: 'CONFLICT', message: 'User already exists' });
       }
 
       // Hash password
@@ -78,13 +79,13 @@ export const authRouter = router({
       const [user] = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
 
       if (!user || !user.passwordHash) {
-        throw new Error('Invalid credentials');
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Invalid credentials' });
       }
 
       const validPassword = await bcrypt.compare(input.password, user.passwordHash);
 
       if (!validPassword) {
-        throw new Error('Invalid credentials');
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Invalid credentials' });
       }
 
       // Role comes from the users.role column as stored; login never changes it.
@@ -173,12 +174,12 @@ export const authRouter = router({
       const [user] = await db.select().from(users).where(eq(users.resetToken, input.token)).limit(1);
 
       if (!user || !user.resetTokenExpiry) {
-        throw new Error('Invalid or expired reset token');
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid or expired reset token' });
       }
 
       // Check if token is expired
       if (new Date() > user.resetTokenExpiry) {
-        throw new Error('Reset token has expired');
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Reset token has expired' });
       }
 
       // Hash new password

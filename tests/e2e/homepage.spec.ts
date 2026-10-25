@@ -4,8 +4,8 @@ test.describe('Homepage', () => {
   test('should load homepage successfully', async ({ page }) => {
     await page.goto('/');
     
-    // Check page title (SEO: AI Revenue Engine for Local Businesses | Apex Agents)
-    await expect(page).toHaveTitle(/Apex Agents/i);
+    // Check page title (SEO: "AI Lead Scoring & Outreach for Local Service Businesses | Apex")
+    await expect(page).toHaveTitle(/\| Apex$/);
     
     // Check main heading (current SEO homepage copy)
     await expect(page.locator('h1')).toContainText(/On Autopilot/i);

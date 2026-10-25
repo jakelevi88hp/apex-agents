@@ -1,43 +1,35 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, apiLogin, hasTestUser, NO_TEST_USER_REASON } from '../fixtures/auth';
 
 test.describe('API Health', () => {
-  test('should have healthy tRPC API', async ({ request }) => {
-    // Test tRPC health endpoint
-    const response = await request.get('/api/trpc/health.check');
-    
-    // Should return 200 or 400 (tRPC returns 400 for invalid requests, but endpoint exists)
-    expect([200, 400]).toContain(response.status());
+  test('should report healthy from /api/health', async ({ request }) => {
+    const response = await request.get('/api/health');
+    expect(response.status()).toBe(200);
+    expect((await response.json()).status).toBe('healthy');
   });
 
   test('should return UNAUTHORIZED for protected routes', async ({ request }) => {
-    // Test protected tRPC route without auth
-    const response = await request.post('/api/trpc/auth.me');
-    
-    // Should return error (401 or 400 with UNAUTHORIZED)
+    // auth.me is a tRPC query, so it is a GET; no token -> 401 UNAUTHORIZED
+    const response = await request.get('/api/trpc/auth.me');
+    expect(response.status()).toBe(401);
     const body = await response.json();
-    
-    // tRPC wraps errors, check for UNAUTHORIZED code
-    if (body.error) {
-      expect(body.error.json?.code).toBe('UNAUTHORIZED');
-    } else {
-      // Or check HTTP status
-      expect([401, 403]).toContain(response.status());
-    }
+    expect(body.error.json.data.code).toBe('UNAUTHORIZED');
   });
 
-  test('should have working auth endpoints', async ({ request }) => {
-    // Test login endpoint exists
+  test('should reject wrong credentials with 401, not a server error', async ({ request }) => {
     const response = await request.post('/api/trpc/auth.login', {
-      data: {
-        json: {
-          email: 'test@example.com',
-          password: 'wrongpassword'
-        }
-      }
+      data: { json: { email: 'nobody@apex-ai-agent.test', password: 'wrong-password' } },
     });
-    
-    // Should return a response (even if credentials are wrong)
-    expect(response.status()).toBeLessThan(500);
+    expect(response.status()).toBe(401);
+    expect((await response.json()).error.json.data.code).toBe('UNAUTHORIZED');
+  });
+
+  test('should return the current user for a valid token', async ({ request }) => {
+    test.skip(!hasTestUser, NO_TEST_USER_REASON);
+    const token = await apiLogin(request);
+    const response = await request.get('/api/trpc/auth.me', { headers: { authorization: `Bearer ${token}` } });
+    expect(response.status()).toBe(200);
+    const me = (await response.json()).result.data.json;
+    expect(me.email).toBe(process.env.TEST_USER_EMAIL!.toLowerCase());
+    expect(me.role).toBe('user');
   });
 });
-
