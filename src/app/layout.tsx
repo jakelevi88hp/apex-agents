@@ -3,6 +3,7 @@ import { ThemeProvider } from '../contexts/ThemeContext';
 import { TRPCProvider } from '../lib/trpc/client';
 import { ErrorBoundary } from '../components/ui/error-boundary';
 import Script from 'next/script';
+import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
@@ -57,6 +58,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </ThemeProvider>
           </TRPCProvider>
         </ErrorBoundary>
+        <Analytics />
       </body>
     </html>
   );
