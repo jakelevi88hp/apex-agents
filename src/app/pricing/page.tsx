@@ -6,23 +6,9 @@ import { trpc } from '@/lib/trpc';
 import { getStorageItem } from '@/lib/utils/storage';
 import SiteNav from '@/components/marketing/SiteNav';
 import { PRICING_FAQS, SUPPORT_EMAIL } from '@/lib/marketing/pricing-faq';
-import { PLAN_LIMITS, TRIAL_DURATION_DAYS } from '@/lib/subscription/config';
+import { PLAN_USAGE_LIMITS, AI_MESSAGE_RESET_NOTE } from '@/lib/subscription/plan-copy';
 
-// Only limits the app actually enforces are listed here:
-// - AI messages: usage_tracking 'agi_messages' row (SubscriptionService.usageFeatures),
-//   checked in /api/agi/process and reset on the 1st of each month (UTC).
-// - Trial end: entitlements.ts blocks creating and running after TRIAL_DURATION_DAYS.
-// Agent/workflow caps are omitted on purpose: they only apply when
-// ENFORCE_CONCURRENT_LIMITS=true, which is off in production.
-const fmt = (n: number) => n.toLocaleString('en-US');
-const PLAN_USAGE_LIMITS = {
-  trial: [
-    `${fmt(PLAN_LIMITS.trial.agiMessages)} AI messages during the ${TRIAL_DURATION_DAYS}-day trial`,
-    `After ${TRIAL_DURATION_DAYS} days, creating and running agents pauses until you upgrade. Your agents and history stay saved.`,
-  ],
-  premium: [`${fmt(PLAN_LIMITS.premium.agiMessages)} AI messages per month`],
-  pro: [`${fmt(PLAN_LIMITS.pro.agiMessages)} AI messages per month`],
-} as const;
+// Plan limit copy lives in src/lib/subscription/plan-copy.ts (shared with Settings, Docs and the welcome email).
 
 function subscribeToStorage(onChange: () => void) {
   window.addEventListener('storage', onChange);
@@ -248,7 +234,7 @@ export default function PricingPage() {
         </div>
 
         <p className="mt-10 text-center text-sm text-gray-400">
-          AI message allowances reset on the 1st of each month (UTC). Unused messages do not roll over.
+          {AI_MESSAGE_RESET_NOTE}
         </p>
 
         {/* FAQ Section */}

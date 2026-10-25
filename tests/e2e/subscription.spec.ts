@@ -22,6 +22,10 @@ test.describe('Subscription Management', () => {
     await expect(page.getByRole('heading', { name: 'Current Plan' })).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole('heading', { name: 'Usage This Month' })).toBeVisible();
     await expect(page.getByText('Agent Executions')).toBeVisible();
+    // Real plan limits (same copy as /pricing), not the old "Unlimited agents and executions"
+    await expect(page.getByTestId('plan-limits')).toContainText('100 AI messages during the 3-day trial');
+    await expect(page.getByTestId('plan-limits')).toContainText('Up to 10 agents');
+    await expect(page.getByText('Unlimited agents and executions')).toHaveCount(0);
   });
 
   test('should report a feature at its limit as not allowed', async ({ request }) => {
@@ -68,6 +72,8 @@ test.describe('Plan Upgrade', () => {
     for (const plan of ['Free Trial', 'Premium', 'Pro']) {
       await expect(page.getByRole('heading', { name: plan, exact: true })).toBeVisible();
     }
+    // The trial advertises the enforced 10-agent cap; Premium and Pro list no agent limit
+    await expect(page.getByText('Up to 10 agents', { exact: true })).toHaveCount(1);
     // Signed-out visitors get trial-first CTAs
     await expect(page.getByText('Start Free, Then Premium').first()).toBeVisible();
   });

@@ -1,6 +1,7 @@
 'use client';
 import { FileText, Bot, Workflow, BookOpen, Zap, Settings, Search } from 'lucide-react';
 import { useState } from 'react';
+import { PLAN_USAGE_LIMITS, AI_MESSAGE_RESET_NOTE } from '@/lib/subscription/plan-copy';
 
 const sections = [
   {
@@ -130,11 +131,13 @@ Your API keys are encrypted at rest and never exposed in the UI after saving.`,
       },
       {
         title: 'Subscription & Usage',
-        content: `View your current plan, usage limits, and billing under **Settings → Subscription**.
+        content: `View your current plan and usage under **Settings → Billing**. Plans and prices are on the Pricing page (/pricing).
 
-- **Free plan** — Limited executions per month, 1 active agent
-- **Pro plan** — Unlimited agents, priority model access, advanced analytics
-- **Enterprise** — Custom limits, dedicated support, SSO
+- **Free Trial** — ${PLAN_USAGE_LIMITS.trial.join('. ')}
+- **Premium** — ${PLAN_USAGE_LIMITS.premium.join('. ')}
+- **Pro** — ${PLAN_USAGE_LIMITS.pro.join('. ')}
+
+${AI_MESSAGE_RESET_NOTE}
 
 Upgrade or manage your subscription from the Settings page.`,
       },

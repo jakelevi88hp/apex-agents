@@ -1,4 +1,6 @@
 import { Resend } from 'resend';
+import { TRIAL_DURATION_DAYS } from '@/lib/subscription/config';
+import { PLAN_USAGE_LIMITS, AI_MESSAGE_RESET_NOTE } from '@/lib/subscription/plan-copy';
 
 let resend: Resend | null = null;
 
@@ -197,14 +199,10 @@ export async function sendWelcomeEmail(to: string, name: string) {
                     </p>
                     
                     <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px; line-height: 1.6;">
-                      Your 14-day free trial has started. During this time, you'll have access to all features:
+                      Your ${TRIAL_DURATION_DAYS}-day free trial has started. You can build and run AI agents, automated workflows and a knowledge base. Your trial includes:
                     </p>
-                    
                     <ul style="margin: 0 0 20px; padding-left: 20px; color: #4a5568; font-size: 16px; line-height: 1.8;">
-                      <li>Create up to 10 AI agents</li>
-                      <li>Send 100 AGI messages</li>
-                      <li>Build 5 workflows</li>
-                      <li>1 GB storage</li>
+${PLAN_USAGE_LIMITS.trial.map((l) => `                      <li>${l}</li>`).join('\n')}
                     </ul>
                     
                     <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
@@ -249,11 +247,10 @@ Welcome to ${APP_NAME}, ${name}!
 
 Thank you for joining ${APP_NAME}! We're excited to have you on board.
 
-Your 14-day free trial has started. During this time, you'll have access to all features:
-- Create up to 10 AI agents
-- Send 100 AGI messages
-- Build 5 workflows
-- 1 GB storage
+Your ${TRIAL_DURATION_DAYS}-day free trial has started. You can build and run AI agents, automated workflows and a knowledge base. Your trial includes:
+${PLAN_USAGE_LIMITS.trial.map((l) => `- ${l}`).join('\n')}
+
+${AI_MESSAGE_RESET_NOTE}
 
 Get started: ${dashboardUrl}
 
