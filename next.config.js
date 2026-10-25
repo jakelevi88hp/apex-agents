@@ -14,6 +14,19 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Send the production *.vercel.app alias to the canonical domain so Google
+  // indexes one host. Exact host match only: preview URLs
+  // (apex-agents-git-*.vercel.app, per-deployment URLs) keep working.
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'apex-agents.vercel.app' }],
+        destination: 'https://apex-ai-agent.com/:path*',
+        permanent: true,
+      },
+    ];
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
