@@ -3,8 +3,9 @@
 import { speakText, setGlobalTextToSpeechMutation, setGlobalSelectedVoiceId } from "@/lib/ai-admin/speak-text";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { trpc } from "@/lib/trpc/client";
-import { Loader2, Send, Code, History, CheckCircle, XCircle, AlertCircle, RefreshCw, RotateCcw, Mic, Volume2 } from "lucide-react";
+import { Loader2, ShieldAlert, Send, Code, History, CheckCircle, XCircle, AlertCircle, RefreshCw, RotateCcw, Mic, Volume2 } from "lucide-react";
 import { AIAdminVoiceInput } from "@/components/AIAdminVoiceInput";
 import { AIAdminVoiceOutput } from "@/components/AIAdminVoiceOutput";
 import { VoiceSelector } from "@/components/VoiceSelector";
@@ -44,8 +45,51 @@ interface PatchRecord {
 
 
 
-// Force rebuild - using generatePatch endpoint
+const ADMIN_ROLES = new Set(["admin", "owner"]);
+
+/**
+ * Client-side role guard. The aiAdmin API already returns 403 to non-admins;
+ * this keeps non-admins from seeing (and firing queries from) the console.
+ * The role comes from auth.me (the database), the same source the API checks.
+ */
 export default function AIAdminPage() {
+  const { data: me, isLoading } = trpc.auth.me.useQuery(undefined, { retry: false });
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center p-8" data-testid="ai-admin-checking">
+        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  if (!me || !ADMIN_ROLES.has(me.role ?? "")) {
+    return (
+      <div className="flex h-full items-center justify-center p-8">
+        <div
+          role="alert"
+          data-testid="ai-admin-not-authorized"
+          className="max-w-md rounded-lg border border-gray-700 bg-gray-900 p-8 text-center"
+        >
+          <ShieldAlert className="mx-auto mb-4 h-10 w-10 text-yellow-400" />
+          <h1 className="mb-2 text-xl font-semibold text-white">Not authorized</h1>
+          <p className="mb-6 text-gray-400">AI Admin is only available to administrators.</p>
+          <Link
+            href="/dashboard"
+            className="inline-block rounded-md bg-purple-600 px-4 py-2 text-white hover:bg-purple-700"
+          >
+            Back to Dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return <AIAdminConsole />;
+}
+
+// Force rebuild - using generatePatch endpoint
+function AIAdminConsole() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "system",
