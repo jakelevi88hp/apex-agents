@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { trpc } from '@/lib/trpc/client';
 import { useErrorStore } from '@/lib/stores/errorStore';
 import { createAppError, ErrorType } from '@/lib/errorHandler';
@@ -184,6 +185,8 @@ export default function AgentsPage() {
   });
   const [executionResult, setExecutionResult] = useState<any>(null);
   const [justCreatedAgent, setJustCreatedAgent] = useState<string | null>(null);
+  // Server-side create errors (e.g. the trial's agent limit), shown above any open modal
+  const [createError, setCreateError] = useState<{ message: string; isLimit: boolean } | null>(null);
   const [executionElapsed, setExecutionElapsed] = useState(0);
   
   // Filter and search state
@@ -232,6 +235,7 @@ export default function AgentsPage() {
   // Create agent mutation
   const createAgentMutation = trpc.agents.create.useMutation({
     onSuccess: (data: any) => {
+      setCreateError(null);
       setShowCreateModal(false);
       const createdName = formData.name;
       setFormData({ name: '', type: 'research', description: '' });
@@ -240,6 +244,8 @@ export default function AgentsPage() {
       refetch();
     },
     onError: (error) => {
+      const isLimit = error.data?.code === 'FORBIDDEN';
+      setCreateError({ message: error.message, isLimit });
       const appError = createAppError(
         ErrorType.CLIENT_ERROR,
         `Failed to create agent: ${error.message}`,
@@ -247,7 +253,7 @@ export default function AgentsPage() {
           originalError: new Error(error.message),
           context: { operation: 'create', agentType: formData.type },
           recoverable: true,
-          retryable: true,
+          retryable: !isLimit,
         }
       );
       addError(appError);
@@ -634,6 +640,30 @@ export default function AgentsPage() {
               {filteredAgents.length} of {userAgents.length} agents
             </span>
           </div>
+        </div>
+      )}
+
+      {/* Create failed (e.g. trial agent limit). Fixed so it stays visible over the create modal / wizard. */}
+      {createError && (
+        <div
+          role="alert"
+          data-testid="create-agent-error"
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[min(92vw,36rem)] flex items-start justify-between gap-3 p-4 bg-red-950/95 border border-red-500/50 rounded-xl shadow-2xl"
+        >
+          <div className="text-sm">
+            <p className="text-white font-medium">
+              {createError.isLimit ? 'Agent limit reached' : "Couldn't create the agent"}
+            </p>
+            <p className="text-red-200 mt-1">{createError.message}</p>
+            {createError.isLimit && (
+              <Link href="/pricing" className="inline-block mt-2 text-purple-300 hover:text-purple-200 underline">
+                View plans
+              </Link>
+            )}
+          </div>
+          <button onClick={() => setCreateError(null)} aria-label="Dismiss error" className="text-red-300 hover:text-white p-1">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 

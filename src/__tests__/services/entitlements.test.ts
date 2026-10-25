@@ -1,7 +1,14 @@
 /**
  * Unit tests for trial-expiry gating and concurrent agent/workflow caps.
  */
-import { assertCanCreate, assertCanRun, getEntitlement, concurrentLimitsEnabled } from '@/lib/subscription/entitlements';
+import {
+  assertCanCreate,
+  assertCanRun,
+  getEntitlement,
+  concurrentLimitsEnabled,
+  trialAgentLimitMessage,
+  TRIAL_AGENT_LIMIT,
+} from '@/lib/subscription/entitlements';
 import { db } from '@/lib/db';
 
 jest.mock('@/lib/db', () => ({ db: { select: jest.fn() } }));
@@ -74,10 +81,29 @@ describe('entitlements', () => {
     await expect(assertCanCreate('u', 'agents')).rejects.toMatchObject({ code: 'FORBIDDEN', message: expect.stringContaining('10/10') });
   });
 
-  it('flag OFF: no row count, creation allowed', async () => {
-    mockUser(activeTrial);
+  it('flag OFF: trial accounts are still capped at 10 agents (server-side)', async () => {
+    mockUser(activeTrial, 9);
     await expect(assertCanCreate('u', 'agents')).resolves.toBeUndefined();
-    expect(db.select).toHaveBeenCalledTimes(1);
+    mockUser(activeTrial, 10);
+    await expect(assertCanCreate('u', 'agents')).rejects.toMatchObject({
+      code: 'FORBIDDEN',
+      message: trialAgentLimitMessage(10),
+    });
+    mockUser(activeTrial, 12); // already over (pre-existing agents are left alone), still refused
+    await expect(assertCanCreate('u', 'agents')).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    expect(TRIAL_AGENT_LIMIT).toBe(10);
+  });
+
+  it('flag OFF: no cap for premium/pro, trial workflows or trial admins (no row count)', async () => {
+    mockUser(paidPremium);
+    await expect(assertCanCreate('u', 'agents')).resolves.toBeUndefined();
+    mockUser({ tier: 'pro', status: 'active', trialEndDate: null });
+    await expect(assertCanCreate('u', 'agents')).resolves.toBeUndefined();
+    mockUser(activeTrial);
+    await expect(assertCanCreate('u', 'workflows')).resolves.toBeUndefined();
+    mockUser({ ...activeTrial, role: 'admin' });
+    await expect(assertCanCreate('u', 'agents')).resolves.toBeUndefined();
+    expect(db.select).toHaveBeenCalledTimes(4); // user lookups only
   });
 
   it('flag ON: trial capped at 10 agents / 5 workflows; premium at 50 agents', async () => {
