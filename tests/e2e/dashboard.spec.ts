@@ -7,6 +7,11 @@ test.describe('Dashboard', () => {
     await expect(page.locator('h1, h2').first()).toBeVisible();
   });
 
+  test('should have a Dashboard page title', async ({ authenticatedPage: page }) => {
+    await page.goto('/dashboard');
+    await expect(page).toHaveTitle('Dashboard | Apex Agents');
+  });
+
   test('should display stats cards', async ({ authenticatedPage: page }) => {
     await page.goto('/dashboard');
     await expect(page.getByRole('heading', { name: 'Welcome to Apex Agents' })).toBeVisible({ timeout: 15000 });
