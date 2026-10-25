@@ -3,7 +3,7 @@ import { TRPCError } from '@trpc/server';
 import { router, publicProcedure, protectedProcedure } from '../trpc';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { signToken } from '@/lib/auth/jwt';
 import { sendPasswordResetEmail, sendWelcomeEmail } from '@/lib/email/resend';
@@ -28,18 +28,13 @@ export const authRouter = router({
       // Hash password
       const passwordHash = await bcrypt.hash(input.password, 10);
 
-      // Check if this is the first user (make them admin)
-        // Owner email or first user becomes admin
-      const ownerEmail = 'jakelevi88hp@gmail.com';
-      const userCount = await db.select({ count: sql`count(*)` }).from(users);
-      const isFirstUser = Number(userCount[0]?.count || 0) === 0;
-      const isOwner = input.email.toLowerCase() === ownerEmail.toLowerCase();
-
+      // New accounts are always plain users. Admin is granted only by setting users.role
+      // explicitly (seed or scripts/update-user-role.ts), never implicitly at signup.
       const [newUser] = await db.insert(users).values({
         email: input.email,
         passwordHash: passwordHash,
         name: input.name,
-        role: (isOwner || isFirstUser) ? 'admin' : 'user',
+        role: 'user',
         subscriptionTier: 'trial',
         subscriptionStatus: 'trial',
         trialStartDate: new Date(),
@@ -93,28 +88,10 @@ export const authRouter = router({
         throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Invalid credentials' });
       }
 
-      // Check if this is the owner email and upgrade to admin if needed
-      const ownerEmail = 'jakelevi88hp@gmail.com';
-      const isOwner = input.email.toLowerCase() === ownerEmail.toLowerCase();
-      
-      if (isOwner && user.role !== 'admin') {
-        // Upgrade owner to admin
-        await db.update(users)
-          .set({ 
-            role: 'admin',
-            lastLogin: new Date(),
-            updatedAt: new Date(),
-          })
-          .where(eq(users.id, user.id));
-        
-        // Update user object for token generation
-        user.role = 'admin';
-      } else {
-        // Update last login
-        await db.update(users)
-          .set({ lastLogin: new Date() })
-          .where(eq(users.id, user.id));
-      }
+      // Role comes from the users.role column as stored; login never changes it.
+      await db.update(users)
+        .set({ lastLogin: new Date() })
+        .where(eq(users.id, user.id));
 
       // Generate JWT token
       const token = signToken({
