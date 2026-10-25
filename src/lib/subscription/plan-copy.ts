@@ -4,14 +4,17 @@ import { PLAN_LIMITS, TRIAL_DURATION_DAYS, type SubscriptionPlan } from './confi
 // - AI messages: usage_tracking 'agi_messages' row (SubscriptionService.usageFeatures),
 //   checked in /api/agi/process and reset on the 1st of each month (UTC).
 // - Trial end: entitlements.ts blocks creating and running after TRIAL_DURATION_DAYS.
-// Agent/workflow/storage/seat numbers are omitted on purpose: they are not enforced
-// in production (concurrent caps only apply when ENFORCE_CONCURRENT_LIMITS=true).
+// - Trial agents: entitlements.ts always refuses an 11th agent on a trial account
+//   (PLAN_LIMITS.trial.agents, #66).
+// Other agent/workflow/storage/seat numbers are omitted on purpose: they are not enforced
+// in production (other concurrent caps only apply when ENFORCE_CONCURRENT_LIMITS=true).
 // /pricing is the source of truth for this copy; keep every surface on these strings.
 const fmt = (n: number) => n.toLocaleString('en-US');
 
 export const PLAN_USAGE_LIMITS: Record<SubscriptionPlan, readonly string[]> = {
   trial: [
     `${fmt(PLAN_LIMITS.trial.agiMessages)} AI messages during the ${TRIAL_DURATION_DAYS}-day trial`,
+    `Up to ${fmt(PLAN_LIMITS.trial.agents)} agents`,
     `After ${TRIAL_DURATION_DAYS} days, creating and running agents pauses until you upgrade. Your agents and history stay saved.`,
   ],
   premium: [`${fmt(PLAN_LIMITS.premium.agiMessages)} AI messages per month`],
