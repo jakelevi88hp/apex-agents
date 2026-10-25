@@ -7,10 +7,13 @@ export async function POST(request: NextRequest) {
   try {
     const { email, secret } = await request.json();
 
-    // Security: require a secret key
-    const ADMIN_UPGRADE_SECRET = process.env.ADMIN_UPGRADE_SECRET || 'apex-admin-secret-2025';
-    
-    if (secret !== ADMIN_UPGRADE_SECRET) {
+    // Security: require a secret key from env. No default: if it's unset, the endpoint is disabled.
+    const ADMIN_UPGRADE_SECRET = process.env.ADMIN_UPGRADE_SECRET;
+    if (!ADMIN_UPGRADE_SECRET) {
+      return NextResponse.json({ error: 'Admin upgrade is disabled' }, { status: 403 });
+    }
+
+    if (typeof secret !== 'string' || secret !== ADMIN_UPGRADE_SECRET) {
       return NextResponse.json({ error: 'Invalid secret' }, { status: 403 });
     }
 

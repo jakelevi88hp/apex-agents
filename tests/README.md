@@ -49,9 +49,9 @@ npm run test:report
 
 ## Test Credentials
 
-Test credentials are stored in `.env.test`:
-- Admin user: `jakelevi88hp@gmail.com` / `APex2025$$`
-- Regular user: `test@example.com` / `TestPassword123!`
+Tests read credentials from environment variables only (no hardcoded fallbacks):
+- Regular user: `TEST_USER_EMAIL` / `TEST_USER_PASSWORD`
+- Admin user: `TEST_ADMIN_EMAIL` / `TEST_ADMIN_PASSWORD` (admin tests are skipped when unset)
 
 **Note:** Never commit real passwords to version control. Use environment variables in CI/CD.
 

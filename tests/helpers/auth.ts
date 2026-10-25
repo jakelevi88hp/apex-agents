@@ -4,10 +4,17 @@ import { Page } from '@playwright/test';
  * Login helper for Playwright tests
  */
 export async function loginAsAdmin(page: Page) {
+  // Credentials come from env only (no fallback); callers should skip when these are unset.
+  const email = process.env.TEST_ADMIN_EMAIL;
+  const password = process.env.TEST_ADMIN_PASSWORD;
+  if (!email || !password) {
+    throw new Error('loginAsAdmin needs TEST_ADMIN_EMAIL and TEST_ADMIN_PASSWORD env vars');
+  }
+
   await page.goto('/login');
   
-  await page.fill('input[type="email"]', process.env.TEST_ADMIN_EMAIL || 'jakelevi88hp@gmail.com');
-  await page.fill('input[type="password"]', process.env.TEST_ADMIN_PASSWORD || 'APex2025$$');
+  await page.fill('input[type="email"]', email);
+  await page.fill('input[type="password"]', password);
   
   await page.click('button[type="submit"]');
   
