@@ -1,6 +1,15 @@
 import { test, expect } from '../fixtures/auth';
 
 test.describe('Agents Page', () => {
+  // TODO(e2e): these tests log in through the real auth flow, which needs a database and a
+  // seeded test user. The repo has no DATABASE_URL / TEST_USER_EMAIL / TEST_USER_PASSWORD
+  // Actions secrets, so login can never succeed in CI. Skip until those secrets (and a
+  // seeded test user) exist; the tests re-enable automatically once they are set.
+  test.skip(
+    !process.env.DATABASE_URL || !process.env.TEST_USER_EMAIL || !process.env.TEST_USER_PASSWORD,
+    'Agents e2e needs DATABASE_URL + TEST_USER_EMAIL/PASSWORD secrets (none configured in CI)',
+  );
+
   test.beforeEach(async ({ authenticatedPage: page }) => {
     await page.goto('/dashboard/agents');
   });
