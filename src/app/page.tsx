@@ -153,6 +153,12 @@ const stats = [
   { value: '9', label: 'Lead Score Signals' },
 ];
 
+/** Niches that have their own landing page; the rest still go to /signup. */
+const NICHE_PAGES: Record<string, string> = {
+  'HVAC Contractors': '/hvac',
+  'Auto Repair Shops': '/auto',
+};
+
 const nicheCategories = [
   {
     label: 'Legal & Finance',
@@ -423,7 +429,7 @@ export default function HomePage() {
                   {cat.niches.map((niche) => (
                     <Link
                       key={niche}
-                      href="/signup"
+                      href={NICHE_PAGES[niche] ?? '/signup'}
                       className="px-5 py-2.5 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-200 text-sm font-medium hover:border-purple-400/50 hover:bg-purple-500/20 transition-colors"
                     >
                       {niche}
@@ -541,6 +547,8 @@ export default function HomePage() {
           <p className="text-gray-600 text-sm">&copy; {new Date().getFullYear()} Apex Advantage. All rights reserved.</p>
           <div className="flex items-center gap-6 text-sm text-gray-500">
             <Link href="/how-it-works" className="hover:text-white transition-colors">How It Works</Link>
+            <Link href="/hvac" className="hover:text-white transition-colors">HVAC</Link>
+            <Link href="/auto" className="hover:text-white transition-colors">Auto Shops</Link>
             <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
             <a href="mailto:apexagents@mail.grokbot.com" className="hover:text-white transition-colors">Contact</a>
             <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
