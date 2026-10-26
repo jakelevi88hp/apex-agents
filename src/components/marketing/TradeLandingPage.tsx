@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Script from 'next/script';
 import SiteNav from '@/components/marketing/SiteNav';
 import SiteFooter from '@/components/marketing/SiteFooter';
 import BlogText from '@/components/marketing/BlogText';
@@ -44,10 +43,10 @@ export default function TradeLandingPage({ page }: { page: TradePage }) {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
-      <Script
-        id={`${page.slug}-json-ld`}
+      {/* Plain <script> (not next/script) so the JSON-LD is in the server-rendered HTML. */}
+      <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       <SiteNav />
 
