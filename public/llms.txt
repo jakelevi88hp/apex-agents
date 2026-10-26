@@ -4,6 +4,8 @@
 ## Key pages
 - [How it works](https://apex-ai-agent.com/how-it-works): scout, score on 9 signals (Google rating, review volume, review recency, owner response rate, listing completeness, website presence, local SEO gaps, niche fit, opportunity window), draft outreach, owner approves, publisher sends.
 - [Pricing](https://apex-ai-agent.com/pricing): 3-day free trial tier (100 AI messages; no credit card), Premium $29/mo, Pro $99/mo.
+- [Commercial HVAC lead generation](https://apex-ai-agent.com/hvac): for HVAC contractors who want commercial accounts (property managers, apartments, restaurants, offices, churches, schools); 9-signal scoring, owner-approved outreach.
+- [Fleet lead generation for auto repair shops](https://apex-ai-agent.com/auto): for independent auto shops who want fleet accounts (delivery and courier fleets, property maintenance vehicles, contractor trucks); 9-signal scoring, owner-approved outreach.
 - [Sign up](https://apex-ai-agent.com/signup)
 
 ## Blog

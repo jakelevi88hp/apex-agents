@@ -138,6 +138,17 @@ export default function HowItWorksPage() {
             your shop. You review and approve every message before anything sends. Built in
             Indianapolis.
           </p>
+          <p className="mt-3 text-sm text-gray-300">
+            See it for your trade:{' '}
+            <Link href="/hvac" className="text-purple-300 underline underline-offset-4 hover:text-white">
+              commercial HVAC accounts
+            </Link>{' '}
+            or{' '}
+            <Link href="/auto" className="text-purple-300 underline underline-offset-4 hover:text-white">
+              fleet accounts for auto repair shops
+            </Link>
+            .
+          </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/signup"
@@ -243,6 +254,8 @@ export default function HowItWorksPage() {
           </Link>
           <p className="text-gray-600 text-sm">&copy; {new Date().getFullYear()} Apex Advantage. All rights reserved.</p>
           <div className="flex items-center gap-6 text-sm text-gray-500">
+            <Link href="/hvac" className="hover:text-white transition-colors">HVAC</Link>
+            <Link href="/auto" className="hover:text-white transition-colors">Auto Shops</Link>
             <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
             <a href="mailto:apexagents@mail.grokbot.com" className="hover:text-white transition-colors">Contact</a>
             <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
