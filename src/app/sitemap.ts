@@ -8,7 +8,7 @@ const SITE_URL = 'https://apex-ai-agent.com';
 // Update the date when a page's content actually changes.
 const PAGE_LAST_MODIFIED = {
   home: '2026-10-24', // 1c87f34 src/app/page.tsx
-  pricing: '2026-10-24', // 1c85eab src/app/pricing
+  pricing: '2026-10-26', // pricing trial line next to Premium
   signup: '2026-10-24', // a43d0ff src/app/signup
   howItWorks: '2026-10-24', // 1c87f34 src/app/how-it-works
   privacy: '2026-10-18', // ac175a2 src/app/privacy

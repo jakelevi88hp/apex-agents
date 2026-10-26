@@ -172,6 +172,11 @@ export default function PricingPage() {
                     <span className="text-5xl font-bold text-white">${tier.price}</span>
                     <span className="text-gray-300 ml-2">{tier.period}</span>
                   </div>
+                  {/* Logged-out visitors start on the free trial via /signup (no Stripe call, no card).
+                      Logged-in users go straight to Stripe checkout, so the line is hidden for them. */}
+                  {tier.plan === 'premium' && !isLoggedIn && (
+                    <p className="mt-2 text-sm font-semibold text-white">3-day trial, no card needed</p>
+                  )}
                 </div>
 
                 {!isLoggedIn ? (
