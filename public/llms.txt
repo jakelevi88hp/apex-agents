@@ -11,6 +11,7 @@
 ## Blog
 - [Blog index](https://apex-ai-agent.com/blog): practical guides for Indianapolis-area service businesses on winning commercial customers.
 - [How to Get Commercial HVAC Accounts in Indianapolis](https://apex-ai-agent.com/blog/how-to-get-commercial-hvac-accounts-indianapolis): choosing commercial buyers, vendor paperwork (COI, W-9, PM agreement), building a qualified list, outreach and CAN-SPAM basics, follow-up rhythm.
+- [How to Get Fleet Customers for Your Auto Repair Shop in Indianapolis](https://apex-ai-agent.com/blog/how-to-get-fleet-customers-auto-repair-shop-indianapolis): choosing local fleets (courier, trades, property maintenance), what fleet buyers check (turnaround, NTE approval limits, PO invoicing, COI, FMCSA annual inspection basics), building a qualified list, outreach and CAN-SPAM basics, follow-up rhythm.
 
 ## Contact
 apexagents@mail.grokbot.com
