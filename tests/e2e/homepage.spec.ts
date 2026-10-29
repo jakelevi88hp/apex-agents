@@ -8,7 +8,7 @@ test.describe('Homepage', () => {
     await expect(page).toHaveTitle(/\| Apex$/);
     
     // Check main heading (current SEO homepage copy)
-    await expect(page.locator('h1')).toContainText(/On Autopilot/i);
+    await expect(page.locator('h1')).toContainText(/Land more commercial\s*accounts near your shop/i);
   });
 
   test('should have working navigation buttons', async ({ page }) => {

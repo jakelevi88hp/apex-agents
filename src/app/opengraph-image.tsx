@@ -29,7 +29,7 @@ export default async function Image() {
           fontSize: '68px', fontWeight: '900', color: 'white',
           textAlign: 'center', lineHeight: 1.1, marginBottom: '20px',
         }}>
-          Your Business.
+          Land more commercial
         </div>
         <div style={{
           fontSize: '68px', fontWeight: '900', textAlign: 'center',
@@ -37,7 +37,7 @@ export default async function Image() {
           background: 'linear-gradient(90deg, #a855f7, #ec4899)',
           backgroundClip: 'text', color: 'transparent',
         }}>
-          On Autopilot.
+          accounts near your shop.
         </div>
         <div style={{ fontSize: '22px', color: '#9ca3af', textAlign: 'center', maxWidth: '720px', lineHeight: 1.5 }}>
           AI-powered revenue system for local businesses — scout leads, score prospects, send outreach automatically.
@@ -50,7 +50,7 @@ export default async function Image() {
             display: 'flex', alignItems: 'center', gap: '8px',
           }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#c084fc' }} />
-            Revenue Engine Live
+            3-day free trial, no card needed.
           </div>
           <div style={{
             padding: '10px 24px', borderRadius: '999px',
