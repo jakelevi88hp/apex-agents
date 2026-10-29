@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Apex Agents — Autonomous AI Platform';
+export const alt = 'Apex Agents: Land more commercial accounts near your shop';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -29,7 +29,7 @@ export default async function Image() {
           fontSize: '68px', fontWeight: '900', color: 'white',
           textAlign: 'center', lineHeight: 1.1, marginBottom: '20px',
         }}>
-          Your Business.
+          Land more commercial
         </div>
         <div style={{
           fontSize: '68px', fontWeight: '900', textAlign: 'center',
@@ -37,10 +37,10 @@ export default async function Image() {
           background: 'linear-gradient(90deg, #a855f7, #ec4899)',
           backgroundClip: 'text', color: 'transparent',
         }}>
-          On Autopilot.
+          accounts near your shop.
         </div>
-        <div style={{ fontSize: '22px', color: '#9ca3af', textAlign: 'center', maxWidth: '720px', lineHeight: 1.5 }}>
-          AI-powered revenue system for local businesses — scout leads, score prospects, send outreach automatically.
+        <div style={{ fontSize: '22px', color: '#9ca3af', textAlign: 'center', maxWidth: '840px', lineHeight: 1.5 }}>
+          Apex finds property managers, fleets, and facilities nearby, scores them, and writes the outreach. You approve every message before it sends.
         </div>
         <div style={{ marginTop: '40px', display: 'flex', gap: '12px' }}>
           <div style={{
@@ -50,13 +50,8 @@ export default async function Image() {
             display: 'flex', alignItems: 'center', gap: '8px',
           }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#c084fc' }} />
-            Revenue Engine Live
+            3-day free trial, no card needed.
           </div>
-          <div style={{
-            padding: '10px 24px', borderRadius: '999px',
-            background: 'rgba(236,72,153,0.1)', border: '1px solid rgba(236,72,153,0.3)',
-            color: '#f9a8d4', fontSize: '16px', fontWeight: '600',
-          }}>5 Active Agents</div>
         </div>
       </div>
     ),
