@@ -231,20 +231,19 @@ export default function HomePage() {
         <div className="relative max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 rounded-full px-4 py-1.5 text-sm text-purple-300 mb-8">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"/>
-            Revenue Engine: Live & Running
+            3-day free trial, no card needed.
           </div>
 
           <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-none mb-6">
-            Your Business.<br/>
+            Land more commercial<br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-300">
-              On Autopilot.
+              accounts near your shop.
             </span>
           </h1>
 
           <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Apex Agents is an AI-powered revenue system for local businesses.
-            It scouts leads, scores prospects, writes outreach, and tracks results
-            while you focus on closing.
+            Apex finds property managers, fleets, and facilities nearby, scores them,
+            and writes the outreach. You approve every message before it sends.
           </p>
 
           <ul className="flex flex-col md:flex-row gap-2 md:gap-6 justify-center text-sm text-gray-300 mb-10 -mt-4">
