@@ -346,6 +346,158 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: 'how-to-get-property-management-contracts-plumbers-indianapolis',
+    metaTitle: 'Property Manager Contracts for Indianapolis Plumbers | Apex',
+    title: 'How to Get Property Management Contracts as a Plumber in Indianapolis',
+    description:
+      'A practical guide for Indianapolis plumbers: which property managers to target, what they require from vendors, and how to follow up.',
+    excerpt:
+      'Which property managers fit a local plumbing shop, what gets you onto an approved vendor list, and an outreach and follow-up routine you can run between calls.',
+    datePublished: '2026-11-03',
+    dateModified: '2026-11-03',
+    ctaHref: '/signup?ref=blog-pm-plumbing-indy',
+    blocks: [
+      {
+        type: 'p',
+        text: 'Most plumbing shops live on one-off calls: a water heater here, a backed-up drain there, and a quiet week whenever the weather is mild. Property management companies are one of the steadiest sources of repeat work in the trade. A manager running a few hundred apartment units or a handful of commercial buildings has leaks, clogs, running toilets, and water heater failures every single week, and needs a plumber who answers.',
+      },
+      {
+        type: 'p',
+        text: 'The Indianapolis area has a large rental market, from big apartment communities on the north and west sides to small portfolios of single-family rentals and duplexes across Marion County and the surrounding suburbs. Getting onto those vendor lists is less about a big sales pitch and more about being easy to approve, quick to respond, and consistent. This guide walks through the steps in the order you would actually do them.',
+      },
+      { type: 'h2', text: '1. Pick the kind of property manager you want to work for' },
+      {
+        type: 'p',
+        text: 'Property managers are not all the same buyer. The work, the decision maker, and the paperwork change a lot depending on what they manage:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Large apartment communities. Many have on-site maintenance techs who handle simple clogs and fixtures, then call a plumber for main line backups, water heaters, slab leaks, and anything after hours. The maintenance supervisor often has real influence over which vendor gets called.',
+          'Single-family rental and small multifamily managers. They usually have no in-house maintenance staff, so they need a plumber for nearly everything, spread across many addresses. Fast scheduling with tenants matters as much as price.',
+          'Commercial property managers running office, retail, and medical buildings, where restrooms, backflow devices, and water heaters for tenants are the common calls.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Pick one or two of these to start. Then be honest about your radius. A shop based in Beech Grove can reach rentals on the south and east sides quickly but may struggle to promise the same response to a community in Zionsville at 5 PM. Property managers judge vendors heavily on how fast a tenant gets a call back.',
+      },
+      { type: 'h2', text: '2. Get your vendor packet ready before you reach out' },
+      {
+        type: 'p',
+        text: 'Most property managers will not dispatch a vendor until the paperwork is on file. If a manager says "send us your info" and you take two weeks, they will move on. Have these ready:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'A current certificate of insurance (COI). Ask what general liability and workers comp limits they require and whether they need to be named as additional insured.',
+          'A signed W-9 and your plumbing contractor license details. In Indiana, plumbing contractors are licensed through the Indiana Professional Licensing Agency, and managers may look up your license.',
+          'A simple rate sheet: your trip or service charge, hourly rate, after-hours and weekend rates, and how you price common jobs like drain clearing or a water heater replacement.',
+          'Your emergency availability, in writing, and a phone number that a real person answers at night.',
+          'A sample invoice and job report with photos, showing the property address, unit number, work order or PO number, and what was found and fixed.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Many management companies also ask vendors to register through a third-party vendor compliance service before they can be paid. Ask early which one they use and get through it. Smaller competitors often give up at this step, which is exactly why it is worth doing.',
+      },
+      { type: 'h2', text: '3. Understand how the work actually gets assigned' },
+      {
+        type: 'p',
+        text: 'Knowing how a property manager runs maintenance tells you what to promise. Most work starts as a tenant request in the manager\'s property management software, which turns into a work order. Someone on the maintenance or office team then sends it to a vendor, usually with a not-to-exceed (NTE) amount. Anything above that amount needs approval before you do the work.',
+      },
+      {
+        type: 'p',
+        text: 'That means a few things matter more than you might expect: calling the tenant to schedule quickly, sending the manager a photo and a clear estimate when a job will go over the NTE, closing out the work order with notes, and invoicing with the work order number on it. A plumber who does all of that cleanly saves the manager time, and saving them time is the real product.',
+      },
+      { type: 'h2', text: '4. Build a short, qualified list of property managers' },
+      {
+        type: 'p',
+        text: 'You do not need a giant database. A list of 40 to 80 management companies and communities within your radius is plenty to work through. Good places to find them:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Google Maps searches like "property management" or "apartments" plus a suburb, neighborhood, or zip code you serve.',
+          'Local apartment and property management associations, which often publish member directories and hold events where maintenance supervisors attend.',
+          'Rental signs and leasing banners you pass on calls. Write down the management company name.',
+          'Current residential customers who rent out a property, and the agents and supply house contacts who know which managers are growing.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Then qualify each name with what is public. Read recent Google reviews for the communities they manage. Tenants complaining about slow maintenance, leaks, or no hot water does not prove the manager needs a new plumber, but it tells you maintenance response is a pain point and gives you something specific and respectful to mention.',
+      },
+      { type: 'h2', text: '5. Reach out with something specific' },
+      {
+        type: 'p',
+        text: 'Property managers get a steady stream of generic vendor emails. What gets a reply is short, local, and asks for something small. Here is a template you can adapt. It is an example only, not a message from a real campaign:',
+      },
+      {
+        type: 'example',
+        label: 'Example outreach (adapt before sending)',
+        lines: [
+          'Subject: Backup plumber for [community or company name]?',
+          'Hi [first name], I run [your company], a licensed plumbing contractor based in [your area] of Indianapolis. We already work near several of your properties on the [side of town], so I wanted to introduce us.',
+          'A lot of managers like having a second plumber on file for after-hours calls and overflow. If that would help, I can send our COI, W-9, and rate sheet today. We call tenants to schedule the same day, get approval before going over your NTE, and put the work order number on every invoice.',
+          'Is there a good time for a 10-minute call, or should I send the paperwork to someone else on your team?',
+          '[Your name], [phone], [business address]. Reply "no thanks" and I will not follow up.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Calls and in-person visits work well too, especially with on-site leasing offices. Bring a one-page sheet with your license number, after-hours number, and rates. If you send cold email, follow the CAN-SPAM Act basics: an honest subject line, your real business postal address, a clear way to opt out, and honoring opt-outs promptly.',
+      },
+      { type: 'h2', text: '6. Ask for a small first step' },
+      {
+        type: 'p',
+        text: 'Asking a manager to replace the plumber they already use is a big ask. Asking to be added to the approved vendor list is not. Good entry points:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Getting approved as the backup or after-hours plumber.',
+          'Taking one property, one building, or one part of town where their current vendor is slow.',
+          'Handling turn work between tenants, such as fixture replacements, toilet rebuilds, and water heater checks, on a scheduled basis.',
+          'Offering a second opinion on a large repair or replacement quote they already have.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Each of these lets the manager see how you communicate with tenants, how quickly you close out work orders, and whether your invoices match your estimates.',
+      },
+      { type: 'h2', text: '7. Follow up on a schedule, not from memory' },
+      {
+        type: 'p',
+        text: 'The manager who ignores your first message may need you the night their regular plumber does not answer during a freeze. Most shops never get that call because they stopped after one try. Keep a simple tracker with the company, contact, last touch, and next step.',
+      },
+      {
+        type: 'p',
+        text: 'A reasonable rhythm is a short follow-up a week after the first message, another a few weeks later with something useful (a pre-winter checklist for vacant units and outdoor spigots, for example), and a check-in before each season. Stop when someone asks you to.',
+      },
+      { type: 'h2', text: '8. Keep the account and grow it' },
+      {
+        type: 'ol',
+        items: [
+          'Call the tenant fast and show up inside the window you set.',
+          'Never go over the NTE without approval, and send photos when you ask.',
+          'Close every work order with clear notes and invoice it the same week.',
+          'Flag aging water heaters and recurring problem lines so the manager can plan budgets.',
+          'After a few clean jobs, ask whether they manage other properties you could cover.',
+        ],
+      },
+      { type: 'h2', text: 'Where Apex Agents fits' },
+      {
+        type: 'p',
+        text: 'Steps 4, 5, and 7 are where most plumbing owners run out of time, because prospecting competes with calls that pay today. Apex Agents is built to run that loop for trade shops. Agents scout local businesses in the niches and cities you choose, such as property management companies and apartment communities, [score each prospect on nine public signals](/how-it-works) like review recency, owner response rate, and listing completeness, and draft personalized outreach. You review, edit, or hold every draft before anything is sent, and follow-ups stay on a schedule.',
+      },
+      {
+        type: 'p',
+        text: 'You can try it with a 3-day free trial, no credit card required. After that, [plans start at $29/month](/pricing).',
+      },
+    ],
+  },
 ];
 
 export function getAllPosts(): BlogPost[] {
