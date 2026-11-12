@@ -498,6 +498,157 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: 'how-to-get-commercial-electrical-contracts-indianapolis',
+    metaTitle: 'Commercial Electrical Contracts in Indianapolis | Apex',
+    title: 'How to Get Commercial Electrical Contracts in Indianapolis',
+    description:
+      'A practical guide for Indianapolis electricians: which commercial clients to target, what they require from vendors, and how to follow up.',
+    excerpt:
+      'Which small commercial clients fit a local electrical shop, the license and vendor paperwork they check, and an outreach and follow-up routine you can run between jobs.',
+    datePublished: '2026-11-10',
+    dateModified: '2026-11-10',
+    ctaHref: '/signup?ref=blog-commercial-electrical-indy',
+    blocks: [
+      {
+        type: 'p',
+        text: 'A lot of electrical shops run on residential service calls and whatever new construction the general contractors send their way. Both can dry up fast. Small commercial clients are a steadier layer underneath: the property manager who needs lighting repairs across six buildings, the restaurant that needs a dedicated circuit for new kitchen equipment, the warehouse that keeps adding outlets and lighting as it grows.',
+      },
+      {
+        type: 'p',
+        text: 'You do not need to bid on large projects to win this work. Most small commercial accounts are won the same way: pick the right buyers, be easy to approve, show up when you said you would, and follow up longer than other shops do. This guide walks through those steps in the order you would actually do them.',
+      },
+      { type: 'h2', text: '1. Choose the commercial work you want' },
+      {
+        type: 'p',
+        text: '"Commercial electrical" covers everything from swapping ballasts to running service for a new building. Start with buyers whose work matches your crew, your tools, and how fast you can respond:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Property management companies with office, retail, or apartment buildings. They need lighting repairs, parking lot and exterior lighting, tenant improvements between leases, and someone to call when a breaker keeps tripping.',
+          'Restaurants and bars. New equipment often needs new circuits, and a power problem during service is an emergency. Owners are usually on site and make their own decisions.',
+          'Retail strip centers and small shops, where tenant build-outs, signage power, and lighting upgrades come up regularly.',
+          'Warehouses, light industrial, and flex space, which add equipment, charging, and lighting as they grow.',
+          'Medical, dental, and veterinary offices, which care about reliability and often have specialty equipment that needs dedicated power.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Pick one or two to start. Then set a realistic radius. A shop on the west side can reach a Speedway or Plainfield restaurant quickly but may not be able to promise the same response to a Noblesville office park during rush hour. Commercial clients remember a slow response much longer than they remember a fair price.',
+      },
+      { type: 'h2', text: '2. Make sure your license and paperwork are in order' },
+      {
+        type: 'p',
+        text: 'Indiana does not issue a statewide electrical contractor license. Licensing is handled locally, so the rules depend on where the job is. Inside the Consolidated City of Indianapolis, the Department of Business and Neighborhood Services (BNS) issues electrical contractor licenses, with approval from the Board of Electrical Examiners, an exam, and a bond and insurance on file. The excluded cities of Lawrence, Beech Grove, Speedway, and Southport, and the surrounding suburbs, have their own rules. The [City of Indianapolis contractor license page](https://www.indy.gov/activity/contractor-licenses) is the place to confirm current requirements.',
+      },
+      {
+        type: 'p',
+        text: 'Commercial buyers and property managers will often check that you are licensed where their building is. Beyond the license, have a vendor packet ready so a "send us your info" does not turn into a two-week delay:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'A current certificate of insurance (COI). Ask each client what general liability and workers comp limits they require and whether they need to be named as additional insured.',
+          'A signed W-9 and your license numbers for each jurisdiction you work in.',
+          'A simple rate sheet: service call charge, hourly rate, after-hours and weekend rates, and how you price common jobs like adding a circuit or replacing fixtures.',
+          'A clear statement of how you handle permits and inspections, since commercial owners do not want to find out later that work was not permitted.',
+          'A sample invoice and job report with photos, showing the property address, suite or unit, PO or work order number, and what was found and fixed.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Some property management companies also ask vendors to register through a third-party vendor compliance service before they can be dispatched or paid. Ask early which one they use and finish the registration. Many smaller shops give up at this step, which is part of why it is worth doing.',
+      },
+      { type: 'h2', text: '3. Build a short, qualified target list' },
+      {
+        type: 'p',
+        text: 'A list of 50 to 100 well-chosen businesses in your radius is plenty to work through over a few months. Good places to build it:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Google Maps searches by category and area, such as "property management", "restaurant", or "warehouse" plus a suburb, neighborhood, or zip code you serve.',
+          'Local property management and building owner associations, which often publish member directories or hold events where facilities people attend.',
+          'Buildings you already drive past. Note the management company on the sign, and watch for "coming soon" banners, which usually mean a tenant build-out.',
+          'General contractors, HVAC shops, and plumbers you already know. They see electrical problems on their own jobs and often need someone to refer.',
+          'Existing residential customers who own or manage a business.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Then qualify each name using what is public. Recent reviews that mention dark parking lots, flickering lights, or a kitchen closing early for a power issue do not prove a business needs a new electrician, but they suggest where a conversation might start.',
+      },
+      { type: 'h2', text: '4. Reach out with something specific' },
+      {
+        type: 'p',
+        text: 'Owners and facilities managers get plenty of generic "full-service electrical contractor" emails. A short note that shows you looked at their situation and asks for something small gets more replies. Here is a template you can adapt. It is an example only, not a message from a real campaign:',
+      },
+      {
+        type: 'example',
+        label: 'Example outreach (adapt before sending)',
+        lines: [
+          'Subject: Backup electrician for [property or business name]?',
+          'Hi [first name], I run [your company], a licensed electrical contractor based in [your area] of Indianapolis. We work near [property or business name] regularly, so I wanted to introduce us.',
+          'A lot of managers like having a second electrician on file for after-hours problems and smaller jobs their main contractor is slow to get to. If that would help, I can send our COI, W-9, license numbers, and rate sheet today. We pull permits where they are required and put your PO number on every invoice.',
+          'Would a 10-minute call next week work, or is there someone else on your team I should send this to?',
+          '[Your name], [phone], [business address]. Reply "no thanks" and I will not follow up.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Calls and in-person visits still work well, especially with owner-run restaurants and shops. Bring a one-page sheet with your license number, after-hours number, and rates. If you send cold email, follow the CAN-SPAM Act basics: an honest subject line, your real business postal address, a clear way to opt out, and honoring opt-outs promptly.',
+      },
+      { type: 'h2', text: '5. Ask for a small first job' },
+      {
+        type: 'p',
+        text: 'Asking a property manager to drop the electrician they already use is a big request. Asking for a small, low-risk first job is not. Good entry points include:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Getting on the approved vendor list as the backup or after-hours electrician.',
+          'A lighting walk of one property, including exterior and parking lot lights, with a written list of what is out and a price to fix it.',
+          'A single tenant improvement or equipment circuit their current contractor has not scheduled yet.',
+          'A second opinion on a large panel or service upgrade quote they already have.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Each of these lets the client see how you communicate, whether you finish on time, and whether your invoice matches your estimate. That is what they are really evaluating.',
+      },
+      { type: 'h2', text: '6. Follow up on a schedule, not from memory' },
+      {
+        type: 'p',
+        text: 'Commercial clients rarely hire on the first message. The manager who ignores you in November may call in February when their regular electrician cannot get out for a week. Most shops never get that call because they stopped after one try.',
+      },
+      {
+        type: 'p',
+        text: 'Keep a simple tracker with the business, contact, last touch, and next step. A reasonable rhythm is a short follow-up a week after the first message, another a few weeks later with something useful (for example, a reminder to check exterior and parking lot lighting before the short winter days), and a check-in every season after that. Stop when someone asks you to.',
+      },
+      { type: 'h2', text: '7. Keep the account and grow it' },
+      {
+        type: 'ol',
+        items: [
+          'Respond inside the window you promised, every time.',
+          'Get approval before going over a quote or not-to-exceed amount, and send photos when you ask.',
+          'Pull permits where required and tell the client when the inspection is scheduled.',
+          'Invoice the same week with the PO or work order number on it.',
+          'Flag aging panels, overloaded circuits, and lighting that is near the end of its life so the client can plan budgets.',
+          'After a few clean jobs, ask whether they manage or own other buildings you could cover.',
+        ],
+      },
+      { type: 'h2', text: 'Where Apex Agents fits' },
+      {
+        type: 'p',
+        text: 'Steps 3, 4, and 6 are where most electrical shop owners run out of time, because prospecting competes with jobs that pay today. Apex Agents is built to run that loop for trade shops. Agents scout local businesses in the niches and cities you choose, such as property management companies, restaurants, and warehouses, [score each prospect on nine public signals](/how-it-works) like review recency, owner response rate, and listing completeness, and draft personalized outreach. You review, edit, or hold every draft before anything is sent, and follow-ups stay on a schedule.',
+      },
+      {
+        type: 'p',
+        text: 'You can try it with a 3-day free trial, no credit card required. After that, [plans start at $29/month](/pricing).',
+      },
+    ],
+  },
 ];
 
 export function getAllPosts(): BlogPost[] {
