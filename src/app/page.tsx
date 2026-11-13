@@ -544,7 +544,7 @@ export default function HomePage() {
             <span className="font-bold">Apex Agents</span>
           </div>
           <p className="text-gray-600 text-sm">&copy; {new Date().getFullYear()} Apex Advantage. All rights reserved.</p>
-          <div className="flex items-center gap-6 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-gray-500">
             <Link href="/how-it-works" className="hover:text-white transition-colors">How It Works</Link>
             <Link href="/hvac" className="hover:text-white transition-colors">HVAC</Link>
             <Link href="/auto" className="hover:text-white transition-colors">Auto Shops</Link>

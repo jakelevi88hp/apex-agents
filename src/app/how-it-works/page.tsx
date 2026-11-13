@@ -253,7 +253,7 @@ export default function HowItWorksPage() {
             <span className="font-bold">Apex Agents</span>
           </Link>
           <p className="text-gray-600 text-sm">&copy; {new Date().getFullYear()} Apex Advantage. All rights reserved.</p>
-          <div className="flex items-center gap-6 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-gray-500">
             <Link href="/hvac" className="hover:text-white transition-colors">HVAC</Link>
             <Link href="/auto" className="hover:text-white transition-colors">Auto Shops</Link>
             <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>

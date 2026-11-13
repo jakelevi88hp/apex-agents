@@ -58,7 +58,7 @@ export default function PrivacyPage() {
             <p>Questions? Email us at <a href="mailto:apexadvantagetrust@gmail.com" className="text-purple-400 hover:text-purple-300">apexadvantagetrust@gmail.com</a>.</p>
           </section>
         </div>
-        <div className="mt-16 pt-8 border-t border-white/5 flex items-center gap-6 text-sm text-gray-500">
+        <div className="mt-16 pt-8 border-t border-white/5 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-gray-500">
           <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
           <Link href="/" className="hover:text-white transition-colors">Back to Home</Link>
         </div>
