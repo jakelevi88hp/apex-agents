@@ -155,8 +155,8 @@ export default function SignupPage() {
           </p>
           <p className="mt-2 text-gray-400 text-sm">
             Questions? Email{' '}
-            <a href="mailto:apexagents@mail.grokbot.com" className="text-purple-300 hover:text-purple-200 underline">
-              apexagents@mail.grokbot.com
+            <a href="mailto:support@apex-ai-agent.com" className="text-purple-300 hover:text-purple-200 underline">
+              support@apex-ai-agent.com
             </a>
           </p>
         </div>

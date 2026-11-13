@@ -1,4 +1,4 @@
-export const SUPPORT_EMAIL = 'apexagents@mail.grokbot.com';
+export const SUPPORT_EMAIL = 'support@apex-ai-agent.com';
 
 export type PricingFaqPart =
   | { type: 'text'; value: string }

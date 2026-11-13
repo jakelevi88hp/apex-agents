@@ -7,7 +7,7 @@
  * FAQ text feeds both the visible FAQ and the FAQPage JSON-LD so they cannot drift.
  */
 
-export const TRADE_SUPPORT_EMAIL = 'apexagents@mail.grokbot.com';
+export const TRADE_SUPPORT_EMAIL = 'support@apex-ai-agent.com';
 
 export type TradeFaq = { question: string; answer: string };
 

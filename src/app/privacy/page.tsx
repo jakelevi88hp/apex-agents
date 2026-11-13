@@ -55,7 +55,7 @@ export default function PrivacyPage() {
           </section>
           <section>
             <h2 className="text-xl font-bold text-white mb-3">7. Contact Us</h2>
-            <p>Questions? Email us at <a href="mailto:apexadvantagetrust@gmail.com" className="text-purple-400 hover:text-purple-300">apexadvantagetrust@gmail.com</a>.</p>
+            <p>Questions? Email us at <a href="mailto:support@apex-ai-agent.com" className="text-purple-400 hover:text-purple-300">support@apex-ai-agent.com</a>.</p>
           </section>
         </div>
         <div className="mt-16 pt-8 border-t border-white/5 flex items-center gap-6 text-sm text-gray-500">
