@@ -137,9 +137,8 @@ const features = [
 ];
 
 const stats = [
-  { value: '✓', label: 'You approve every send' },
+  { value: '3', label: 'Day Free Trial' },
   { value: '5', label: 'Built-In AI Agents' },
-  { value: '30+', label: 'Supported Niches' },
   { value: '9', label: 'Lead Score Signals' },
 ];
 
@@ -157,8 +156,8 @@ const faqs = [
     a: 'Yes. Once your agent is configured, it runs on its own. It scouts leads from Google Maps and review sites, scores them against 9 signals, and drafts personalized outreach for each one. You stay in control: review, edit, or hold any draft from your dashboard, and approved messages go out on a schedule. You also get a daily summary.',
   },
   {
-    q: 'What niches do you support?',
-    a: 'We support 30+ local business types including auto repair, dental, HVAC, law firms, roofing, landscaping, med spas, and more. If your business serves local customers, there\'s almost certainly an agent configuration for you. Check the niches section above or reach out and we\'ll confirm your fit.',
+    q: 'What trades do you support?',
+    a: 'Apex is set up for commercial work in four trades: HVAC, auto repair, electrical, and plumbing. Each one has its own page or guide in the section above. If you run a different kind of local service business, reach out and we\'ll tell you honestly whether it fits.',
   },
   {
     q: 'How is this different from a chatbot?',
@@ -239,7 +238,7 @@ export default function HomePage() {
       </section>
 
       <section className="py-12 px-6 border-y border-white/5 bg-white/[0.02]">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
           {stats.map((s) => (
             <div key={s.label}>
               <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
