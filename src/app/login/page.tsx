@@ -52,6 +52,11 @@ export default function LoginPage() {
             <input
               id="email"
               type="email"
+              name="email"
+              autoComplete="username"
+              inputMode="email"
+              autoCapitalize="none"
+              spellCheck={false}
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -67,6 +72,8 @@ export default function LoginPage() {
             <input
               id="password"
               type="password"
+              name="password"
+              autoComplete="current-password"
               required
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
