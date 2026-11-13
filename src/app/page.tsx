@@ -125,16 +125,6 @@ const features = [
     desc: 'Built for local businesses. Our agents understand your market, your niche, and your city. No generic fluff.',
   },
   {
-    icon: '⭐',
-    title: 'Google Review Engine',
-    desc: 'Automatically identify, score, and reach the right prospects with a proven review and local SEO acquisition system.',
-  },
-  {
-    icon: '📊',
-    title: 'Live Revenue Tracking',
-    desc: 'See exactly what your pipeline looks like in real time. Every lead scored, every outreach tracked, every dollar visible.',
-  },
-  {
     icon: '🎯',
     title: 'Precision Lead Scoring',
     desc: 'Leads are scored from 0 to 200+ across 9 signals. Only your highest-value prospects get your time and your pitch.',
@@ -147,47 +137,18 @@ const features = [
 ];
 
 const stats = [
-  { value: '24/7', label: 'Autonomous Operation' },
+  { value: '✓', label: 'You approve every send' },
   { value: '5', label: 'Built-In AI Agents' },
   { value: '30+', label: 'Supported Niches' },
   { value: '9', label: 'Lead Score Signals' },
 ];
 
-/** Niches that have their own landing page; the rest still go to /signup. */
-const NICHE_PAGES: Record<string, string> = {
-  'HVAC Contractors': '/hvac',
-  'Auto Repair Shops': '/auto',
-};
-
-const nicheCategories = [
-  {
-    label: 'Legal & Finance',
-    niches: ['Law Firms', 'Accountants / CPAs', 'Insurance Agents', 'Financial Advisors', 'Mortgage Brokers'],
-  },
-  {
-    label: 'Home Services',
-    niches: ['HVAC Contractors', 'Plumbing', 'Roofing', 'Electricians', 'Landscaping', 'Pest Control', 'Pool Service', 'Painting / Remodeling'],
-  },
-  {
-    label: 'Health & Wellness',
-    niches: ['Dental Clinics', 'Chiropractors', 'Physical Therapy', 'Med Spas', 'Optometry', 'Veterinarians'],
-  },
-  {
-    label: 'Automotive',
-    niches: ['Auto Repair Shops', 'Auto Detailing', 'Tire Shops', 'Towing Services'],
-  },
-  {
-    label: 'Beauty & Personal Care',
-    niches: ['Hair Salons', 'Barbershops', 'Nail Salons', 'Tattoo Studios', 'Spas & Massage'],
-  },
-  {
-    label: 'Professional Services',
-    niches: ['Real Estate Agents', 'Property Management', 'Staffing Agencies', 'IT & Tech Support'],
-  },
-  {
-    label: 'Food & Hospitality',
-    niches: ['Restaurants', 'Catering Services', 'Food Trucks', 'Bakeries', 'Coffee Shops'],
-  },
+/** Trades with a landing page or an in-depth guide on this site. */
+const tradeLinks = [
+  { label: 'HVAC', href: '/hvac' },
+  { label: 'Auto Repair', href: '/auto' },
+  { label: 'Electricians', href: '/blog/how-to-get-commercial-electrical-contracts-indianapolis' },
+  { label: 'Plumbing', href: '/blog/how-to-get-property-management-contracts-plumbers-indianapolis' },
 ];
 
 const faqs = [
@@ -416,30 +377,21 @@ export default function HomePage() {
             </span>
           </h2>
           <p className="text-gray-400 text-lg mb-16 max-w-2xl mx-auto">
-            30+ local business niches are supported out of the box, with industry-specific messaging, lead scoring, and outreach that sounds like it was written for your market.
+            Apex is set up for commercial work in these trades. Each one has its own page or guide.
           </p>
-          <div className="space-y-10 text-left max-w-5xl mx-auto">
-            {nicheCategories.map((cat) => (
-              <div key={cat.label}>
-                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4 text-center">
-                  {cat.label}
-                </p>
-                <div className="flex flex-wrap justify-center gap-3">
-                  {cat.niches.map((niche) => (
-                    <Link
-                      key={niche}
-                      href={NICHE_PAGES[niche] ?? '/signup'}
-                      className="px-5 py-2.5 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-200 text-sm font-medium hover:border-purple-400/50 hover:bg-purple-500/20 transition-colors"
-                    >
-                      {niche}
-                    </Link>
-                  ))}
-                </div>
-              </div>
+          <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
+            {tradeLinks.map((trade) => (
+              <Link
+                key={trade.label}
+                href={trade.href}
+                className="px-5 py-2.5 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-200 text-sm font-medium hover:border-purple-400/50 hover:bg-purple-500/20 transition-colors"
+              >
+                {trade.label}
+              </Link>
             ))}
           </div>
           <p className="text-gray-600 text-sm mt-12">
-            Don&apos;t see your niche? Apex Agents works for any local service business.
+            Don&apos;t see your trade? Apex Agents works for any local service business.
           </p>
         </div>
       </section>
@@ -459,47 +411,6 @@ export default function HomePage() {
             {faqs.map((faq) => (
               <FAQItem key={faq.q} q={faq.q} a={faq.a} />
             ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-24 px-6 border-b border-white/5 overflow-hidden">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-black mb-4">
-              Your Dashboard,{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                Always On
-              </span>
-            </h2>
-            <p className="text-gray-400 text-lg max-w-xl mx-auto">
-              Track every lead, every agent, and every result in real time.
-            </p>
-          </div>
-
-          <div className="relative">
-            <div
-              className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[300px] bg-purple-600/5 rounded-full blur-3xl pointer-events-none"
-              aria-hidden
-            />
-            <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-purple-900/30">
-              <img
-                src="/dashboard-preview.svg"
-                alt="Apex Agents dashboard showing lead pipeline, active agents, and activity feed"
-                className="w-full block"
-                width={1200}
-                height={700}
-              />
-            </div>
-          </div>
-
-          <div className="mt-10 text-center">
-            <Link
-              href="/signup"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg transition-all shadow-lg shadow-purple-900/50"
-            >
-              Start Free Trial →
-            </Link>
           </div>
         </div>
       </section>
