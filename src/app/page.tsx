@@ -43,7 +43,7 @@ const jsonLd = {
       name: 'Apex Agents',
       url: SITE_URL,
       logo: `${SITE_URL}/icon-512x512.svg`,
-      email: 'apexagents@mail.grokbot.com',
+      email: 'support@apex-ai-agent.com',
       address: {
         '@type': 'PostalAddress',
         addressLocality: 'Indianapolis',
@@ -209,7 +209,7 @@ const faqs = [
   },
   {
     q: 'What happens if I want to pause or cancel?',
-    a: 'You\'re never locked in. You can pause your agents any time from the dashboard. To cancel your subscription, email us at apexagents@mail.grokbot.com for now and we\'ll take care of it.',
+    a: 'You\'re never locked in. You can pause your agents any time from the dashboard. To cancel your subscription, email us at support@apex-ai-agent.com for now and we\'ll take care of it.',
   },
 ];
 
@@ -270,8 +270,8 @@ export default function HomePage() {
             </Link>
             {' · '}
             Questions?{' '}
-            <a href="mailto:apexagents@mail.grokbot.com" className="text-purple-400 hover:text-purple-300 font-semibold">
-              apexagents@mail.grokbot.com
+            <a href="mailto:support@apex-ai-agent.com" className="text-purple-400 hover:text-purple-300 font-semibold">
+              support@apex-ai-agent.com
             </a>
           </p>
         </div>
@@ -529,8 +529,8 @@ export default function HomePage() {
             </div>
             <p className="mt-6 text-sm text-gray-500">
               No credit card required. Questions? Email{' '}
-              <a href="mailto:apexagents@mail.grokbot.com" className="text-purple-400 hover:text-purple-300">
-                apexagents@mail.grokbot.com
+              <a href="mailto:support@apex-ai-agent.com" className="text-purple-400 hover:text-purple-300">
+                support@apex-ai-agent.com
               </a>
             </p>
           </div>
@@ -549,7 +549,7 @@ export default function HomePage() {
             <Link href="/hvac" className="hover:text-white transition-colors">HVAC</Link>
             <Link href="/auto" className="hover:text-white transition-colors">Auto Shops</Link>
             <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
-            <a href="mailto:apexagents@mail.grokbot.com" className="hover:text-white transition-colors">Contact</a>
+            <a href="mailto:support@apex-ai-agent.com" className="hover:text-white transition-colors">Contact</a>
             <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
             <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>

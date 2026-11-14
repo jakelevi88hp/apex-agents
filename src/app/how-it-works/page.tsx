@@ -257,7 +257,7 @@ export default function HowItWorksPage() {
             <Link href="/hvac" className="hover:text-white transition-colors">HVAC</Link>
             <Link href="/auto" className="hover:text-white transition-colors">Auto Shops</Link>
             <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
-            <a href="mailto:apexagents@mail.grokbot.com" className="hover:text-white transition-colors">Contact</a>
+            <a href="mailto:support@apex-ai-agent.com" className="hover:text-white transition-colors">Contact</a>
             <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
             <Link href="/login" className="hover:text-white transition-colors">Sign In</Link>

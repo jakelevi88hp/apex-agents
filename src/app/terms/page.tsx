@@ -39,7 +39,7 @@ export default function TermsPage() {
           </section>
           <section>
             <h2 className="text-xl font-bold text-white mb-3">3. Your Account</h2>
-            <p>You are responsible for maintaining the security of your account credentials and for all activity that occurs under your account. Notify us immediately of any unauthorized use at apexadvantagetrust@gmail.com.</p>
+            <p>You are responsible for maintaining the security of your account credentials and for all activity that occurs under your account. Notify us immediately of any unauthorized use at support@apex-ai-agent.com.</p>
           </section>
           <section>
             <h2 className="text-xl font-bold text-white mb-3">4. Outreach and Compliance</h2>
@@ -63,7 +63,7 @@ export default function TermsPage() {
           </section>
           <section>
             <h2 className="text-xl font-bold text-white mb-3">9. Contact</h2>
-            <p>Questions about these Terms? Contact us at <a href="mailto:apexadvantagetrust@gmail.com" className="text-purple-400 hover:text-purple-300">apexadvantagetrust@gmail.com</a>.</p>
+            <p>Questions about these Terms? Contact us at <a href="mailto:support@apex-ai-agent.com" className="text-purple-400 hover:text-purple-300">support@apex-ai-agent.com</a>.</p>
           </section>
         </div>
         <div className="mt-16 pt-8 border-t border-white/5 flex items-center gap-6 text-sm text-gray-500">
