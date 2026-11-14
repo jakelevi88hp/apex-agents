@@ -66,7 +66,7 @@ export default function TermsPage() {
             <p>Questions about these Terms? Contact us at <a href="mailto:support@apex-ai-agent.com" className="text-purple-400 hover:text-purple-300">support@apex-ai-agent.com</a>.</p>
           </section>
         </div>
-        <div className="mt-16 pt-8 border-t border-white/5 flex items-center gap-6 text-sm text-gray-500">
+        <div className="mt-16 pt-8 border-t border-white/5 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-gray-500">
           <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
           <Link href="/" className="hover:text-white transition-colors">Back to Home</Link>
         </div>
