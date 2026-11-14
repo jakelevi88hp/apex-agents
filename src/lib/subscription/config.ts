@@ -81,7 +81,6 @@ export const PLAN_FEATURES = {
     'API access',
     'Custom integrations',
     'Team collaboration',
-    'Dedicated account manager',
   ],
 };
 
