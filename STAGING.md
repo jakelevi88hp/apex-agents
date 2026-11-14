@@ -110,11 +110,14 @@ git push origin main
 
 ### Viewing Staging Data
 
-Connect to the staging database using the connection string:
+Get the staging connection string from the Neon console or from the Vercel
+environment variables (`DATABASE_URL` for the Preview `staging` branch), then:
 
 ```bash
-psql "postgresql://neondb_owner:npg_fFwRVlh5y0EM@ep-winter-wave-afk2b75j-pooler.c-2.us-west-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require"
+psql "$DATABASE_URL"
 ```
+
+Never commit connection strings or passwords to this repo.
 
 ### Running Migrations
 
