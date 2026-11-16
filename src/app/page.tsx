@@ -206,12 +206,6 @@ export default function HomePage() {
             and writes the outreach. You approve every message before it sends.
           </p>
 
-          <ul className="flex flex-col md:flex-row gap-2 md:gap-6 justify-center text-sm text-gray-300 mb-10 -mt-4">
-            <li>✓ Commercial prospecting for trade shops: property managers, fleets, and facilities near your shop</li>
-            <li>✓ You review and approve every message before anything sends</li>
-            <li>✓ Built in Indianapolis</li>
-          </ul>
-
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup"
               className="px-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-bold text-lg transition-all shadow-lg shadow-purple-900/50">
@@ -224,7 +218,7 @@ export default function HomePage() {
           </div>
 
           <p className="mt-5 text-sm text-gray-400">
-            No credit card required. Plans from $29/mo after your trial.{' '}
+            No credit card required. Plans from $29/mo after your trial. Built in Indianapolis.{' '}
             <Link href="/pricing" className="text-purple-400 hover:text-purple-300 font-semibold">
               See pricing
             </Link>
