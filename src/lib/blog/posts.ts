@@ -649,6 +649,172 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: 'how-to-get-restaurant-hvac-service-contracts-indianapolis',
+    metaTitle: 'Restaurant HVAC Service Contracts in Indianapolis | Apex',
+    title: 'How to Get Restaurant HVAC Service Contracts in Indianapolis',
+    description:
+      'A practical guide for Indianapolis HVAC shops: which restaurants to target, what a restaurant maintenance agreement should cover, and how to follow up.',
+    excerpt:
+      'Why restaurants make good HVAC maintenance accounts, what owners expect from a service agreement, the licensing they may ask about, and an outreach routine that fits around a busy service schedule.',
+    datePublished: '2026-11-17',
+    dateModified: '2026-11-17',
+    ctaHref: '/signup?ref=blog-restaurant-hvac-indy',
+    blocks: [
+      {
+        type: 'p',
+        text: 'A restaurant is one of the hardest places for HVAC equipment to work. Cooking lines dump heat into the building all day, exhaust hoods pull large volumes of air out, and walk-in coolers and reach-ins run nonstop. When something fails on a Friday night, the owner is not shopping for the lowest price. They want someone who answers the phone and shows up.',
+      },
+      {
+        type: 'p',
+        text: 'That makes restaurants a good fit for an HVAC shop that wants steady maintenance work between residential rushes. This guide covers choosing restaurants, writing a service agreement, building a target list around Indianapolis, and following up. For offices, retail, and property managers, see our broader guide on [commercial HVAC accounts in Indianapolis](/blog/how-to-get-commercial-hvac-accounts-indianapolis).',
+      },
+      { type: 'h2', text: '1. Decide which restaurants you can actually serve' },
+      {
+        type: 'p',
+        text: '"Restaurants" covers very different buildings and buyers. Before you start calling, decide which of these fit your crew, your hours, and your skills:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Independent, owner-operated restaurants and bars. The owner usually makes the decision, is often on site, and cares most about response time and a straight answer on cost.',
+          'Small local groups with two to ten locations. One person often handles facilities for every store, so one good relationship can turn into several buildings.',
+          'Franchise locations. Some must use a national facilities provider, so ask early whether they can hire you directly.',
+          'Bakeries, coffee shops, breweries, and commissary kitchens. Same mix of cooling, ventilation, and refrigeration, often with less competition.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Then be honest about scope. Many restaurant calls involve refrigeration: walk-in coolers, freezers, reach-ins, and ice machines. If your techs do not work on refrigeration, say so up front and decide whether you will partner with a refrigeration contractor or stick to rooftop units, makeup air, and comfort cooling.',
+      },
+      { type: 'h2', text: '2. Get your license and paperwork ready' },
+      {
+        type: 'p',
+        text: 'Owners often ask whether you are licensed where their building is. Indiana does not issue a statewide HVAC contractor license, so licensing is handled locally. Inside the Consolidated City of Indianapolis, the Department of Business and Neighborhood Services (BNS) licenses HVAC contractors after an exam and approval from the Board of Heating and Cooling Examiners. According to the [City of Indianapolis contractor license page](https://www.indy.gov/activity/contractor-licenses), that license covers work on heating and cooling systems and refrigeration equipment, plus ductwork for certain commercial exhaust hoods. The excluded cities of Lawrence, Beech Grove, Speedway, and Southport, and the surrounding suburbs, set their own rules, so check each jurisdiction you plan to work in.',
+      },
+      {
+        type: 'p',
+        text: 'Refrigerant handling is regulated at the federal level as well. EPA rules under Section 608 of the Clean Air Act require technicians who maintain, service, repair, or dispose of equipment that could release ozone-depleting refrigerants to be certified. The [EPA Section 608 technician certification page](https://www.epa.gov/section608/section-608-technician-certification-0) explains the certification types.',
+      },
+      {
+        type: 'p',
+        text: 'Have a vendor packet ready to send the same day someone asks:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'A current certificate of insurance (COI). Ask what liability limits they require and whether they need to be named as additional insured.',
+          'A signed W-9 and your license numbers for each jurisdiction you cover.',
+          'A one-page preventive maintenance agreement (more on what goes in it below).',
+          'Your after-hours phone number and how emergency calls are priced, including nights, weekends, and holidays.',
+          'A sample service report with photos, readings, and recommendations.',
+        ],
+      },
+      { type: 'h2', text: '3. Build a maintenance agreement around how restaurants run' },
+      {
+        type: 'p',
+        text: 'A restaurant agreement should reflect the kitchen. Keep it to one page and cover:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Visit frequency. Many restaurants want visits at least before cooling season and before heating season. Busy kitchens may need more frequent filter and coil work. Price each option clearly.',
+          'What each visit includes: filters, belts, condenser and evaporator coils, condensate drains, refrigerant checks, safety controls, and a check of how the makeup air unit and exhaust system are working together.',
+          'Refrigeration equipment, if you service it: walk-in and reach-in condenser cleaning, door gaskets, temperature checks, and defrost settings.',
+          'Visit timing. Schedule work before opening or between lunch and dinner service so you are not on the roof or in the walk-in during the rush.',
+          'Emergency terms: your target response time, the after-hours rate, and whether agreement customers get priority over non-agreement calls.',
+          'Approval limits. Agree on a not-to-exceed amount you can spend on a repair without calling, and how you will send photos and a quote for anything above it.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'One item to keep clear: cleaning grease out of kitchen exhaust hoods and ducts is usually done by specialized hood cleaning companies, not HVAC shops. If you do not offer it, say so in the agreement so nobody assumes it is included.',
+      },
+      { type: 'h2', text: '4. Build a short, qualified target list' },
+      {
+        type: 'p',
+        text: 'You do not need thousands of names. A list of 50 to 100 restaurants inside your radius is enough to work for months. Good places to find them:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Google Maps searches by category and area, such as "restaurant", "brewery", or "bakery" plus a neighborhood, suburb, or zip code you serve.',
+          'Restaurants on your existing service routes. If a truck is already near Fountain Square or Broad Ripple twice a week, nearby restaurants are easy to add.',
+          'New openings. "Coming soon" signs and new liquor license notices often mean a new owner who has not picked an HVAC vendor yet.',
+          'Referrals from plumbers, electricians, and kitchen equipment techs who already work in restaurants.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Then qualify each name using what is public. Recent reviews that mention a hot dining room, a broken cooler, or closing early do not prove a restaurant needs a new HVAC vendor, but they tell you where a conversation might start.',
+      },
+      { type: 'h2', text: '5. Reach out at the right time with something specific' },
+      {
+        type: 'p',
+        text: 'Owners are busiest during lunch and dinner, so call or visit mid-afternoon on a weekday. Bring a one-page sheet with your license number, after-hours line, and maintenance options. For email, keep it short and ask for something small. Here is a template you can adapt. It is an example only, not a message from a real campaign:',
+      },
+      {
+        type: 'example',
+        label: 'Example outreach (adapt before sending)',
+        lines: [
+          'Subject: Backup HVAC for [restaurant name]?',
+          'Hi [first name], I run [your company], a licensed HVAC contractor based in [your area] of Indianapolis. We service equipment near [restaurant name] regularly, so I wanted to introduce us.',
+          'A lot of restaurant owners like having a second HVAC company on file for nights and weekends, or a quick look at rooftop units and makeup air before the season changes. We schedule maintenance outside your service hours, and I can send our COI, W-9, license numbers, and rates today.',
+          'Would a 10-minute call this week work, or is there someone else I should talk to about the building?',
+          '[Your name], [phone], [business address]. Reply "no thanks" and I will not follow up.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'If you send cold email, follow the CAN-SPAM Act basics: an honest subject line, your real business postal address, a clear way to opt out, and honoring opt-outs promptly.',
+      },
+      { type: 'h2', text: '6. Ask for a small first job' },
+      {
+        type: 'p',
+        text: 'Asking an owner to drop the HVAC company they already use is a big request. Asking for a small, low-risk first job is not. Good entry points:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Being the backup or after-hours HVAC contact.',
+          'A one-time rooftop and makeup air inspection with a written list of what you found and a price to fix it.',
+          'A seasonal tune-up before summer, when kitchens and dining rooms are hardest to keep cool.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Each one shows the owner how you communicate, whether you show up on time, and whether your invoice matches your quote.',
+      },
+      { type: 'h2', text: '7. Follow up on a schedule, not from memory' },
+      {
+        type: 'p',
+        text: 'Restaurants rarely sign up on the first contact. The owner who ignores you in November may call in June when the dining room is hot and their usual company is booked for a week.',
+      },
+      {
+        type: 'p',
+        text: 'Keep a simple tracker with the restaurant, contact, last touch, and next step. A reasonable rhythm: a short follow-up a week after the first message, another a few weeks later with something useful (for example, a reminder to have heating checked before the first cold snap, or condenser coils cleaned before summer), then a seasonal check-in after that. Stop when someone asks you to.',
+      },
+      { type: 'h2', text: '8. Keep the account and grow it' },
+      {
+        type: 'ol',
+        items: [
+          'Respond inside the window you promised, every time.',
+          'Work around service hours and clean up after yourself, especially in the kitchen.',
+          'Flag aging units and recurring problems early so the owner can budget for replacement instead of being surprised.',
+          'After a few clean visits, ask whether they own other locations or know another owner who needs help.',
+        ],
+      },
+      { type: 'h2', text: 'Where Apex Agents fits' },
+      {
+        type: 'p',
+        text: 'Steps 4, 5, and 7 are where most HVAC owners run out of time, because prospecting competes with service calls that pay today. Apex Agents is built to run that loop for trade shops. Agents look for local businesses in the niches and cities you choose, such as restaurants, breweries, and multi-location food groups, and draft personalized outreach. You review, edit, or hold every draft before anything is sent, and follow-ups stay on a schedule. See [how it works](/how-it-works) for [HVAC companies](/hvac).',
+      },
+      {
+        type: 'p',
+        text: 'You can try it with a 3-day free trial, no credit card required. After that, [plans start at $29/month](/pricing).',
+      },
+    ],
+  },
 ];
 
 export function getAllPosts(): BlogPost[] {
