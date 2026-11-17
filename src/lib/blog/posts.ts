@@ -807,7 +807,7 @@ export const BLOG_POSTS: BlogPost[] = [
       { type: 'h2', text: 'Where Apex Agents fits' },
       {
         type: 'p',
-        text: 'Steps 4, 5, and 7 are where most HVAC owners run out of time, because prospecting competes with service calls that pay today. Apex Agents is built to run that loop for trade shops. Agents scout local businesses in the niches and cities you choose, such as restaurants, breweries, and multi-location food groups, [score each prospect on nine public signals](/how-it-works) like review recency, owner response rate, and listing completeness, and draft personalized outreach. You review, edit, or hold every draft before anything is sent, and follow-ups stay on a schedule. See how it works for [HVAC companies](/hvac).',
+        text: 'Steps 4, 5, and 7 are where most HVAC owners run out of time, because prospecting competes with service calls that pay today. Apex Agents is built to run that loop for trade shops. Agents look for local businesses in the niches and cities you choose, such as restaurants, breweries, and multi-location food groups, and draft personalized outreach. You review, edit, or hold every draft before anything is sent, and follow-ups stay on a schedule. See [how it works](/how-it-works) for [HVAC companies](/hvac).',
       },
       {
         type: 'p',
