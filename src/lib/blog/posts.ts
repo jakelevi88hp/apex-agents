@@ -40,6 +40,174 @@ export interface BlogPost {
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    slug: 'how-to-get-commercial-snow-removal-contracts-indianapolis',
+    metaTitle: 'Commercial Snow Removal Contracts in Indianapolis | Apex',
+    title: 'How to Get Commercial Snow Removal Contracts in Indianapolis',
+    description:
+      'A practical guide for Indianapolis plow and landscaping crews: which commercial clients to target, what they ask for, and how to follow up.',
+    excerpt:
+      'Which commercial lots fit a small plow crew, what property managers check before they sign, how to price and document the work, and a follow-up routine that carries into next season.',
+    datePublished: '2026-11-24',
+    dateModified: '2026-11-24',
+    ctaHref: '/signup?ref=blog-snow-removal-indy',
+    blocks: [
+      {
+        type: 'p',
+        text: 'For a lot of landscaping and property maintenance crews in Indianapolis, winter is the slow season. Mowing contracts end, the trucks sit, and the good employees start looking for other work. Commercial snow removal is how many crews keep trucks moving and people paid from December through March: a retail center, an apartment community, or a medical office that needs its lot and walks cleared before anyone shows up in the morning.',
+      },
+      {
+        type: 'p',
+        text: 'Many commercial snow contracts are signed in late summer and fall. If you are reading this in late November, you are not too late, you are just working a different angle. This guide covers both this season and next, in the order you would actually do the work.',
+      },
+      { type: 'h2', text: '1. Pick the kind of commercial lots you can actually handle' },
+      {
+        type: 'p',
+        text: 'One truck with a plow and a tailgate spreader is a very different operation from a crew with loaders and a bulk salt pile. Match targets to your equipment:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Small retail strip centers and standalone shops. The lots are manageable, and one landlord or property manager often controls several centers.',
+          'Medical, dental, and veterinary offices, which open early and worry about patients slipping on the way in.',
+          'Apartment communities and HOAs with private streets. The city does not plow privately maintained HOA streets, so someone has to. These sites often need sidewalk crews as well as plowing.',
+          'Churches, daycares, and private schools, which need lots cleared on specific days and times.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Then build a route, not just a list. Every commercial client is really asking whether you will finish before they open. An east side crew can promise a 6 AM finish in Irvington and Cumberland, but probably not in Zionsville on the same storm. Fewer sites close together beats more sites spread across the county.',
+      },
+      { type: 'h2', text: '2. Know the sidewalk rules your clients have to meet' },
+      {
+        type: 'p',
+        text: 'One reason businesses pay for snow removal is that they are on the hook for their sidewalks. Inside Indianapolis, the city says property owners and occupants must keep the sidewalks around their property clear, with a 5-foot-wide path. If snow stops falling after 7 p.m., the sidewalk has to be clear by 9 a.m. the next morning, and if it stops after 9 a.m., by 7 p.m. that day. Snow cleared from sidewalks should not be pushed into the street, over crosswalks, into alley entrances, or around fire hydrants. The city lists a $50 fine for not clearing. The [Indy DPW winter weather page](https://www.indy.gov/activity/snow-removal) has the current details.',
+      },
+      {
+        type: 'p',
+        text: 'A manager with several sites likes hearing that your sidewalk crew works to those deadlines and does not bury the hydrant out front. Suburbs and excluded cities can have their own rules, so check before promising anything outside the city.',
+      },
+      { type: 'h2', text: '3. Get your vendor paperwork ready before you reach out' },
+      {
+        type: 'p',
+        text: 'Commercial clients rarely sign a plow contractor without paperwork on file. Have this ready to send the same day someone asks:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'A certificate of insurance (COI) for general liability and commercial auto. Many property managers will ask to be listed as additional insured, so ask your agent how fast they can issue certificates.',
+          'A completed IRS [Form W-9](https://www.irs.gov/forms-pubs/about-form-w-9), which the client uses to collect your taxpayer identification number for their tax reporting.',
+          'A simple service agreement that spells out the trigger depth, what gets cleared (drive lanes, parking stalls, sidewalks, entrances), when salt or ice melt is applied, and how you handle drifting and refreezes.',
+          'A rate sheet in the format the client prefers, plus your 24-hour contact number.',
+          'A site map for each property marking where snow gets piled, fire lanes, hydrants, curbs, and anything a plow could hit.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Some management companies also require vendors to register through an online vendor portal before they can be paid. Ask early, including whether there is a fee.',
+      },
+      { type: 'h2', text: '4. Price it in a way commercial buyers understand' },
+      {
+        type: 'p',
+        text: 'Commercial snow work is usually priced one of three ways, and buyers often have a preference:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Per push or per visit, with salt or ice melt billed per application. Simple to explain, but the client pays more in a heavy winter and you earn less in a light one.',
+          'Per event, often tiered by snowfall depth (for example, 2 to 4 inches, 4 to 6 inches, and so on). Make sure the contract says how depth is measured.',
+          'Seasonal, a fixed monthly or season price, sometimes with a cap on the number of events. Predictable for the client, but you carry the weather risk.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Whatever you choose, log every visit: time on and off site, depth, what was cleared, and material used, with timestamped photos. If a client questions an invoice or someone slips in the lot, that log protects you.',
+      },
+      { type: 'h2', text: '5. Build a short, qualified list' },
+      {
+        type: 'p',
+        text: 'You do not need a big database. A list of 30 to 60 sites along a route you can actually run is plenty. Good places to find them:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Drive your route and note retail centers, offices, and apartment communities, plus the property management company on the leasing or "for lease" signs.',
+          'Google Maps searches for property management companies, apartment communities, medical offices, and churches in the neighborhoods you can reach fast.',
+          'Your existing landscaping and mowing clients. They already trust you, and many need a winter vendor.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Then check recent Google reviews for each property. Complaints about icy walks or unplowed lots do not prove the manager wants a new contractor, but they give you something specific and respectful to mention.',
+      },
+      { type: 'h2', text: '6. Reach out with something specific' },
+      {
+        type: 'p',
+        text: 'Property managers get generic vendor emails all year. What gets a reply in winter is short, local, and offers to solve a problem they have right now. Here is a template you can adapt. It is an example only, not a message from a real campaign:',
+      },
+      {
+        type: 'example',
+        label: 'Example outreach (adapt before sending)',
+        lines: [
+          'Subject: Backup snow removal for [property name]?',
+          'Hi [first name], I run [your company], a snow and ice crew based in [your area] of Indianapolis. We already clear lots near [property name] on the [side of town], so we can be on site early on storm mornings.',
+          'If your current contractor gets stretched during a big storm, or if you need sidewalk crews to keep entrances clear by opening, we can be your backup. I can send our COI, W-9, sample agreement, and rates today.',
+          'Is there a good time for a quick call, or should I send the paperwork to someone else on your team?',
+          '[Your name], [phone], [business address]. Reply "no thanks" and I will not follow up.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Calls and visits work well too, especially with owner-run businesses and apartment offices. If you send cold email, follow the CAN-SPAM Act basics: an honest subject line, your real business postal address, a clear way to opt out, and honoring opt-outs promptly.',
+      },
+      { type: 'h2', text: '7. If it is mid-season, ask for a small first step' },
+      {
+        type: 'p',
+        text: 'By December most sites have a contractor, but there are still openings:',
+      },
+      {
+        type: 'ul',
+        items: [
+          'Being the backup or overflow contractor for big storms, when primary crews fall behind.',
+          'Sidewalk and entrance work only, for a site where the plow contractor does not handle walks well.',
+          'Per-push work on a site whose contractor dropped them or went out of business.',
+          'A walk-through this winter to quote next season, with a site map and notes on where the current setup struggles.',
+        ],
+      },
+      {
+        type: 'p',
+        text: 'Each one shows the manager whether you show up on time and send clean invoices, which is what they remember when next winter\'s contracts go out.',
+      },
+      { type: 'h2', text: '8. Follow up on a schedule, not from memory' },
+      {
+        type: 'p',
+        text: 'The manager who ignores your first message may call at 4 AM when their regular crew does not show. Keep a simple tracker with the company, contact, last touch, and next step.',
+      },
+      {
+        type: 'p',
+        text: 'A reasonable rhythm is a follow-up a week after the first message, another before the next big storm in the forecast, and a check-in in late summer, before next season gets decided. Stop when someone asks you to.',
+      },
+      { type: 'h2', text: '9. Keep the account and grow it' },
+      {
+        type: 'ol',
+        items: [
+          'Finish before the opening time you promised, every storm.',
+          'Send a short service report after each visit with times, depth, and material used.',
+          'Invoice on the schedule the client expects, with the property name and any PO number on it.',
+          'In spring, offer your landscaping or lot maintenance services, and ask whether they manage other properties you could cover next winter.',
+        ],
+      },
+      { type: 'h2', text: 'Where Apex Agents fits' },
+      {
+        type: 'p',
+        text: 'Steps 5, 6, and 8 are where most crew owners run out of time, because prospecting competes with storm nights and the work that pays today. Apex Agents is built to run that loop for trade businesses. Agents look for local businesses in the niches and cities you choose, such as property management companies, retail centers, and medical offices, and draft personalized outreach. You review, edit, or hold every draft before anything is sent, and follow-ups stay on a schedule. See [how it works](/how-it-works), or read our guide to [property management contracts](/blog/how-to-get-property-management-contracts-plumbers-indianapolis) for more on how managers pick vendors.',
+      },
+      {
+        type: 'p',
+        text: 'You can try it with a 3-day free trial, no credit card required. After that, [plans start at $29/month](/pricing).',
+      },
+    ],
+  },
+  {
     slug: 'how-to-get-commercial-hvac-accounts-indianapolis',
     metaTitle: 'How to Get Commercial HVAC Accounts in Indianapolis | Apex',
     title: 'How to Get Commercial HVAC Accounts in Indianapolis',
